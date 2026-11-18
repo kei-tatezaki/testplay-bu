@@ -29,5 +29,7 @@ ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
 .fblist{display:grid;gap:10px}
+.upd{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:14px}
+.upd b{display:block;font-size:12px;color:var(--accent)}
 .fbitem{border-top:1px solid var(--line);padding-top:10px;font-size:14px;display:grid;gap:2px}
 .fbitem p{margin:4px 0 0;white-space:pre-wrap}

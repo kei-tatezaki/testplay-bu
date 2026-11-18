@@ -157,6 +157,8 @@ ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
 .fblist{display:grid;gap:10px}
+.upd{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:14px}
+.upd b{display:block;font-size:12px;color:var(--accent)}
 .fbitem{border-top:1px solid var(--line);padding-top:10px;font-size:14px;display:grid;gap:2px}
 .fbitem p{margin:4px 0 0;white-space:pre-wrap}
 """
@@ -226,6 +228,7 @@ def build():
 <p class="one">{e(g['oneliner'])}</p>
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
+{''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
 <div class="row"><a class="btn" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g)}</div>
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>

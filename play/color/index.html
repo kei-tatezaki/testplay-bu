@@ -5,46 +5,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>いろタッチ30</title>
 <style>
-:root{--bg:#f4f1ea;--ink:#1f1d1a;--muted:#6b665d;--card:#fffdf8;--line:#ddd6c8}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+:root{--bg:#f4f1ea;--ink:#1f1d1a;--muted:#6b665d;--card:#fffdf8;--line:#ddd6c8;--accent:#1f6f6a}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;user-select:none;-webkit-user-select:none}
 .tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
 h1{margin:0;font-size:22px}
 p{margin:0;color:var(--muted);font-size:13px;text-align:center;max-width:36ch}
+.modes{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px}
+.modes button{border:0;background:none;border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:700}
+.new{font-size:10px;background:#e2a52b;color:#2a2000;border-radius:999px;padding:1px 6px;margin-left:4px;font-weight:700}
 .hud{display:flex;gap:24px;font-variant-numeric:tabular-nums;font-size:15px}
 .word{font-size:64px;font-weight:800;height:84px;line-height:84px;letter-spacing:.05em}
 .grid{display:grid;grid-template-columns:repeat(2,140px);gap:12px}
-button{font:inherit;border:0;border-radius:14px;height:72px;font-size:18px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation}
-button:active{transform:scale(.97)}
+.grid button{font:inherit;border:0;border-radius:14px;height:72px;font-size:18px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation}
+.grid button:active{transform:scale(.97)}
 button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.start{background:var(--ink);padding:0 28px;height:52px;font-size:16px}
+.start{font:inherit;border:0;border-radius:14px;background:var(--ink);color:#fff;padding:0 28px;height:52px;font-size:16px;font-weight:700;cursor:pointer}
 .flash-ok{animation:ok .25s}.flash-ng{animation:ng .3s}
 @keyframes ok{50%{transform:scale(1.08)}}
 @keyframes ng{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.panel{width:min(320px,100%);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:8px}
+.panel h2{margin:0;font-size:15px}
+.panel ol{margin:0;padding-left:1.6em;font-size:14px;font-variant-numeric:tabular-nums;display:grid;gap:2px}
+.panel ol li span{float:right;font-weight:700}
+.panel .me{color:var(--accent);font-weight:700}
+.save{display:flex;gap:6px}
+.save input{flex:1;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;min-width:0}
+.save button{font:inherit;border:0;border-radius:10px;background:var(--accent);color:#fff;padding:0 14px;font-weight:700;cursor:pointer}
+.small{font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.flash-ok,.flash-ng{animation:none}}
 </style>
 </head>
 <body>
 <span class="tag">テストプレイ部 運営サンプル</span>
 <h1>いろタッチ30</h1>
-<p>表示された<b>文字の色</b>と同じボタンを押そう。文字の意味にだまされないで！30秒で何問いける？</p>
+<div class="modes" role="group" aria-label="モード">
+  <button type="button" id="mInk" aria-pressed="true">文字の色</button>
+  <button type="button" id="mWord" aria-pressed="false">書いてある色<span class="new">NEW</span></button>
+</div>
+<p id="rule"></p>
 <div class="hud"><span id="time">30.0 秒</span><span id="score">0 問</span></div>
 <div class="word" id="word">いろ</div>
 <div class="grid" id="grid"></div>
 <button class="start" id="start" type="button">スタート</button>
 <p id="result"></p>
+<div class="panel" id="savePanel" hidden>
+  <h2>ランキングに登録する</h2>
+  <form class="save" id="saveForm"><input id="name" maxlength="12" placeholder="名前（12文字まで）" autocomplete="nickname"><button type="submit">登録</button></form>
+  <div class="small" id="saveMsg" aria-live="polite"></div>
+</div>
+<div class="panel"><h2 id="rankTitle">ランキング</h2><ol id="rank"><li class="small">読み込み中…</li></ol></div>
+<p class="small">「書いてある色」モードとランキングは、テストプレイ部でもらった感想から追加しました。</p>
 <script>
 (function(){
+const SB_URL='https://jwrzqaxuvmdbroemenng.supabase.co', SB_KEY='sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
 const COLORS=[{n:'あか',c:'#d6453d'},{n:'あお',c:'#2f6fd6'},{n:'みどり',c:'#2f9a52'},{n:'きいろ',c:'#d9a400'}];
-const grid=document.getElementById('grid'),word=document.getElementById('word'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),startB=document.getElementById('start'),result=document.getElementById('result');
-let answer=-1,score=0,miss=0,end=0,running=false,raf=0;
+const RULES={ink:'表示された<b>文字の色</b>と同じボタンを押そう。文字の意味にだまされないで！',word:'今度は逆！<b>書いてある色の名前</b>のボタンを押そう。文字の色にだまされないで！'};
+const $=id=>document.getElementById(id);
+const grid=$('grid'),word=$('word'),timeEl=$('time'),scoreEl=$('score'),startB=$('start'),result=$('result');
+let mode='ink',answer=-1,score=0,miss=0,end=0,running=false,raf=0,lastScore=0,lastMode='ink';
+const store={get(k,d){try{return JSON.parse(localStorage.getItem('tpb:'+k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem('tpb:'+k,JSON.stringify(v))}catch(e){}}};
+let cid=store.get('cid',''); if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()); store.set('cid',cid)}
+$('name').value=store.get('colorName','');
 COLORS.forEach((col,i)=>{const b=document.createElement('button');b.type='button';b.textContent=col.n;b.style.background=col.c;b.addEventListener('click',()=>pick(i));grid.appendChild(b)});
-function next(){let w=Math.floor(Math.random()*4),a=Math.floor(Math.random()*4);if(Math.random()<.75)while(a===w)a=Math.floor(Math.random()*4);answer=a;word.textContent=COLORS[w].n;word.style.color=COLORS[a].c}
-function pick(i){if(!running)return;word.classList.remove('flash-ok','flash-ng');void word.offsetWidth;if(i===answer){score++;word.classList.add('flash-ok')}else{miss++;end-=1500;word.classList.add('flash-ng')}scoreEl.textContent=score+' 問';next()}
-function tick(){const left=Math.max(0,end-performance.now());timeEl.textContent=(left/1000).toFixed(1)+' 秒';if(left<=0){stop();return}raf=requestAnimationFrame(tick)}
-function start(){score=0;miss=0;scoreEl.textContent='0 問';result.textContent='ミスすると1.5秒へるよ';running=true;startB.style.visibility='hidden';end=performance.now()+30000;next();tick()}
-function stop(){running=false;cancelAnimationFrame(raf);word.textContent='おわり';word.style.color='var(--ink)';result.textContent=score+'問正解・ミス'+miss+'回';startB.textContent='もう一回';startB.style.visibility='visible'}
+function setMode(m){ if(running)return; mode=m; $('mInk').setAttribute('aria-pressed',String(m==='ink')); $('mWord').setAttribute('aria-pressed',String(m==='word')); $('rule').innerHTML=RULES[m]; $('rankTitle').textContent='ランキング（'+(m==='ink'?'文字の色':'書いてある色')+'）'; loadRank() }
+$('mInk').addEventListener('click',()=>setMode('ink')); $('mWord').addEventListener('click',()=>setMode('word'));
+function next(){ let w=Math.floor(Math.random()*4), ink=Math.floor(Math.random()*4); if(Math.random()<.75) while(ink===w) ink=Math.floor(Math.random()*4);
+  word.textContent=COLORS[w].n; word.style.color=COLORS[ink].c; answer = mode==='ink' ? ink : w }
+function pick(i){ if(!running)return; word.classList.remove('flash-ok','flash-ng'); void word.offsetWidth;
+  if(i===answer){score++;word.classList.add('flash-ok')}else{miss++;end-=1500;word.classList.add('flash-ng')} scoreEl.textContent=score+' 問'; next() }
+function tick(){ const left=Math.max(0,end-performance.now()); timeEl.textContent=(left/1000).toFixed(1)+' 秒'; if(left<=0){stop();return} raf=requestAnimationFrame(tick) }
+function start(){ score=0;miss=0;scoreEl.textContent='0 問';result.textContent='ミスすると1.5秒へるよ';running=true;startB.style.visibility='hidden';$('savePanel').hidden=true;end=performance.now()+30000;next();tick() }
+function stop(){ running=false;cancelAnimationFrame(raf);word.textContent='おわり';word.style.color='var(--ink)';result.textContent=score+'問正解・ミス'+miss+'回';startB.textContent='もう一回';startB.style.visibility='visible';
+  lastScore=score; lastMode=mode; if(score>0){$('savePanel').hidden=false;$('saveMsg').textContent=''} }
 startB.addEventListener('click',start);
+$('saveForm').addEventListener('submit',async e=>{ e.preventDefault(); const name=$('name').value.trim(); const msg=$('saveMsg');
+  if(!name){msg.textContent='名前を入れてね';return} store.set('colorName',name); msg.textContent='登録中…';
+  try{ const r=await fetch(SB_URL+'/rest/v1/color_scores',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({mode:lastMode,name,score:lastScore,client_id:cid})});
+    if(r.ok){msg.textContent='登録したよ！';$('savePanel').hidden=true;loadRank(name)} else { const j=await r.json().catch(()=>({})); msg.textContent=j.message==='banned_word'?'その名前は使えないよ':'登録できなかった…もう一度試してね' } }
+  catch(err){msg.textContent='通信できなかった…'} });
+async function loadRank(me){ const ol=$('rank');
+  try{ const r=await fetch(SB_URL+'/rest/v1/color_scores?select=name,score&mode=eq.'+mode+'&order=score.desc,created_at.asc&limit=10',{headers:{apikey:SB_KEY}}); const rows=await r.json();
+    ol.replaceChildren(); if(!Array.isArray(rows)||!rows.length){const li=document.createElement('li');li.className='small';li.textContent='まだ記録がありません。1位をねらおう！';ol.appendChild(li);return}
+    rows.forEach(x=>{const li=document.createElement('li');li.textContent=x.name;const s=document.createElement('span');s.textContent=x.score+'問';li.appendChild(s);if(me&&x.name===me)li.className='me';ol.appendChild(li)}) }
+  catch(e){ ol.innerHTML='<li class="small">ランキングを読み込めませんでした</li>' } }
+setMode('ink');
 })();
 </script>
 </body>

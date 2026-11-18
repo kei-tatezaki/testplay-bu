@@ -140,6 +140,7 @@ order.forEach((g,idx)=>{
   const chips = el('div',{class:'chips'},
     !played.has(g.slug)?el('span',{class:'chip new'},'まだ遊んでない'):null,
     g.sample?el('span',{class:'chip'},'運営サンプル'):null,
+    (g.updates||[]).length?el('span',{class:'chip check'},'感想でアップデート'):null,
     g.stage?el('span',{class:'chip'},g.stage):null,
     g.minutes?el('span',{class:'chip'},g.minutes):null,
     g.check?el('span',{class:'chip check'},'確かめたい：'+g.check):null);
