@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ひかりけし</title>
+<style>
+:root{--bg:#0f1622;--ink:#e9eef6;--muted:#8a96aa;--on:#7fe0c9;--off:#1e2a3c;--line:#2b3a52}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+h1{margin:0;font-size:22px;letter-spacing:.08em}
+.step{font-size:13px;color:var(--on)}
+.guide{margin:0;font-size:15px;text-align:center;max-width:32ch;min-height:3.2em;line-height:1.6}
+.board{display:grid;gap:8px}
+.cell{width:64px;height:64px;border-radius:12px;border:0;background:var(--off);cursor:pointer;transition:background .15s,box-shadow .15s;touch-action:manipulation}
+.cell.on{background:var(--on);box-shadow:0 0 18px rgba(127,224,201,.45)}
+.cell.hint{outline:3px dashed #ffd36e;outline-offset:3px}
+.cell:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.row{display:flex;gap:10px}
+button.ctl{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 18px;cursor:pointer}
+.moves{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.cell{transition:none}}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>ひかりけし</h1>
+<div class="step" id="step">ステージ 1 / 5</div>
+<p class="guide" id="guide"></p>
+<div class="board" id="board"></div>
+<div class="moves" id="moves">手数 0</div>
+<div class="row"><button class="ctl" id="retry" type="button">やりなおす</button><button class="ctl" id="next" type="button" hidden>つぎへ</button></div>
+<script>
+(function(){
+// 各ステージ: サイズ、最初に押して作る盤面、ガイド文、ヒントのマス
+const STAGES=[
+ {n:3,press:[[1,1]],guide:'光っているマスを全部消すパズル。まずは光っている十字の真ん中を押してみよう。',hint:[1,1]},
+ {n:3,press:[[0,0]],guide:'押したマスと、その上下左右がひっくり返るよ。角を押すと3マスだけ変わる。',hint:[0,0]},
+ {n:3,press:[[0,1],[2,1]],guide:'2回押す問題。どこを押せば全部消えるか考えてみて。',hint:null},
+ {n:4,press:[[1,1],[2,2],[0,3]],guide:'4×4になったよ。同じマスを2回押すと元に戻ることも覚えておこう。',hint:null},
+ {n:4,press:[[0,0],[1,2],[3,1],[2,3]],guide:'最終問題。ヒントなしでいけるかな？',hint:null}
+];
+const board=document.getElementById('board'),guide=document.getElementById('guide'),stepEl=document.getElementById('step'),movesEl=document.getElementById('moves'),nextB=document.getElementById('next'),retryB=document.getElementById('retry');
+let si=0,grid=[],moves=0,cleared=false,t0=performance.now(),times=[];
+function flip(r,c,n){[[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{const rr=r+dr,cc=c+dc;if(rr>=0&&rr<n&&cc>=0&&cc<n)grid[rr][cc]=!grid[rr][cc]})}
+function load(i){si=i;const s=STAGES[i];grid=Array.from({length:s.n},()=>Array(s.n).fill(false));s.press.forEach(([r,c])=>flip(r,c,s.n));moves=0;cleared=false;t0=performance.now();nextB.hidden=true;stepEl.textContent='ステージ '+(i+1)+' / '+STAGES.length;guide.textContent=s.guide;render()}
+function render(){const s=STAGES[si];board.style.gridTemplateColumns='repeat('+s.n+',64px)';board.replaceChildren();grid.forEach((row,r)=>row.forEach((on,c)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(!cleared&&moves===0&&s.hint&&s.hint[0]===r&&s.hint[1]===c?' hint':'');b.setAttribute('aria-label',(r+1)+'行'+(c+1)+'列 '+(on?'光っている':'消えている'));b.addEventListener('click',()=>tap(r,c));board.appendChild(b)}));movesEl.textContent='手数 '+moves}
+function tap(r,c){if(cleared)return;flip(r,c,STAGES[si].n);moves++;if(grid.every(row=>row.every(v=>!v))){cleared=true;const sec=((performance.now()-t0)/1000).toFixed(1);times[si]=sec;guide.textContent=si<STAGES.length-1?'クリア！ '+moves+'手・'+sec+'秒':'全ステージクリア！おつかれさま。';if(si<STAGES.length-1)nextB.hidden=false;else showSummary()}render()}
+function showSummary(){movesEl.textContent='各ステージの秒数：'+times.map((t,i)=>(i+1)+'面 '+t+'秒').join(' / ')}
+nextB.addEventListener('click',()=>load(si+1));
+retryB.addEventListener('click',()=>load(si));
+load(0);
+})();
+</script>
+</body>
+</html>

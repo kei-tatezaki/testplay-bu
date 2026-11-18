@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ワンタップ・ジャンプ</title>
+<style>
+:root{--bg:#10141c;--ink:#eef1f5;--muted:#8d97a6;--accent:#ffb23e;--hit:#ff5d5d;--ground:#2a3240}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+h1{margin:0;font-size:20px;letter-spacing:.06em}
+p{margin:0;color:var(--muted);font-size:13px;text-align:center}
+canvas{width:100%;max-width:720px;aspect-ratio:2/1;background:#161c27;border-radius:10px;touch-action:manipulation;cursor:pointer}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--ground);border-radius:999px;padding:2px 10px}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>ワンタップ・ジャンプ</h1>
+<p>画面をタップ（またはスペースキー）でジャンプ。長押しすると高く跳べる。</p>
+<canvas id="c" width="720" height="360" aria-label="ゲーム画面"></canvas>
+<p id="best">ベスト：0</p>
+<script>
+(function(){
+const c=document.getElementById('c'),g=c.getContext('2d'),W=720,H=360,GY=290;
+let state='title',p,obs,t,score,speed,hold=false,best=0,spawn,shake=0;
+try{best=+localStorage.getItem('otj-best')||0}catch(e){}
+const bestEl=document.getElementById('best');bestEl.textContent='ベスト：'+best;
+function reset(){p={x:110,y:GY,vy:0,on:true};obs=[];t=0;score=0;speed=5;spawn=60}
+reset();
+function press(){if(state!=='play'){reset();state='play';}else if(p.on){p.vy=-11.5;p.on=false;}hold=true}
+function release(){hold=false}
+c.addEventListener('pointerdown',e=>{e.preventDefault();press()});
+window.addEventListener('pointerup',release);
+window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();if(!e.repeat)press()}});
+window.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='ArrowUp')release()});
+function step(){
+ if(state==='play'){
+  t++;score+=speed/60;speed=5+Math.min(7,t/600);
+  p.vy+= (hold&&p.vy<0)?0.45:0.9; p.y+=p.vy;
+  if(p.y>=GY){p.y=GY;p.vy=0;p.on=true}
+  if(--spawn<=0){const tall=Math.random()<.35;obs.push({x:W+20,w:tall?22:30,h:tall?64:34});spawn=Math.max(38,70-t/90)+Math.random()*50}
+  for(const o of obs){o.x-=speed}
+  obs=obs.filter(o=>o.x>-40);
+  for(const o of obs){if(p.x+16>o.x&&p.x-16<o.x+o.w&&p.y>GY-o.h){state='over';shake=12;const s=Math.floor(score);if(s>best){best=s;try{localStorage.setItem('otj-best',best)}catch(e){}bestEl.textContent='ベスト：'+best}}}
+ }
+ draw();requestAnimationFrame(step);
+}
+function draw(){
+ g.save();if(shake>0){g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.85;if(shake<.5)shake=0}
+ g.fillStyle='#161c27';g.fillRect(0,0,W,H);
+ g.fillStyle='#202837';for(let i=0;i<8;i++){const x=((i*130-(t*speed*.3))%1040+1040)%1040-80;g.fillRect(x,120+(i%3)*30,60,6)}
+ g.fillStyle='#2a3240';g.fillRect(0,GY+18,W,H-GY);
+ g.fillStyle='#ff5d5d';for(const o of obs){g.fillRect(o.x,GY+18-o.h,o.w,o.h)}
+ g.fillStyle='#ffb23e';g.beginPath();g.arc(p.x,p.y,18,0,Math.PI*2);g.fill();
+ g.fillStyle='#10141c';g.beginPath();g.arc(p.x+6,p.y-4,3,0,Math.PI*2);g.fill();
+ g.fillStyle='#eef1f5';g.font='bold 22px system-ui';g.textAlign='right';g.fillText(Math.floor(score)+' m',W-20,36);
+ g.textAlign='center';
+ if(state==='title'){g.font='bold 26px system-ui';g.fillText('タップでスタート',W/2,H/2-10);g.font='15px system-ui';g.fillStyle='#8d97a6';g.fillText('赤いブロックを跳びこえよう',W/2,H/2+20)}
+ if(state==='over'){g.font='bold 28px system-ui';g.fillText(Math.floor(score)+' m',W/2,H/2-14);g.font='15px system-ui';g.fillStyle='#8d97a6';g.fillText('タップでもう一回',W/2,H/2+18)}
+ g.restore();
+}
+step();
+})();
+</script>
+</body>
+</html>

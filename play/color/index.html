@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>いろタッチ30</title>
+<style>
+:root{--bg:#f4f1ea;--ink:#1f1d1a;--muted:#6b665d;--card:#fffdf8;--line:#ddd6c8}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+h1{margin:0;font-size:22px}
+p{margin:0;color:var(--muted);font-size:13px;text-align:center;max-width:36ch}
+.hud{display:flex;gap:24px;font-variant-numeric:tabular-nums;font-size:15px}
+.word{font-size:64px;font-weight:800;height:84px;line-height:84px;letter-spacing:.05em}
+.grid{display:grid;grid-template-columns:repeat(2,140px);gap:12px}
+button{font:inherit;border:0;border-radius:14px;height:72px;font-size:18px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.start{background:var(--ink);padding:0 28px;height:52px;font-size:16px}
+.flash-ok{animation:ok .25s}.flash-ng{animation:ng .3s}
+@keyframes ok{50%{transform:scale(1.08)}}
+@keyframes ng{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){.flash-ok,.flash-ng{animation:none}}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>いろタッチ30</h1>
+<p>表示された<b>文字の色</b>と同じボタンを押そう。文字の意味にだまされないで！30秒で何問いける？</p>
+<div class="hud"><span id="time">30.0 秒</span><span id="score">0 問</span></div>
+<div class="word" id="word">いろ</div>
+<div class="grid" id="grid"></div>
+<button class="start" id="start" type="button">スタート</button>
+<p id="result"></p>
+<script>
+(function(){
+const COLORS=[{n:'あか',c:'#d6453d'},{n:'あお',c:'#2f6fd6'},{n:'みどり',c:'#2f9a52'},{n:'きいろ',c:'#d9a400'}];
+const grid=document.getElementById('grid'),word=document.getElementById('word'),timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),startB=document.getElementById('start'),result=document.getElementById('result');
+let answer=-1,score=0,miss=0,end=0,running=false,raf=0;
+COLORS.forEach((col,i)=>{const b=document.createElement('button');b.type='button';b.textContent=col.n;b.style.background=col.c;b.addEventListener('click',()=>pick(i));grid.appendChild(b)});
+function next(){let w=Math.floor(Math.random()*4),a=Math.floor(Math.random()*4);if(Math.random()<.75)while(a===w)a=Math.floor(Math.random()*4);answer=a;word.textContent=COLORS[w].n;word.style.color=COLORS[a].c}
+function pick(i){if(!running)return;word.classList.remove('flash-ok','flash-ng');void word.offsetWidth;if(i===answer){score++;word.classList.add('flash-ok')}else{miss++;end-=1500;word.classList.add('flash-ng')}scoreEl.textContent=score+' 問';next()}
+function tick(){const left=Math.max(0,end-performance.now());timeEl.textContent=(left/1000).toFixed(1)+' 秒';if(left<=0){stop();return}raf=requestAnimationFrame(tick)}
+function start(){score=0;miss=0;scoreEl.textContent='0 問';result.textContent='ミスすると1.5秒へるよ';running=true;startB.style.visibility='hidden';end=performance.now()+30000;next();tick()}
+function stop(){running=false;cancelAnimationFrame(raf);word.textContent='おわり';word.style.color='var(--ink)';result.textContent=score+'問正解・ミス'+miss+'回';startB.textContent='もう一回';startB.style.visibility='visible'}
+startB.addEventListener('click',start);
+})();
+</script>
+</body>
+</html>
