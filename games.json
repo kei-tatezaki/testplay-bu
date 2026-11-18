@@ -21,7 +21,9 @@
     "clip": "",
     "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870",
     "color": "#ffb23e",
-    "bg": "#10141c"
+    "bg": "#10141c",
+    "platform": "both",
+    "controls": "タップ／スペースキー"
   },
   {
     "slug": "color",
@@ -51,7 +53,9 @@
         "date": "2026-11-19",
         "text": "「書いてある色をタップするほうが楽しそう」「スコアでランキングを作ってほしい」という感想をもとに、「書いてある色」モードとランキングを追加しました。"
       }
-    ]
+    ],
+    "platform": "both",
+    "controls": "タップ／クリック"
   },
   {
     "slug": "lights",
@@ -75,6 +79,8 @@
     "clip": "",
     "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624",
     "color": "#7fe0c9",
-    "bg": "#0f1622"
+    "bg": "#0f1622",
+    "platform": "both",
+    "controls": "タップ／クリック"
   }
 ]

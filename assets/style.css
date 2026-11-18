@@ -18,6 +18,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
 .chip.check{border-color:var(--accent);color:var(--accent)}
+.chip.plat{border-color:var(--ink);color:var(--ink)}
 .chip.sample{background:var(--soft);border-color:transparent;color:var(--accent)}
 .q{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px}
 .q b{display:block;font-size:12px;color:var(--accent)}
@@ -28,6 +29,12 @@ header p{margin:4px 0 0;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
+.wrap.wide{max-width:1180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-items:start}
+.grid .card .body{gap:8px;padding:14px}
+.grid .card h2{font-size:17px}
+.grid .q{font-size:13px}
+.grid .btn{padding:8px 14px;font-size:14px}
 .fblist{display:grid;gap:10px}
 .upd{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:14px}
 .upd b{display:block;font-size:12px;color:var(--accent)}

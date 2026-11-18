@@ -113,8 +113,13 @@ def media_html(g, prefix):
     return f'<img class="media" src="{prefix}og/{e(g["slug"])}.png" alt="{e(g["title"])}" loading="lazy">'
 
 
+PLATFORM = {"pc": "PCのみ", "sp": "スマホのみ", "both": "PC・スマホ"}
+
+
 def chips_html(g):
     out = []
+    if g.get("platform") in PLATFORM:
+        out.append(f'<span class="chip plat">{PLATFORM[g["platform"]]}</span>')
     if g.get("sample"):
         out.append('<span class="chip sample">運営サンプル</span>')
     for k in ("stage", "genre", "minutes"):
@@ -146,6 +151,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
 .chip.check{border-color:var(--accent);color:var(--accent)}
+.chip.plat{border-color:var(--ink);color:var(--ink)}
 .chip.sample{background:var(--soft);border-color:transparent;color:var(--accent)}
 .q{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px}
 .q b{display:block;font-size:12px;color:var(--accent)}
@@ -156,6 +162,12 @@ header p{margin:4px 0 0;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
+.wrap.wide{max-width:1180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-items:start}
+.grid .card .body{gap:8px;padding:14px}
+.grid .card h2{font-size:17px}
+.grid .q{font-size:13px}
+.grid .btn{padding:8px 14px;font-size:14px}
 .fblist{display:grid;gap:10px}
 .upd{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:14px}
 .upd b{display:block;font-size:12px;color:var(--accent)}
@@ -189,13 +201,14 @@ def page(title, desc, url, image, body, prefix):
 """
 
 
-def discord_link(g):
-    link = g.get("discord") or DISCORD_INVITE
-    return f'<a class="btn ghost" href="{e(link)}">Discordで感想を送る</a>' if link else ""
+def discord_link(g, prefix=""):
+    # 感想はサイトの感想シートで送る（フィードの該当作品を開いてシートを出す）
+    return f'<a class="btn ghost" href="{prefix}./#fb-{e(g["slug"])}">💬 感想を送る</a>'
+
 
 
 def card(g, prefix):
-    return f"""<article class="card" data-check="{e(g.get('check',''))}">
+    return f"""<article class="card" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
 {media_html(g, prefix)}
 <div class="body">
 <h2>{e(g['title'])}</h2>
@@ -227,9 +240,10 @@ def build():
 <div class="chips">{chips_html(g)}</div>
 <p class="one">{e(g['oneliner'])}</p>
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
+{f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
 {''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
-<div class="row"><a class="btn" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g)}</div>
+<div class="row"><a class="btn" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g, '../../')}</div>
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>
 </article>
@@ -258,21 +272,22 @@ def build():
     filters = '<button type="button" aria-pressed="true" data-f="">すべて</button>' + "".join(
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
-    body = f"""<div class="wrap">
-<header><h1>テストプレイ部</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a href="./">← スワイプで見る</a></p></header>
+    body = f"""<div class="wrap wide">
+<header><h1>テストプレイ部 まとめ</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a href="./">← スワイプで見る</a></p></header>
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
-<main id="list" style="display:grid;gap:20px">
+<nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
+<main id="list" class="grid">
 {cards}
 </main>
 <p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
 <footer>登録なしで遊べます ・ 感想は任意 ・ {len(games)}作品</footer>
 </div>
 <script>
+let F='',P='';
+function apply(){{let n=0;document.querySelectorAll('#list .card').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
- document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
- const f=b.dataset.f;let n=0;
- document.querySelectorAll('#list .card').forEach(c=>{{const show=!f||c.dataset.check===f;c.hidden=!show;if(show)n++;}});
- document.getElementById('empty').hidden=n>0;
+ const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+ if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
 }}));
 </script>"""
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",

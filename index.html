@@ -36,6 +36,7 @@ button{font:inherit;color:inherit}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:11px;border:1px solid #ffffff55;border-radius:999px;padding:1px 9px;background:#0005}
 .chip.check{border-color:var(--accent);color:var(--accent)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
 .chip.new{background:var(--warn);color:#2a2000;border-color:transparent;font-weight:700}
 .q{font-size:13px;background:#ffffff14;border-left:3px solid var(--accent);padding:6px 10px;border-radius:6px}
 .rail{position:absolute;right:10px;bottom:calc(28px + env(safe-area-inset-bottom));display:grid;gap:16px;justify-items:center}
@@ -83,7 +84,7 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="top"><span class="logo">テストプレイ部</span><a href="list.html">一覧で見る</a></div>
+<div class="top"><span class="logo">テストプレイ部</span><a href="list.html">まとめで見る</a></div>
 <main class="feed" id="feed" aria-label="作品フィード"></main>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
@@ -114,7 +115,7 @@ textarea{min-height:72px;resize:vertical}
 </div>
 
 <script>
-const GAMES = [{"slug": "jump", "title": "ワンタップ・ジャンプ", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "操作感", "genre": "ランゲーム", "minutes": "1〜3分", "oneliner": "タップでジャンプして、赤いブロックをよけ続けるランゲーム。", "question": "ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？", "highlights": ["長押しすると高く跳べる", "進むほどスピードが上がる", "ベスト記録が残る"], "play": "play/jump/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870", "color": "#ffb23e", "bg": "#10141c"}, {"slug": "color", "title": "いろタッチ30", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "楽しさ", "genre": "反射神経", "minutes": "30秒", "oneliner": "文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。", "question": "もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？", "highlights": ["文字の意味にだまされる「文字の色」モード", "逆にだまされる「書いてある色」モード（NEW）", "モードごとのスコアランキング（NEW）"], "play": "play/color/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#d6453d", "bg": "#f4f1ea", "updates": [{"date": "2026-11-19", "text": "「書いてある色をタップするほうが楽しそう」「スコアでランキングを作ってほしい」という感想をもとに、「書いてある色」モードとランキングを追加しました。"}]}, {"slug": "lights", "title": "ひかりけし", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "チュートリアル", "genre": "パズル", "minutes": "3〜5分", "oneliner": "光るマスを全部消すパズル。最初の2面がチュートリアルになっている。", "question": "説明を読まなくてもルールがわかる？どの面でつまずいた？", "highlights": ["押したマスと上下左右がひっくり返る", "全5ステージ", "最後に各面のクリア秒数が出る"], "play": "play/lights/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#7fe0c9", "bg": "#0f1622"}];
+const GAMES = [{"slug": "jump", "title": "ワンタップ・ジャンプ", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "操作感", "genre": "ランゲーム", "minutes": "1〜3分", "oneliner": "タップでジャンプして、赤いブロックをよけ続けるランゲーム。", "question": "ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？", "highlights": ["長押しすると高く跳べる", "進むほどスピードが上がる", "ベスト記録が残る"], "play": "play/jump/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870", "color": "#ffb23e", "bg": "#10141c", "platform": "both", "controls": "タップ／スペースキー"}, {"slug": "color", "title": "いろタッチ30", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "楽しさ", "genre": "反射神経", "minutes": "30秒", "oneliner": "文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。", "question": "もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？", "highlights": ["文字の意味にだまされる「文字の色」モード", "逆にだまされる「書いてある色」モード（NEW）", "モードごとのスコアランキング（NEW）"], "play": "play/color/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#d6453d", "bg": "#f4f1ea", "updates": [{"date": "2026-11-19", "text": "「書いてある色をタップするほうが楽しそう」「スコアでランキングを作ってほしい」という感想をもとに、「書いてある色」モードとランキングを追加しました。"}], "platform": "both", "controls": "タップ／クリック"}, {"slug": "lights", "title": "ひかりけし", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "チュートリアル", "genre": "パズル", "minutes": "3〜5分", "oneliner": "光るマスを全部消すパズル。最初の2面がチュートリアルになっている。", "question": "説明を読まなくてもルールがわかる？どの面でつまずいた？", "highlights": ["押したマスと上下左右がひっくり返る", "全5ステージ", "最後に各面のクリア秒数が出る"], "play": "play/lights/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#7fe0c9", "bg": "#0f1622", "platform": "both", "controls": "タップ／クリック"}];
 const DISCORD_DEFAULT = "https://discord.com/channels/1572684471348498582/1572684778858348624";
 const SB_URL = "https://jwrzqaxuvmdbroemenng.supabase.co", SB_KEY = "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u";
 (function(){
@@ -126,8 +127,12 @@ const reacts = store.get('reacts',{});
 const sent = new Set(store.get('sent',[]));
 let CLIENT = store.get('cid',''); if(!CLIENT){ CLIENT = (crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()); store.set('cid',CLIENT) }
 
-// 並び順：まだ遊んでいない作品が先、その中は新しい順（games.jsonの後ろほど新しい）
-const order = GAMES.map((g,i)=>({g,i})).sort((a,b)=> (played.has(a.g.slug)-played.has(b.g.slug)) || (b.i-a.i)).map(x=>x.g);
+// この端末で遊べるか（スマホ＝タッチ中心で画面が小さい）
+const DEVICE = (matchMedia('(pointer:coarse)').matches && Math.min(screen.width,screen.height) < 820) ? 'sp' : 'pc';
+const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
+const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
+// 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
+const order = GAMES.map((g,i)=>({g,i})).sort((a,b)=> (canPlay(b.g)-canPlay(a.g)) || (played.has(a.g.slug)-played.has(b.g.slug)) || (b.i-a.i)).map(x=>x.g);
 
 const feed = $('feed');
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
@@ -138,7 +143,8 @@ order.forEach((g,idx)=>{
                        : el('img',{class:'media',src:'og/'+g.slug+'.png',alt:g.title,loading:idx<2?'eager':'lazy'});
   if(g.clip){media.muted=true}
   const chips = el('div',{class:'chips'},
-    !played.has(g.slug)?el('span',{class:'chip new'},'まだ遊んでない'):null,
+    !played.has(g.slug)&&canPlay(g)?el('span',{class:'chip new'},'まだ遊んでない'):null,
+    g.platform?el('span',{class:'chip'+(canPlay(g)?'':' warn')},canPlay(g)?PLAT[g.platform]:(g.platform==='pc'?'PCで遊べます':'スマホで遊べます')):null,
     g.sample?el('span',{class:'chip'},'運営サンプル'):null,
     (g.updates||[]).length?el('span',{class:'chip check'},'感想でアップデート'):null,
     g.stage?el('span',{class:'chip'},g.stage):null,
@@ -163,7 +169,7 @@ order.forEach((g,idx)=>{
     idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'一覧で見る'))));
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'))));
 
 // 画面に入った動画だけ再生
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
@@ -183,10 +189,19 @@ async function share(g,btn){
 let current=null, timer=0;
 function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
 function play(g){
+  if(!canPlay(g) && !confirmWrongDevice(g)) return;
   markPlayed(g); current=g;
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
   $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
   scheduleNudge(g);
+}
+let warned={};
+function confirmWrongDevice(g){
+  if(warned[g.slug]) return true;
+  warned[g.slug]=true;
+  const t=$('toastText'); t.textContent = (g.platform==='pc'?'この作品はPC向けです。':'この作品はスマホ向けです。')+'もう一度「遊ぶ」を押すとそのまま開きます';
+  $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
+  return false;
 }
 function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank' }
 function scheduleNudge(g){ clearTimeout(timer); if(sent.has(g.slug))return; timer=setTimeout(()=>{ $('toast').classList.add('show') }, 5*60*1000) }
@@ -257,6 +272,9 @@ $('sheet').addEventListener('submit',async e=>{
   }catch(err){ msg.className='msg err'; msg.textContent='通信できなかった…電波のいいところでもう一度試してね' }
   btn.disabled=false;
 });
+// まとめ・作品ページの「感想を送る」から来たら、その作品を出して感想シートを開く
+const m=location.hash.match(/^#fb-([a-z0-9-]+)$/);
+if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>openSheet(g),300) } history.replaceState(null,'',location.pathname) }
 })();
 </script>
 </body>
