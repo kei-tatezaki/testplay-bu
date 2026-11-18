@@ -21,6 +21,9 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent
 BASE = os.environ.get("BASE_URL", "").rstrip("/")
 DISCORD_INVITE = os.environ.get("DISCORD_INVITE", "")
+# 公開してよいキー（publishable）。データベース側のルールで守っている
+SB_URL = os.environ.get("SB_URL", "https://jwrzqaxuvmdbroemenng.supabase.co")
+SB_KEY = os.environ.get("SB_KEY", "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u")
 FONT_BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 FONT_REG = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 
@@ -153,6 +156,9 @@ header p{margin:4px 0 0;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
+.fblist{display:grid;gap:10px}
+.fbitem{border-top:1px solid var(--line);padding-top:10px;font-size:14px;display:grid;gap:2px}
+.fbitem p{margin:4px 0 0;white-space:pre-wrap}
 """
 
 
@@ -224,8 +230,23 @@ def build():
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>
 </article>
-<footer>感想は一言でOK：🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった</footer>
-</div>"""
+<section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
+<footer>感想はトップのフィードの「💬感想」から送れます</footer>
+</div>
+<script>
+(async function(){{
+ const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
+ const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);
+ try{{
+  const r=await fetch('{SB_URL}/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.{g['slug']}&order=created_at.desc&limit=100',{{headers:{{apikey:'{SB_KEY}'}}}});
+  const rows=await r.json();
+  if(!Array.isArray(rows)||!rows.length){{box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}}
+  const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
+  sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
+  box.innerHTML=rows.map(x=>'<div class="fbitem">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
+ }}catch(e){{box.textContent='感想を読み込めませんでした'}}
+}})();
+</script>"""
         out = ROOT / f"games/{g['slug']}/index.html"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(page(f"{g['title']}｜テストプレイ部", g["oneliner"], f"{BASE}/games/{g['slug']}/",
@@ -258,7 +279,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     # トップはショート風のフィード
     data = json.dumps(games, ensure_ascii=False).replace("</", "<\\/")
     feed = (ROOT / "feed_template.html").read_text(encoding="utf-8")
-    feed = feed.replace("__GAMES__", data).replace("__BASE__", BASE).replace(
+    feed = feed.replace("__GAMES__", data).replace("__BASE__", BASE).replace("__SB_URL__", SB_URL).replace("__SB_KEY__", SB_KEY).replace(
         "__DISCORD__", DISCORD_INVITE or "https://discord.com/channels/1572684471348498582/1572684778858348624")
     (ROOT / "index.html").write_text(feed, encoding="utf-8")
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
