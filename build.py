@@ -5,7 +5,8 @@
     BASE_URL=https://ユーザー名.github.io/リポジトリ名 python3 build.py
 
 作品を追加するときは games.json に1件足して、もう一度実行するだけ。
-- index.html          作品が縦に並ぶ一覧（スクロールで見る）
+- index.html          ショート風のフィード（上下スワイプで1作品ずつ）
+- list.html           作品が縦に並ぶ一覧
 - games/<slug>/       作品ごとのページ（Discordに貼るとこのページの画像とタイトルが出る）
 - og/<slug>.png       Discordのプレビュー用の画像（自動で作る）
 """
@@ -210,7 +211,7 @@ def build():
         make_og(g, ROOT / f"og/{g['slug']}.png")
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = f"""<div class="wrap">
-<a href="../../">← テストプレイ部の作品一覧</a>
+<a href="../../">← テストプレイ部（スワイプで見る）</a>
 <article class="card">
 {media_html(g, '../../')}
 <div class="body">
@@ -234,7 +235,7 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap">
-<header><h1>テストプレイ部</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p></header>
+<header><h1>テストプレイ部</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a href="./">← スワイプで見る</a></p></header>
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
 <main id="list" style="display:grid;gap:20px">
 {cards}
@@ -250,9 +251,16 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
  document.getElementById('empty').hidden=n>0;
 }}));
 </script>"""
-    (ROOT / "index.html").write_text(page("テストプレイ部｜学生のゲームを5分でつまみ食い",
-                                          "学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。",
-                                          f"{BASE}/", f"{BASE}/og/site.png", body, ""), encoding="utf-8")
+    (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
+                                         "学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。",
+                                         f"{BASE}/list.html", f"{BASE}/og/site.png", body, ""), encoding="utf-8")
+
+    # トップはショート風のフィード
+    data = json.dumps(games, ensure_ascii=False).replace("</", "<\\/")
+    feed = (ROOT / "feed_template.html").read_text(encoding="utf-8")
+    feed = feed.replace("__GAMES__", data).replace("__BASE__", BASE).replace(
+        "__DISCORD__", DISCORD_INVITE or "https://discord.com/channels/1572684471348498582/1572684778858348624")
+    (ROOT / "index.html").write_text(feed, encoding="utf-8")
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
     print(f"built {len(games)} games -> {ROOT}")
 

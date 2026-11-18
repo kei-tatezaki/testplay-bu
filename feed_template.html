@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>テストプレイ部｜学生のゲームを5分でつまみ食い</title>
+<meta name="description" content="学生のゲームを、5分でつまみ食い。スワイプして、気になったら遊んで、一言感想を送ろう。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="テストプレイ部｜学生のゲームを5分でつまみ食い">
+<meta property="og:description" content="学生のゲームを、5分でつまみ食い。スワイプして、気になったら遊んで、一言感想を送ろう。">
+<meta property="og:url" content="__BASE__/">
+<meta property="og:image" content="__BASE__/og/site.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0e13">
+<style>
+:root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#7fe0c9;--accent-ink:#06211b;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
+.top *{pointer-events:auto}
+.logo{font-weight:800;letter-spacing:.06em;font-size:17px}
+.top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
+.feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
+.slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;max-width:560px;margin:0 auto;background:#000}
+.slide{background:var(--bgc,#000)}
+.slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
+.slide video.media{object-fit:cover;object-position:center}
+.slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%)}
+.info{position:absolute;left:16px;right:84px;bottom:calc(24px + env(safe-area-inset-bottom));display:grid;gap:8px}
+.info h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
+.info .by{font-size:13px;color:var(--muted)}
+.info p{margin:0;font-size:14px;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;border:1px solid #ffffff55;border-radius:999px;padding:1px 9px;background:#0005}
+.chip.check{border-color:var(--accent);color:var(--accent)}
+.chip.new{background:var(--warn);color:#2a2000;border-color:transparent;font-weight:700}
+.q{font-size:13px;background:#ffffff14;border-left:3px solid var(--accent);padding:6px 10px;border-radius:6px}
+.rail{position:absolute;right:10px;bottom:calc(28px + env(safe-area-inset-bottom));display:grid;gap:16px;justify-items:center}
+.rb{display:grid;justify-items:center;gap:2px;background:none;border:0;cursor:pointer;font-size:11px;color:var(--ink);text-shadow:0 1px 3px #000}
+.rb .ic{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#ffffff1f;backdrop-filter:blur(6px)}
+.rb.play .ic{background:var(--accent);color:var(--accent-ink);font-size:20px}
+.rb[aria-pressed="true"] .ic{background:#ffffff;color:#000}
+.hint{position:absolute;bottom:calc(6px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:11px;color:#ffffff80;pointer-events:none}
+.end{padding:32px;text-align:center;display:grid;gap:12px;place-items:center}
+.end a{color:var(--accent)}
+/* play overlay */
+.player{position:fixed;inset:0;z-index:40;background:#000;display:none;flex-direction:column}
+.player.open{display:flex}
+.player header{display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:#111;border-bottom:1px solid var(--line)}
+.player header b{flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player header button{background:#ffffff1a;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px}
+.player header button.fb{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.player iframe{flex:1;border:0;width:100%;background:#fff}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
+.toast.show{display:flex}
+.toast button{border:0;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
+.toast .go{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.toast .x{background:#ffffff1a}
+/* feedback sheet */
+.sheet-bg{position:fixed;inset:0;z-index:50;background:#0009;display:none}
+.sheet-bg.open{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88dvh;overflow-y:auto;background:var(--sheet);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;display:grid;gap:16px}
+.sheet h3{margin:0;font-size:17px}
+.sheet .sub{margin:-10px 0 0;font-size:12px;color:var(--muted)}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:8px}
+legend{font-size:14px;font-weight:700;margin-bottom:6px;padding:0}
+legend small{font-weight:400;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1px solid var(--line);background:#ffffff08;border-radius:999px;padding:7px 14px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+textarea,input[type=text]{width:100%;background:#0b0e13;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--ink);font:inherit;font-size:14px}
+textarea{min-height:72px;resize:vertical}
+.count{font-size:12px;color:var(--muted);text-align:right}
+.actions{display:grid;gap:8px}
+.btn{border:0;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:15px;background:var(--accent);color:var(--accent-ink);text-align:center;text-decoration:none}
+.btn.ghost{background:#ffffff14;color:var(--ink);font-weight:500}
+.msg{font-size:13px;color:var(--muted);min-height:1.2em;text-align:center}
+.msg.err{color:#ff8f7a}
+@media (prefers-reduced-motion:reduce){.feed{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="top"><span class="logo">テストプレイ部</span><a href="list.html">一覧で見る</a></div>
+<main class="feed" id="feed" aria-label="作品フィード"></main>
+
+<div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
+  <iframe id="pFrame" title="ゲーム" allow="fullscreen; autoplay; gamepad"></iframe>
+</div>
+
+<div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
+
+<div class="sheet-bg" id="sheetBg">
+  <form class="sheet" id="sheet" aria-labelledby="sTitle">
+    <h3 id="sTitle">感想を送る</h3>
+    <p class="sub" id="sSub">選ぶだけで8割できあがり。1分で送れます。</p>
+    <fieldset data-k="again" data-single><legend>もう一回遊びたい？</legend><div class="opts"></div></fieldset>
+    <fieldset data-k="reach" data-single><legend>どこまで遊んだ？</legend><div class="opts"></div><input type="text" id="stopAt" placeholder="途中でやめた場合、どのあたり？（任意）" maxlength="60" hidden></fieldset>
+    <fieldset data-k="good"><legend>よかったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
+    <fieldset data-k="bad"><legend>気になったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
+    <fieldset data-k="answer" data-single><legend id="qLegend">作者の質問</legend><div class="opts"></div></fieldset>
+    <fieldset><legend>一言 <small id="minNote">任意</small></legend><div class="opts" id="emo"></div><textarea id="free" maxlength="400" placeholder="🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
+      <label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="dev"> 自分もゲームを作っている（開発者は40文字以上で書いてね）</label>
+    </fieldset>
+    <div class="actions">
+      <button class="btn" type="submit">コピーしてDiscordに貼る</button>
+      <button class="btn ghost" type="button" id="sClose">あとで</button>
+    </div>
+    <p class="msg" id="sMsg" aria-live="polite"></p>
+  </form>
+</div>
+
+<script>
+const GAMES = __GAMES__;
+const DISCORD_DEFAULT = "__DISCORD__";
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const store = {get(k,d){try{return JSON.parse(localStorage.getItem('tpb:'+k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem('tpb:'+k,JSON.stringify(v))}catch(e){}}};
+const played = new Set(store.get('played',[]));
+const reacts = store.get('reacts',{});
+const sent = new Set(store.get('sent',[]));
+
+// 並び順：まだ遊んでいない作品が先、その中は新しい順（games.jsonの後ろほど新しい）
+const order = GAMES.map((g,i)=>({g,i})).sort((a,b)=> (played.has(a.g.slug)-played.has(b.g.slug)) || (b.i-a.i)).map(x=>x.g);
+
+const feed = $('feed');
+function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
+function isLocal(url){return !/^https?:/i.test(url)}
+
+order.forEach((g,idx)=>{
+  const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:'og/'+g.slug+'.png'})
+                       : el('img',{class:'media',src:'og/'+g.slug+'.png',alt:g.title,loading:idx<2?'eager':'lazy'});
+  if(g.clip){media.muted=true}
+  const chips = el('div',{class:'chips'},
+    !played.has(g.slug)?el('span',{class:'chip new'},'まだ遊んでない'):null,
+    g.sample?el('span',{class:'chip'},'運営サンプル'):null,
+    g.stage?el('span',{class:'chip'},g.stage):null,
+    g.minutes?el('span',{class:'chip'},g.minutes):null,
+    g.check?el('span',{class:'chip check'},'確かめたい：'+g.check):null);
+  const r = reacts[g.slug]||'';
+  const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
+  const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
+  const slide = el('section',{class:'slide',style:'--bgc:'+(g.bg||'#000'),'data-slug':g.slug,'aria-label':g.title},
+    media, el('div',{class:'shade'}),
+    el('div',{class:'info'},
+      el('h2',null,g.title),
+      el('div',{class:'by'},'by '+(g.author||'ななし'), g.x? ' ・ @'+g.x.replace(/^@/,'') : ''),
+      chips,
+      el('p',null,g.oneliner),
+      g.question?el('div',{class:'q'},'作者が確かめたいこと：'+g.question):null),
+    el('div',{class:'rail'},
+      el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),'遊ぶ'),
+      likeB, hmmB,
+      el('button',{class:'rb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
+      el('button',{class:'rb',type:'button','aria-label':'共有',onclick:e=>share(g,e.currentTarget)},el('span',{class:'ic'},'↗'),'共有')),
+    idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null);
+  feed.append(slide);
+});
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'一覧で見る'))));
+
+// 画面に入った動画だけ再生
+const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
+document.querySelectorAll('.slide').forEach(s=>io.observe(s));
+
+function react(g,kind,btn){
+  const cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
+  btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
+  if(cur) btn.setAttribute('aria-pressed','true');
+}
+async function share(g,btn){
+  const url = location.origin + location.pathname.replace(/[^/]*$/,'') + 'games/' + g.slug + '/';
+  try{ if(navigator.share){ await navigator.share({title:g.title, url}); return } await navigator.clipboard.writeText(url); btn.lastChild.textContent='コピー済'; setTimeout(()=>btn.lastChild.textContent='共有',1500) }catch(e){}
+}
+
+// ---- 遊ぶ ----
+let current=null, timer=0;
+function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
+function play(g){
+  markPlayed(g); current=g;
+  if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
+  $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
+  scheduleNudge(g);
+}
+function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank' }
+function scheduleNudge(g){ clearTimeout(timer); if(sent.has(g.slug))return; timer=setTimeout(()=>{ $('toast').classList.add('show') }, 5*60*1000) }
+$('pClose').addEventListener('click',closePlayer);
+$('pFb').addEventListener('click',()=>{ if(current) openSheet(current) });
+$('toastGo').addEventListener('click',()=>{ $('toast').classList.remove('show'); if(current) openSheet(current) });
+$('toastX').addEventListener('click',()=>$('toast').classList.remove('show'));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('sheetBg').classList.contains('open')) closeSheet(); else if($('player').classList.contains('open')) closePlayer() } });
+
+// ---- 感想シート ----
+const OPTS = {
+  again:['すごく遊びたい','ちょっと遊びたい','もういいかな'],
+  reach:['最後まで','途中でやめた'],
+  good:['操作が気持ちいい','見た目','音','アイデアが新しい','ちょうどいい難しさ','その他'],
+  bad:['何をすればいいかわからない','難しすぎ','簡単すぎ','操作しづらい','バグっぽい','その他'],
+  answer:['◎ できた','○ だいたい','△ いまいち']
+};
+const EMO = ['🐛バグ','🤔違和感','😆楽しかった','😴やめたくなった'];
+const picks = {};
+document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
+  const k=fs.dataset.k, single=fs.hasAttribute('data-single'), box=fs.querySelector('.opts');
+  OPTS[k].forEach(label=>box.append(el('button',{class:'opt',type:'button','aria-pressed':'false',onclick:e=>{
+    const b=e.currentTarget, on=b.getAttribute('aria-pressed')!=='true';
+    if(single) box.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed',String(on));
+    picks[k]=[...box.querySelectorAll('.opt[aria-pressed="true"]')].map(x=>x.textContent);
+    if(k==='reach') $('stopAt').hidden = !(picks.reach||[]).includes('途中でやめた');
+  }},label)));
+});
+EMO.forEach(e=>$('emo').append(el('button',{class:'opt',type:'button',onclick:()=>{const t=$('free');t.value=(t.value?t.value+' ':'')+e+'：';t.focus();upd()}},e)));
+const free=$('free'), dev=$('dev');
+dev.checked = !!store.get('dev',false);
+function upd(){ const n=[...free.value.trim()].length; $('count').textContent=n+'文字'+(dev.checked&&n<40?'（あと'+(40-n)+'文字）':''); $('minNote').textContent=dev.checked?'開発者は40文字以上':'任意' }
+free.addEventListener('input',upd); dev.addEventListener('change',()=>{store.set('dev',dev.checked);upd()});
+let sheetGame=null;
+function openSheet(g){
+  sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
+  const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
+  document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
+  free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; upd();
+  $('sheetBg').classList.add('open'); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
+}
+function closeSheet(){ $('sheetBg').classList.remove('open') }
+$('sClose').addEventListener('click',closeSheet);
+$('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
+$('sheet').addEventListener('submit',async e=>{
+  e.preventDefault(); const g=sheetGame; const msg=$('sMsg');
+  if(!(picks.again||[]).length||!(picks.reach||[]).length){ msg.className='msg err'; msg.textContent='「もう一回遊びたい？」と「どこまで遊んだ？」は選んでね'; return }
+  const n=[...free.value.trim()].length;
+  if(dev.checked&&n<40){ msg.className='msg err'; msg.textContent='開発者は一言を40文字以上で書いてね（あと'+(40-n)+'文字）'; return }
+  const L=[];
+  L.push('【感想】'+g.title);
+  L.push('もう一回遊びたい：'+picks.again.join(''));
+  L.push('どこまで：'+picks.reach.join('')+($('stopAt').value.trim()?'（'+$('stopAt').value.trim()+'）':''));
+  if((picks.good||[]).length) L.push('よかった：'+picks.good.join('、'));
+  if((picks.bad||[]).length) L.push('気になった：'+picks.bad.join('、'));
+  if(g.question&&(picks.answer||[]).length) L.push('作者の質問：'+picks.answer.join(''));
+  if(n) L.push('一言：'+free.value.trim());
+  const text=L.join('\n');
+  let copied=false; try{ await navigator.clipboard.writeText(text); copied=true }catch(err){}
+  sent.add(g.slug); store.set('sent',[...sent]);
+  if(copied){ msg.className='msg'; msg.textContent='コピーしたよ！Discordの作品スレッドに貼り付けてね'; window.open(g.discord||DISCORD_DEFAULT,'_blank','noopener'); setTimeout(closeSheet,1200) }
+  else { msg.className='msg'; msg.textContent='コピーできなかったので、下の文を長押しでコピーしてね'; free.value=text; }
+});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作品一覧｜テストプレイ部</title>
+<meta name="description" content="学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="作品一覧｜テストプレイ部">
+<meta property="og:description" content="学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。">
+<meta property="og:url" content="https://kei-tatezaki.github.io/testplay-bu/list.html">
+<meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1f6f6a">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+<header><h1>テストプレイ部</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a href="./">← スワイプで見る</a></p></header>
+<nav class="filters" aria-label="絞り込み"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">確かめたい：チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">確かめたい：操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">確かめたい：楽しさ</button></nav>
+<main id="list" style="display:grid;gap:20px">
+<article class="card" data-check="チュートリアル">
+<img class="media" src="og/lights.png" alt="ひかりけし" loading="lazy">
+<div class="body">
+<h2>ひかりけし</h2>
+<div class="chips"><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">パズル</span><span class="chip">3〜5分</span><span class="chip check">確かめたい：チュートリアル</span></div>
+<p class="one">光るマスを全部消すパズル。最初の2面がチュートリアルになっている。</p>
+<div class="q"><b>作者が確かめたいこと</b>説明を読まなくてもルールがわかる？どの面でつまずいた？</div>
+<div class="row"><a class="btn" href="play/lights/">▶ 遊ぶ</a><a class="btn ghost" href="games/lights/">くわしく見る</a><a class="btn ghost" href="https://discord.com/channels/1572684471348498582/1572684778858348624">Discordで感想を送る</a></div>
+<div class="by">by テストプレイ部 運営</div>
+</div>
+</article>
+<article class="card" data-check="楽しさ">
+<img class="media" src="og/color.png" alt="いろタッチ30" loading="lazy">
+<div class="body">
+<h2>いろタッチ30</h2>
+<div class="chips"><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">反射神経</span><span class="chip">30秒</span><span class="chip check">確かめたい：楽しさ</span></div>
+<p class="one">文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。</p>
+<div class="q"><b>作者が確かめたいこと</b>もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？</div>
+<div class="row"><a class="btn" href="play/color/">▶ 遊ぶ</a><a class="btn ghost" href="games/color/">くわしく見る</a><a class="btn ghost" href="https://discord.com/channels/1572684471348498582/1572684778858348624">Discordで感想を送る</a></div>
+<div class="by">by テストプレイ部 運営</div>
+</div>
+</article>
+<article class="card" data-check="操作感">
+<img class="media" src="og/jump.png" alt="ワンタップ・ジャンプ" loading="lazy">
+<div class="body">
+<h2>ワンタップ・ジャンプ</h2>
+<div class="chips"><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">ランゲーム</span><span class="chip">1〜3分</span><span class="chip check">確かめたい：操作感</span></div>
+<p class="one">タップでジャンプして、赤いブロックをよけ続けるランゲーム。</p>
+<div class="q"><b>作者が確かめたいこと</b>ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？</div>
+<div class="row"><a class="btn" href="play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="games/jump/">くわしく見る</a><a class="btn ghost" href="https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870">Discordで感想を送る</a></div>
+<div class="by">by テストプレイ部 運営</div>
+</div>
+</article>
+</main>
+<p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
+<footer>登録なしで遊べます ・ 感想は任意 ・ 3作品</footer>
+</div>
+<script>
+document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+ const f=b.dataset.f;let n=0;
+ document.querySelectorAll('#list .card').forEach(c=>{const show=!f||c.dataset.check===f;c.hidden=!show;if(show)n++;});
+ document.getElementById('empty').hidden=n>0;
+}));
+</script>
+</body>
+</html>
