@@ -96,9 +96,16 @@ def make_site_og(out):
     im = Image.new("RGB", (W, H), (16, 20, 28))
     d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 24, H], fill=(127, 224, 201))
-    d.text((80, 180), "テストプレイ部", font=font(FONT_BOLD, 110), fill=(240, 243, 247))
-    d.text((80, 340), "学生のゲームを、5分でつまみ食い。", font=font(FONT_REG, 48), fill=(200, 208, 220))
-    d.text((80, 420), "遊んで、一言感想を送り合う場所", font=font(FONT_REG, 36), fill=(150, 160, 175))
+    d.text((80, 180), "テストプレイ部", font=font(FONT_BOLD, 96), fill=(240, 243, 247))
+    d.text((80, 330), "学生のゲームを、", font=font(FONT_REG, 44), fill=(200, 208, 220))
+    d.text((80, 385), "5分でつまみ食い。", font=font(FONT_REG, 44), fill=(200, 208, 220))
+    d.text((80, 470), "遊んで、一言感想を送り合う場所", font=font(FONT_REG, 32), fill=(150, 160, 175))
+    icon = ROOT / "assets/icon-512.png"
+    if icon.exists():
+        ic = Image.open(icon).convert("RGB").resize((360, 360))
+        mask = Image.new("L", (360, 360), 0)
+        ImageDraw.Draw(mask).ellipse((0, 0, 359, 359), fill=255)
+        im.paste(ic, (W - 360 - 70, (H - 360) // 2), mask)
     out.parent.mkdir(parents=True, exist_ok=True)
     im.save(out, optimize=True)
 
@@ -192,6 +199,10 @@ def page(title, desc, url, image, body, prefix):
 <meta property="og:image" content="{e(image)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1f6f6a">
+<link rel="icon" type="image/png" sizes="32x32" href="{prefix}assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="{prefix}assets/icon-192.png">
+<link rel="apple-touch-icon" href="{prefix}assets/icon-180.png">
+<link rel="manifest" href="{prefix}manifest.webmanifest">
 <link rel="stylesheet" href="{prefix}assets/style.css">
 </head>
 <body>
@@ -301,6 +312,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
         "__DISCORD__", DISCORD_INVITE or "https://discord.com/channels/1572684471348498582/1572684778858348624")
     (ROOT / "index.html").write_text(feed, encoding="utf-8")
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
+    (ROOT / "manifest.webmanifest").write_text(json.dumps({
+        "name": "テストプレイ部", "short_name": "テストプレイ部", "start_url": "./", "display": "standalone",
+        "background_color": "#0b0e13", "theme_color": "#1f6f6a",
+        "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                  {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"built {len(games)} games -> {ROOT}")
 
 

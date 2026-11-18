@@ -13,6 +13,10 @@
 <meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0e13">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#7fe0c9;--accent-ink:#06211b;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;color-scheme:dark}
 *{box-sizing:border-box}
@@ -84,7 +88,7 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="top"><span class="logo">テストプレイ部</span><a href="list.html">まとめで見る</a></div>
+<div class="top"><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><a href="list.html">まとめで見る</a></div>
 <main class="feed" id="feed" aria-label="作品フィード"></main>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
