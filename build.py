@@ -247,6 +247,10 @@ header p{margin:4px 0 0;color:var(--muted)}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;min-height:44px;display:inline-flex;align-items:center}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .site-lead{font-size:13px;margin:-10px 0 0;text-wrap:balance}
+.fgroup{display:flex;align-items:center;gap:10px;min-width:0}
+.fgroup .filters{flex:1;min-width:0}
+.flabel{flex:none;font-size:12px;font-weight:700;color:var(--muted);min-width:5.5em}
+@media (max-width:560px){.fgroup{display:grid;gap:2px}.flabel{min-width:0}}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:44px}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
@@ -288,6 +292,9 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .meta .t{color:var(--ink);font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
 .meta .by{font-size:12px;line-height:1.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta .by:empty{display:none}
+.meta .by.sub{white-space:normal;overflow:visible}
+.meta .t{padding:12px 0;margin:-10px 0}
+.tile .media.shot{object-fit:contain;background:var(--tb,#0b0e13)}
 .grid .card .body{gap:8px;padding:14px}
 .grid .card h2{font-size:17px}
 .grid .q{font-size:13px}
@@ -431,18 +438,38 @@ def discord_link(g, prefix=""):
 
 
 
+def minute_bucket(m):
+    """遊ぶ時間の目安を、一覧の絞り込み用に short（〜1分）／mid（1〜3分）／long（3分〜）に分ける"""
+    m = m or ""
+    nums = [float(x) for x in re.findall(r"\d+(?:\.\d+)?", m)]
+    if not nums:
+        return ""
+    if "秒" in m and "分" not in m:
+        return "short"
+    hi = max(nums)
+    if hi <= 1:
+        return "short"
+    if nums[0] >= 3:
+        return "long"
+    return "mid"
+
+
 def card(g, prefix):
     """まとめ用の小さいカード（YouTubeのホームのように、画像・タイトル・作者・数字だけ）"""
     slug = e(g["slug"])
-    sub = " ・ ".join(x for x in (PLATFORM.get(g.get("platform"), ""), f"確かめたい：{g['check']}" if g.get("check") else "") if x)
-    return f"""<article class="tile" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
-<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{prefix}{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}><img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
+    sub = " ・ ".join(x for x in (g.get("genre", ""), PLATFORM.get(g.get("platform"), "")) if x)
+    subhtml = ' ・ '.join(f'<span style="white-space:nowrap">{e(x)}</span>' for x in (g.get("genre", ""), PLATFORM.get(g.get("platform"), "")) if x)
+    thumb = g.get("thumb")
+    img = (f'<img class="media shot" style="--tb:{e(g.get("bg") or "#0b0e13")}" src="{prefix}{e(thumb)}" alt="" loading="lazy">' if thumb
+           else f'<img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">')
+    return f"""<article class="tile" data-genre="{e(g.get('genre',''))}" data-min="{minute_bucket(g.get('minutes'))}" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
+<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{prefix}{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}>{img}{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
 <div class="meta2">
 {by_html(g, prefix, 36, "av-link", True)}
 <div class="meta">
 <a class="t" href="{prefix}games/{slug}/">{e(g['title'])}</a>
 <div class="by">{by_html(g, prefix)}</div>
-<div class="by">{e(sub)}</div>
+<div class="by sub">{subhtml}</div>
 <div class="by" data-stats="{slug}"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="{slug}" aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button>
@@ -452,6 +479,10 @@ def card(g, prefix):
 
 def build():
     games = json.loads((ROOT / "games.json").read_text(encoding="utf-8"))
+    # 一覧のサムネイル：shots/<slug>.png（ゲーム画面）があればそれを使う（OG画像は文字が小さくて、一覧では読めないため）。R18は共通の表紙
+    for g in games:
+        if not is_r18(g) and (ROOT / f"shots/{g['slug']}.png").exists():
+            g["thumb"] = f"shots/{g['slug']}.png"
     (ROOT / "assets").mkdir(exist_ok=True)
     (ROOT / "assets/style.css").write_text(CSS.strip() + "\n", encoding="utf-8")
     make_site_og(ROOT / "og/site.png")
@@ -523,15 +554,23 @@ def build():
         out.write_text(page(f"{g['title']}｜テストプレイ部", g["oneliner"], f"{BASE}/games/{g['slug']}/",
                             f"{BASE}/og/{g['slug']}.png", body, "../../"), encoding="utf-8")
 
-    filters = '<button type="button" aria-pressed="true" data-f="">すべて</button>' + "".join(
-        f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
+    genres = []
+    for g in games:
+        if g.get("genre") and g["genre"] not in genres:
+            genres.append(g["genre"])
+    gfilters = '<button type="button" aria-pressed="true" data-g="">すべて</button>' + "".join(
+        f'<button type="button" aria-pressed="false" data-g="{e(x)}">{e(x)}</button>' for x in genres)
+    cfilters = '<button type="button" aria-pressed="true" data-f="">すべて</button>' + "".join(
+        f'<button type="button" aria-pressed="false" data-f="{e(c)}">{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
-<nav class="filters" aria-label="絞り込み">{filters}</nav>
-<nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
+<div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
+<div class="fgroup"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
+<div class="fgroup"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
+<div class="fgroup"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC">{cfilters}</nav></div>
 <main id="list" class="grid">
 {cards}
 </main>
@@ -539,15 +578,15 @@ def build():
 <footer>遊ぶのは登録なし。感想を書くときだけログイン ・ {len(games)}作品 ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
-let F='',P='';
+let F='',P='',G='',M='';
 // 遊んだ人・感想の数（YouTubeの再生回数のように表示）
 fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
  .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
-function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
+function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&(!G||c.dataset.genre===G)&&(!M||c.dataset.min===M)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters').forEach(n=>{{const f=()=>{{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')}};n.addEventListener('scroll',f,{{passive:true}});addEventListener('resize',f);f()}});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
- if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
+ if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply();
 }}));
 </script>"""
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
@@ -760,7 +799,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
                                             f"{BASE}/privacy.html", f"{BASE}/og/site.png", privacy, ""), encoding="utf-8")
 
     # トップはショート風のフィード
-    feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube", "cover"))} for g in games]
+    feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube", "cover", "thumb"))} for g in games]
     # どのページでも使うデータ（プロフィール・マイページ・メニュー用）
     shared = json.dumps({"base": BASE, "sbUrl": SB_URL, "sbKey": SB_KEY, "discord": DISCORD_INVITE, "allSample": all_sample(games), "games": feed_games, "creators": CREATORS},
                         ensure_ascii=False).replace("</", "<\\/")

@@ -24,121 +24,123 @@
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 <div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span><a class="btn" href="./submit.html">作品を応募する</a></div>
-<nav class="filters" aria-label="絞り込み"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">確かめたい：チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">確かめたい：操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">確かめたい：楽しさ</button><button type="button" aria-pressed="false" data-f="難しさ">確かめたい：難しさ</button></nav>
-<nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
+<div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG"><button type="button" aria-pressed="true" data-g="">すべて</button><button type="button" aria-pressed="false" data-g="ランゲーム">ランゲーム</button><button type="button" aria-pressed="false" data-g="反射神経">反射神経</button><button type="button" aria-pressed="false" data-g="パズル">パズル</button><button type="button" aria-pressed="false" data-g="タイミング">タイミング</button><button type="button" aria-pressed="false" data-g="よけゲー">よけゲー</button><button type="button" aria-pressed="false" data-g="記憶">記憶</button><button type="button" aria-pressed="false" data-g="ノベル">ノベル</button><button type="button" aria-pressed="false" data-g="計算">計算</button><button type="button" aria-pressed="false" data-g="観察">観察</button></nav></div>
+<div class="fgroup"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
+<div class="fgroup"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
+<div class="fgroup"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">楽しさ</button><button type="button" aria-pressed="false" data-f="難しさ">難しさ</button></nav></div>
 <main id="list" class="grid">
-<article class="tile" data-check="楽しさ" data-plat="both">
-<a class="thumb" href="./?g=odd" aria-label="ひとつだけちがうをショートで見る" data-clip="clips/odd.mp4"><img class="media" src="og/odd.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
+<article class="tile" data-genre="観察" data-min="short" data-check="楽しさ" data-plat="both">
+<a class="thumb" href="./?g=odd" aria-label="ひとつだけちがうをショートで見る" data-clip="clips/odd.mp4"><img class="media shot" style="--tb:#f6f3fb" src="shots/odd.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
 <div class="meta2">
 <a class="av-link" data-by="odd" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/odd/">ひとつだけちがう</a>
 <div class="by"><a class="by-link" data-by="odd" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：楽しさ</div>
+<div class="by sub"><span style="white-space:nowrap">観察</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="odd"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="odd" aria-label="ひとつだけちがう のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="難しさ" data-plat="both">
-<a class="thumb" href="./?g=calc" aria-label="たしざんダッシュをショートで見る" data-clip="clips/calc.mp4"><img class="media" src="og/calc.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
+<article class="tile" data-genre="計算" data-min="short" data-check="難しさ" data-plat="both">
+<a class="thumb" href="./?g=calc" aria-label="たしざんダッシュをショートで見る" data-clip="clips/calc.mp4"><img class="media shot" style="--tb:#0f2a23" src="shots/calc.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
 <div class="meta2">
 <a class="av-link" data-by="calc" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/calc/">たしざんダッシュ</a>
 <div class="by"><a class="by-link" data-by="calc" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：難しさ</div>
+<div class="by sub"><span style="white-space:nowrap">計算</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="calc"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="calc" aria-label="たしざんダッシュ のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="楽しさ" data-plat="both">
-<a class="thumb" href="./?g=houkago" aria-label="展示まであと3分をショートで見る" data-clip="clips/houkago.mp4"><img class="media" src="og/houkago.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<article class="tile" data-genre="ノベル" data-min="mid" data-check="楽しさ" data-plat="both">
+<a class="thumb" href="./?g=houkago" aria-label="展示まであと3分をショートで見る" data-clip="clips/houkago.mp4"><img class="media shot" style="--tb:#2a1f1a" src="shots/houkago.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="houkago" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/houkago/">展示まであと3分</a>
 <div class="by"><a class="by-link" data-by="houkago" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：楽しさ</div>
+<div class="by sub"><span style="white-space:nowrap">ノベル</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="houkago"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="houkago" aria-label="展示まであと3分 のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="難しさ" data-plat="both">
-<a class="thumb" href="./?g=memo" aria-label="おぼえてピカッをショートで見る" data-clip="clips/memo.mp4"><img class="media" src="og/memo.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<article class="tile" data-genre="記憶" data-min="mid" data-check="難しさ" data-plat="both">
+<a class="thumb" href="./?g=memo" aria-label="おぼえてピカッをショートで見る" data-clip="clips/memo.mp4"><img class="media shot" style="--tb:#fbf7ef" src="shots/memo.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="memo" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/memo/">おぼえてピカッ</a>
 <div class="by"><a class="by-link" data-by="memo" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：難しさ</div>
+<div class="by sub"><span style="white-space:nowrap">記憶</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="memo"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="memo" aria-label="おぼえてピカッ のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="操作感" data-plat="both">
-<a class="thumb" href="./?g=stars" aria-label="ほしひろいをショートで見る" data-clip="clips/stars.mp4"><img class="media" src="og/stars.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<article class="tile" data-genre="よけゲー" data-min="mid" data-check="操作感" data-plat="both">
+<a class="thumb" href="./?g=stars" aria-label="ほしひろいをショートで見る" data-clip="clips/stars.mp4"><img class="media shot" style="--tb:#07131f" src="shots/stars.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="stars" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/stars/">ほしひろい</a>
 <div class="by"><a class="by-link" data-by="stars" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：操作感</div>
+<div class="by sub"><span style="white-space:nowrap">よけゲー</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="stars"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="stars" aria-label="ほしひろい のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="難しさ" data-plat="both">
-<a class="thumb" href="./?g=stack" aria-label="つみきタワーをショートで見る" data-clip="clips/stack.mp4"><img class="media" src="og/stack.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<article class="tile" data-genre="タイミング" data-min="mid" data-check="難しさ" data-plat="both">
+<a class="thumb" href="./?g=stack" aria-label="つみきタワーをショートで見る" data-clip="clips/stack.mp4"><img class="media shot" style="--tb:#1b1730" src="shots/stack.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="stack" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/stack/">つみきタワー</a>
 <div class="by"><a class="by-link" data-by="stack" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：難しさ</div>
+<div class="by sub"><span style="white-space:nowrap">タイミング</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="stack"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="stack" aria-label="つみきタワー のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="チュートリアル" data-plat="both">
-<a class="thumb" href="./?g=lights" aria-label="ひかりけしをショートで見る" data-clip="clips/lights.mp4"><img class="media" src="og/lights.png" alt="" loading="lazy"><span class="dur">3〜5分</span></a>
+<article class="tile" data-genre="パズル" data-min="long" data-check="チュートリアル" data-plat="both">
+<a class="thumb" href="./?g=lights" aria-label="ひかりけしをショートで見る" data-clip="clips/lights.mp4"><img class="media shot" style="--tb:#0f1622" src="shots/lights.png" alt="" loading="lazy"><span class="dur">3〜5分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="lights" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/lights/">ひかりけし</a>
 <div class="by"><a class="by-link" data-by="lights" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：チュートリアル</div>
+<div class="by sub"><span style="white-space:nowrap">パズル</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="lights"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="lights" aria-label="ひかりけし のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="楽しさ" data-plat="both">
-<a class="thumb" href="./?g=color" aria-label="いろタッチ30をショートで見る" data-clip="clips/color.mp4"><img class="media" src="og/color.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
+<article class="tile" data-genre="反射神経" data-min="short" data-check="楽しさ" data-plat="both">
+<a class="thumb" href="./?g=color" aria-label="いろタッチ30をショートで見る" data-clip="clips/color.mp4"><img class="media shot" style="--tb:#f4f1ea" src="shots/color.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
 <div class="meta2">
 <a class="av-link" data-by="color" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/color/">いろタッチ30</a>
 <div class="by"><a class="by-link" data-by="color" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：楽しさ</div>
+<div class="by sub"><span style="white-space:nowrap">反射神経</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="color"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="color" aria-label="いろタッチ30 のメニュー" aria-haspopup="menu">⋮</button>
 </div>
 </article>
-<article class="tile" data-check="操作感" data-plat="both">
-<a class="thumb" href="./?g=jump" aria-label="ワンタップ・ジャンプをショートで見る" data-clip="clips/jump.mp4"><img class="media" src="og/jump.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<article class="tile" data-genre="ランゲーム" data-min="mid" data-check="操作感" data-plat="both">
+<a class="thumb" href="./?g=jump" aria-label="ワンタップ・ジャンプをショートで見る" data-clip="clips/jump.mp4"><img class="media shot" style="--tb:#10141c" src="shots/jump.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
 <div class="meta2">
 <a class="av-link" data-by="jump" data-size="36" data-noname href="profile.html?u=unei" aria-label="テストプレイ部 のプロフィール"><img class="tpb-av" src="assets/icon-192.png" alt="" width="36" height="36" style="width:36px;height:36px" loading="lazy"></a>
 <div class="meta">
 <a class="t" href="games/jump/">ワンタップ・ジャンプ</a>
 <div class="by"><a class="by-link" data-by="jump" href="profile.html?u=unei">テストプレイ部</a></div>
-<div class="by">PC・スマホ ・ 確かめたい：操作感</div>
+<div class="by sub"><span style="white-space:nowrap">ランゲーム</span> ・ <span style="white-space:nowrap">PC・スマホ</span></div>
 <div class="by" data-stats="jump"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="jump" aria-label="ワンタップ・ジャンプ のメニュー" aria-haspopup="menu">⋮</button>
@@ -149,15 +151,15 @@
 <footer>遊ぶのは登録なし。感想を書くときだけログイン ・ 9作品 ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
-let F='',P='';
+let F='',P='',G='',M='';
 // 遊んだ人・感想の数（YouTubeの再生回数のように表示）
 fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/rpc/game_stats',{method:'POST',headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json'},body:'{"since_days":3650}'})
  .then(r=>r.ok?r.json():[]).then(rows=>{(rows||[]).forEach(x=>{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')})}).catch(()=>{});
-function apply(){let n=0;document.querySelectorAll('#list .tile').forEach(c=>{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;});document.getElementById('empty').hidden=n>0;}
+function apply(){let n=0;document.querySelectorAll('#list .tile').forEach(c=>{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&(!G||c.dataset.genre===G)&&(!M||c.dataset.min===M)&&okP;c.hidden=!show;if(show)n++;});document.getElementById('empty').hidden=n>0;}
 document.querySelectorAll('.filters').forEach(n=>{const f=()=>{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')};n.addEventListener('scroll',f,{passive:true});addEventListener('resize',f);f()});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
- if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
+ if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply();
 }));
 </script>
 <script>

@@ -22,6 +22,10 @@ header p{margin:4px 0 0;color:var(--muted)}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;min-height:44px;display:inline-flex;align-items:center}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .site-lead{font-size:13px;margin:-10px 0 0;text-wrap:balance}
+.fgroup{display:flex;align-items:center;gap:10px;min-width:0}
+.fgroup .filters{flex:1;min-width:0}
+.flabel{flex:none;font-size:12px;font-weight:700;color:var(--muted);min-width:5.5em}
+@media (max-width:560px){.fgroup{display:grid;gap:2px}.flabel{min-width:0}}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:44px}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
@@ -63,6 +67,9 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .meta .t{color:var(--ink);font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
 .meta .by{font-size:12px;line-height:1.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta .by:empty{display:none}
+.meta .by.sub{white-space:normal;overflow:visible}
+.meta .t{padding:12px 0;margin:-10px 0}
+.tile .media.shot{object-fit:contain;background:var(--tb,#0b0e13)}
 .grid .card .body{gap:8px;padding:14px}
 .grid .card h2{font-size:17px}
 .grid .q{font-size:13px}
