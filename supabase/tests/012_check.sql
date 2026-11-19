@@ -5,8 +5,6 @@
 create function public.t_ok(label text, cond boolean) returns void language plpgsql as $$
 begin if cond is not true then raise exception 'FAIL: %', label; end if; raise notice 'ok  %', label; end $$;
 
--- 013（最初の10作品は投稿無料）も一緒に入っているので、ここではキャンペーンを止めて、ポイントの動きだけを見る
-update public.settings set value = 0 where key = 'launch_free_total';
 -- 人：u1=もらう人 u2=作品g1の作者 u3=管理者 u4=お金のない人 u5〜=ほかの人
 insert into auth.users (id, email) select ('00000000-0000-0000-0000-0000000000' || lpad(i::text, 2, '0'))::uuid, 'u' || i || '@example.com' from generate_series(1, 30) i;
 insert into public.admins (user_id) values ('00000000-0000-0000-0000-000000000003');
@@ -126,8 +124,10 @@ select public.t_as(3, format($q$ select public.admin_set_hidden(%L, true) $q$, p
 select public.t_as(3, format($q$ select public.admin_set_hidden(%L, false) $q$, public.t_fid(6, 'g40'))) \gset
 select public.t_ok('9h さかのぼってポイントを付けない', public.t_bal(6) = 0 and not exists (select 1 from public.points_ledger where user_id = public.t_u(6)));
 -- 10 応募でポイントを引く
+-- 013（最初の1本は投稿無料）も一緒に入っているので、u4 には「載せた」になった1本目があることにして、2本目（ポイントが要る）の動きだけを見る
+insert into public.submissions (user_id, kind, data, status) values (public.t_u(4), 'new', '{"prior":1}', 'ok');
 select public.t_as(4, $q$ select public.submission_send('new', null, '{"title":"t","oneliner":"o","play_url":"https://example.com/g"}'::jsonb) $q$) as r \gset
-select public.t_ok('10a ポイントが足りないと not_enough_points', :'r' = 'ERR not_enough_points' and not exists (select 1 from public.submissions where user_id = public.t_u(4)));
+select public.t_ok('10a ポイントが足りないと not_enough_points', :'r' = 'ERR not_enough_points' and not exists (select 1 from public.submissions where user_id = public.t_u(4) and data ? 'title'));
 select public.t_as(3, $q$ select public.admin_points_adjust(public.t_u(4), 40, '最初のおくりもの') $q$) \gset
 select public.t_as(4, $q$ select public.submission_send('new', null, '{"title":"t","oneliner":"o","play_url":"https://example.com/g"}'::jsonb) $q$) as r \gset
 select public.t_ok('10b 足りれば応募できて 30pt 引かれる', :'r' = 'ok' and public.t_bal(4) = 10 and (select delta from public.points_ledger where user_id = public.t_u(4) and reason = 'submission') = -30);
@@ -138,9 +138,9 @@ select public.t_ok('10d 直しの依頼は無料', :'r' = 'ok' and public.t_bal(
 select public.t_as(3, $q$ select public.submission_send('new', null, '{"title":"t","oneliner":"o","play_url":"https://example.com/g"}'::jsonb) $q$) as r \gset
 select public.t_ok('10e 管理者は無料', :'r' = 'ok' and public.t_bal(3) = 0);
 -- 11 見送りで返す
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'ごめんね') $q$, (select id from public.submissions where user_id = public.t_u(4)))) \gset
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'ごめんね') $q$, (select id from public.submissions where user_id = public.t_u(4) and data ? 'title'))) \gset
 select public.t_ok('11a 見送りで 30pt 返る', public.t_bal(4) = 40);
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'もう一度') $q$, (select id from public.submissions where user_id = public.t_u(4)))) \gset
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'もう一度') $q$, (select id from public.submissions where user_id = public.t_u(4) and data ? 'title'))) \gset
 select public.t_ok('11b 二重に返さない', public.t_bal(4) = 40);
 select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, (select id from public.submissions where user_id = public.t_u(2) and kind = 'edit'))) \gset
 select public.t_ok('11c 直しの依頼を見送りにしても増えない', public.t_bal(2) = 0);
@@ -171,7 +171,7 @@ select public.t_ok('13b 最近の記録は20件まで・0pt は出さない', js
 select public.t_as(3, $q$ select count(*)::text from public.admin_points_users() $q$) as r \gset
 select public.t_ok('13c admin_points_users', :'r'::int >= 5);
 select public.t_as(3, $q$ select count(*)::text from public.admin_settings_get() $q$) as r \gset
-select public.t_ok('13d admin_settings_get は8行以上（013 が入っていれば9行）', :'r'::int >= 8);
+select public.t_ok('13d admin_settings_get は8行', :'r' = '8');
 select public.t_as(3, $q$ select public.admin_settings_set('submit_cost', 20) $q$) as r \gset
 select public.t_ok('13e 設定を変えると反映される', :'r' = '変えました' and public.setting_int('submit_cost') = 20);
 select public.t_as(3, $q$ select public.admin_settings_set('tier1_max', 50) $q$) as r \gset

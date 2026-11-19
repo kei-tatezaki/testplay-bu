@@ -1,11 +1,11 @@
--- 013_launch_free.sql（最初の10作品は投稿無料）の確かめ。使い捨てのローカルPostgres専用（本番では流さない）
+-- 013_first_free.sql（最初の1本は投稿無料）の確かめ。使い捨てのローカルPostgres専用（本番では流さない）
 --   bash supabase/tests/run_local.sh supabase/tests/013_check.sql
 -- どこかが違うと、その場で「FAIL: ...」のエラーで止まる。最後まで行けば「ALL OK」
 \set ON_ERROR_STOP 1
 create function public.t_ok(label text, cond boolean) returns void language plpgsql as $$
 begin if cond is not true then raise exception 'FAIL: %', label; end if; raise notice 'ok  %', label; end $$;
 
--- 人：u1〜u14=応募する人 u2=作品g1の作者 u3=管理者
+-- 人：u1〜u8=応募する人 u2=作品g1の作者 u3=管理者
 insert into auth.users (id, email) select ('00000000-0000-0000-0000-0000000000' || lpad(i::text, 2, '0'))::uuid, 'u' || i || '@example.com' from generate_series(1, 30) i;
 insert into public.admins (user_id) values ('00000000-0000-0000-0000-000000000003');
 insert into public.game_owners (game_slug, user_id) values ('g1', '00000000-0000-0000-0000-000000000002');
@@ -19,99 +19,76 @@ begin
   reset role; return r;
 end $$;
 create function public.t_bal(u int) returns int language sql as $$ select public.points_balance(public.t_u(u)) $$;
-create function public.t_sub(u int) returns text language sql as $$
-  select public.t_as(u, $q$ select public.submission_send('new', null, '{"title":"t","oneliner":"o","play_url":"https://example.com/g"}'::jsonb) $q$) $$;
-create function public.t_left() returns int language sql as $$ select public.t_as(-1, 'select public.launch_free_left()::text')::int $$;
-create function public.t_sid(u int) returns uuid language sql as $$ select id from public.submissions where user_id = public.t_u(u) and kind = 'new' order by created_at limit 1 $$;
+create function public.t_sub(u int, title text default 't') returns text language sql as $$
+  select public.t_as(u, format($q$ select public.submission_send('new', null, '{"title":"%s","oneliner":"o","play_url":"https://example.com/g"}'::jsonb) $q$, title)) $$;
+create function public.t_sid(u int, title text) returns uuid language sql as $$ select id from public.submissions where user_id = public.t_u(u) and data ->> 'title' = title $$;
+create function public.t_ff(u int) returns text language sql as $$ select public.t_as(u, 'select public.first_free_available()::text') $$;
 
--- 1 はじめは10枠・だれでも（ログインなしでも）読める
-select public.t_ok('1a 初期値は10', public.setting_int('launch_free_total') = 10);
-select public.t_ok('1b ログインなしでも残りの枠が読める（10）', public.t_left() = 10);
--- 2 ポイント0の人が、無料で応募できる
-select public.t_sub(1) as r \gset
-select public.t_ok('2a 枠があればポイント0でも受け付ける（ok_free）', :'r' = 'ok_free');
-select public.t_ok('2b 応募に free_launch が付き、ポイントは動かない', (select free_launch from public.submissions where user_id = public.t_u(1)) and public.t_bal(1) = 0
+-- 1 最初の1本は、ポイント0でも無料
+select public.t_ok('1a 最初は無料になる', public.t_ff(1) = 'true');
+select public.t_sub(1, 'a1') as r \gset
+select public.t_ok('1b 最初の1本はポイントなしで受け付ける（ok_free）', :'r' = 'ok_free');
+select public.t_ok('1c free_launch が付き、ポイントは動かない', (select free_launch from public.submissions where user_id = public.t_u(1)) and public.t_bal(1) = 0
   and not exists (select 1 from public.points_ledger where user_id = public.t_u(1)));
-select public.t_ok('2c 残りが9になる', public.t_left() = 9);
--- 3 1人1回
-select public.t_sub(1) as r \gset
-select public.t_ok('3 同じ人の2回目は無料にならない（ポイントが要る）', :'r' = 'ERR not_enough_points' and (select count(*) from public.submissions where user_id = public.t_u(1)) = 1 and public.t_left() = 9);
--- 4 検証で落ちた応募は枠を使わない
+-- 2 2本目からはポイントが要る
+select public.t_ok('2a 1本目のあとは無料でなくなる', public.t_ff(1) = 'false');
+select public.t_sub(1, 'a2') as r \gset
+select public.t_ok('2b 2本目はポイントがないと断られる', :'r' = 'ERR not_enough_points' and (select count(*) from public.submissions where user_id = public.t_u(1)) = 1);
+select public.t_as(3, $q$ select public.admin_points_adjust(public.t_u(1), 40, 'テスト') $q$) \gset
+select public.t_sub(1, 'a2') as r \gset
+select public.t_ok('2c ポイントがあれば2本目を送れて、30pt引かれる', :'r' = 'ok' and public.t_bal(1) = 10
+  and not (select free_launch from public.submissions where user_id = public.t_u(1) and data ->> 'title' = 'a2'));
+select public.t_sub(1, 'a3') as r \gset
+select public.t_ok('2d 3本目も30pt要る（残り10ptでは足りない）', :'r' = 'ERR not_enough_points');
+-- 3 ほかの人の1本目は、それぞれ無料（上限なし）
+select public.t_sub(i, 'b' || i) from generate_series(4, 24) i;
+select public.t_ok('3 何人でも、それぞれの1本目は無料（上限なし）', (select count(*) from public.submissions where free_launch) = 22);
+-- 4 検証で落ちた応募は、無料を使わない
 select public.t_as(2, $q$ select public.submission_send('new', null, '{"title":"t"}'::jsonb) $q$) as r \gset
-select public.t_ok('4 検証で落ちた応募は枠を使わない', :'r' = 'ERR need_title' and public.t_left() = 9);
--- 5 直しの依頼・管理者は枠を使わない
+select public.t_ok('4a 検証で落ちた応募は無料を使わない', :'r' = 'ERR need_title' and public.t_ff(2) = 'true');
+-- 5 直しの依頼・管理者は「最初の1本」を使わない
 select public.t_as(2, $q$ select public.submission_send('edit', 'g1', '{"note":"直してね"}'::jsonb) $q$) as r \gset
-select public.t_ok('5a 直しの依頼は枠を使わない', :'r' = 'ok' and public.t_left() = 9 and not (select free_launch from public.submissions where kind = 'edit'));
-select public.t_sub(3) as r \gset
-select public.t_ok('5b 管理者の応募は枠を使わない（もともと無料）', :'r' = 'ok' and public.t_left() = 9 and not (select free_launch from public.submissions where user_id = public.t_u(3)));
--- 6 のこりを使い切る（u2・u4〜u10・u15 の9人）
-select public.t_sub(i) from unnest(array[2,4,5,6,7,8,9,10,15]) i;   -- u3 は管理者なので入れない
-select public.t_ok('6a 10作品で枠がなくなる', public.t_left() = 0 and (select count(*) from public.submissions where free_launch) = 10);
-select public.t_sub(11) as r \gset
-select public.t_ok('6b 枠がなければ、今までどおりポイントが要る', :'r' = 'ERR not_enough_points' and not exists (select 1 from public.submissions where user_id = public.t_u(11)));
--- 7 枠がないときの、ポイントでの応募（30pt引く・free_launch なし）
-select public.t_as(3, $q$ select public.admin_points_adjust(public.t_u(12), 40, 'テスト') $q$) \gset
-select public.t_sub(12) as r \gset
-select public.t_ok('7 枠がなくてもポイントがあれば応募できる（30pt引く）', :'r' = 'ok' and public.t_bal(12) = 10
-  and not (select free_launch from public.submissions where user_id = public.t_u(12)) and public.t_left() = 0);
--- 8 見送りで枠が戻る
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'ごめんね') $q$, public.t_sid(1))) \gset
-select public.t_ok('8a 見送りにすると枠が1つ戻る', public.t_left() = 1);
-select public.t_ok('8b 無料の応募を見送りにしても、ポイントは増えない', public.t_bal(1) = 0 and not exists (select 1 from public.points_ledger where user_id = public.t_u(1)));
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'もう一度') $q$, public.t_sid(1))) \gset
-select public.t_ok('8c 何度見送りにしても二重に戻らない', public.t_left() = 1);
-select public.t_sub(11) as r \gset
-select public.t_ok('8d 戻った枠は、次の人が使える', :'r' = 'ok_free' and public.t_left() = 0);
-select public.t_sub(1) as r \gset
-select public.t_ok('8e 枠がまた埋まったので、見送りだった人もポイントが要る', :'r' = 'ERR not_enough_points');
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, public.t_sid(12))) \gset
-select public.t_ok('8f ポイントで応募した分を見送りにすると、30pt返り、枠は増えない', public.t_bal(12) = 40 and public.t_left() = 0);
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ok') $q$, public.t_sid(2))) \gset
-select public.t_ok('8g 「載せた」にしても枠は戻らない', public.t_left() = 0);
--- 9 見送りだった人は、枠があればもう一度無料で出せる
-select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, public.t_sid(5))) \gset
-select public.t_sub(5) as r \gset
-select public.t_ok('9 見送りになった人は、枠が戻ればもう一度無料', :'r' = 'ok_free' and public.t_left() = 0);
--- 10 枠の数は管理ページで変えられる
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 12) $q$) as r \gset
-select public.t_ok('10a 枠を12にすると残りが2になる', :'r' = '変えました' and public.t_left() = 2);
-select public.t_as(1, $q$ select public.admin_settings_set('launch_free_total', 99) $q$) as r \gset
-select public.t_ok('10b 管理者でなければ変えられない', :'r' = 'ERR not_admin' and public.t_left() = 2);
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 0) $q$) as r \gset
-select public.t_ok('10c 0にするとキャンペーンが終わる（残り0）', public.t_left() = 0);
-select public.t_sub(13) as r \gset
-select public.t_ok('10d 終わったあとはポイントが要る', :'r' = 'ERR not_enough_points');
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 1) $q$) as r \gset
-select public.t_ok('10e 使った枠より少なくしても、残りは0（マイナスにならない）', public.t_left() = 0);
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 12) $q$) \gset
--- 11 my_points に枠の情報
-select public.t_as(13, $q$ select public.my_points() $q$) as r \gset
-select public.t_ok('11a 枠が残っていて、まだ使っていない人は launch_free_can = true', (:'r')::jsonb ->> 'launch_free_can' = 'true' and (:'r')::jsonb ->> 'launch_free_left' = '2' and (:'r')::jsonb ->> 'launch_free_total' = '12');
-select public.t_as(2, $q$ select public.my_points() $q$) as r \gset
-select public.t_ok('11b もう使った人は launch_free_can = false', (:'r')::jsonb ->> 'launch_free_can' = 'false' and (:'r')::jsonb ->> 'launch_free_left' = '2');
-select public.t_as(1, $q$ select public.my_points() $q$) as r \gset
-select public.t_ok('11c 見送りだった人は、また使える', (:'r')::jsonb ->> 'launch_free_can' = 'true');
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 10) $q$) \gset
-select public.t_as(13, $q$ select public.my_points() $q$) as r \gset
-select public.t_ok('11d 枠がなければ false', (:'r')::jsonb ->> 'launch_free_can' = 'false' and (:'r')::jsonb ->> 'launch_free_left' = '0');
--- 12 管理者用
-select public.t_as(3, $q$ select public.admin_launch_free()::text $q$) as r \gset
-select public.t_ok('12a 運営は使った数と全体の数が見られる', (:'r')::jsonb ->> 'used' = '10' and (:'r')::jsonb ->> 'total' = '10' and (:'r')::jsonb ->> 'left' = '0');
-select public.t_as(2, $q$ select public.admin_launch_free()::text $q$) as r \gset
-select public.t_ok('12b 管理者でなければ呼べない', :'r' = 'ERR not_admin');
-select public.t_as(3, $q$ select count(*)::text from public.admin_settings_get() $q$) as r \gset
-select public.t_as(3, $q$ select value::text from public.admin_settings_get() where key = 'launch_free_total' $q$) as r2 \gset
-select public.t_ok('12c 設定の一覧に launch_free_total が入る', :'r' = '9' and :'r2' = '10');
--- 13 外から触れない
-select public.t_as(-1, $q$ select public.launch_free_used()::text $q$) as a, public.t_as(2, $q$ select public.launch_free_used()::text $q$) as b \gset
-select public.t_ok('13a launch_free_used は外から呼べない', :'a' like 'ERR permission denied%' and :'b' like 'ERR permission denied%');
-select public.t_as(-1, $q$ select public.submission_send('new', null, '{}'::jsonb) $q$) as a, public.t_as(-1, $q$ select public.my_points()::text $q$) as b, public.t_as(-1, $q$ select public.admin_launch_free()::text $q$) as c \gset
-select public.t_ok('13b ログインなしは応募・my_points・管理用を呼べない', :'a' like 'ERR permission denied%' and :'b' like 'ERR permission denied%' and :'c' like 'ERR permission denied%');
+select public.t_ok('5a 直しの依頼は無料で、最初の1本を使わない', :'r' = 'ok' and public.t_ff(2) = 'true' and not (select free_launch from public.submissions where kind = 'edit'));
+select public.t_sub(3, 'adm') as r \gset
+select public.t_ok('5b 管理者の応募は無料で、free_launch にしない', :'r' = 'ok' and not (select free_launch from public.submissions where user_id = public.t_u(3)) and public.t_bal(3) = 0);
+select public.t_sub(2, 'c2') as r \gset
+select public.t_ok('5c u2 は直しの依頼のあとでも、新しい1本目は無料', :'r' = 'ok_free');
+-- 6 見送りにすると、無料がもう一度使える
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng', 'ごめんね') $q$, public.t_sid(4, 'b4'))) \gset
+select public.t_ok('6a 見送りにされた人は、また無料', public.t_ff(4) = 'true' and public.t_bal(4) = 0);
+select public.t_sub(4, 'b4again') as r \gset
+select public.t_ok('6b 次の応募がまた無料（ok_free）', :'r' = 'ok_free' and public.t_ff(4) = 'false');
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, public.t_sid(4, 'b4'))) \gset
+select public.t_ok('6c もう一度「見送り」にしても、無料が増えたりポイントが動いたりしない', public.t_bal(4) = 0 and public.t_ff(4) = 'false');
+-- 7 「載せた」「確認中」のままなら、無料は戻らない／ポイントで出した2本目を見送りにすると30pt返る
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ok') $q$, public.t_sid(5, 'b5'))) \gset
+select public.t_ok('7a 「載せた」にしても無料は戻らない', public.t_ff(5) = 'false');
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, public.t_sid(1, 'a2'))) \gset
+select public.t_ok('7b 2本目（ポイント）を見送りにすると30pt返る', public.t_bal(1) = 40);
+select public.t_as(3, format($q$ select public.admin_submission_set(%L, 'ng') $q$, public.t_sid(1, 'a1'))) \gset
+select public.t_ok('7c 1本目（無料）を見送りにしてもポイントは増えず、無料がまた使える', public.t_bal(1) = 40 and public.t_ff(1) = 'true');
+select public.t_sub(1, 'a4') as r \gset
+select public.t_ok('7d その応募も無料で、ポイントは減らない', :'r' = 'ok_free' and public.t_bal(1) = 40);
+-- 8 BAN・ログインなし
+insert into public.banned_users (user_id) values (public.t_u(20));
+select public.t_sub(20, 'x') as r \gset
+select public.t_ok('8a BANされた人は、無料でも応募できない', :'r' = 'ERR banned');
+select public.t_as(-1, $q$ select public.first_free_available()::text $q$) as a, public.t_as(-1, $q$ select public.admin_free_used()::text $q$) as b, public.t_as(-1, $q$ select public.submission_send('new', null, '{}'::jsonb) $q$) as c \gset
+select public.t_ok('8b ログインなしは、first_free_available・集計・応募を呼べない', :'a' like 'ERR permission denied%' and :'b' like 'ERR permission denied%' and :'c' like 'ERR permission denied%');
+-- 9 my_points に first_free
+select public.t_as(7, $q$ select public.my_points() $q$) as r \gset
+select public.t_ok('9a 使った人は first_free = false', (:'r')::jsonb ->> 'first_free' = 'false');
+select public.t_as(26, $q$ select public.my_points() $q$) as r \gset
+select public.t_ok('9b まだ応募していない人は first_free = true', (:'r')::jsonb ->> 'first_free' = 'true');
+select public.t_as(25, $q$ select public.my_points() $q$) as r \gset
+select public.t_ok('9c launch_free_* の古いキーは出さない', (:'r')::jsonb ? 'first_free' and not (:'r')::jsonb ? 'launch_free_left');
+-- 10 運営の集計・外から触れない
+select public.t_as(3, $q$ select public.admin_free_used()::text $q$) as r \gset
+select public.t_ok('10a 運営は無料で受け付けた数が見られる（見送りは除く）', :'r'::int = (select count(*) from public.submissions where free_launch and status <> 'ng'));
+select public.t_as(2, $q$ select public.admin_free_used()::text $q$) as r \gset
+select public.t_ok('10b 管理者でなければ呼べない', :'r' = 'ERR not_admin');
 select public.t_as(1, $q$ update public.submissions set free_launch = true $q$) as a, public.t_as(1, $q$ select count(*)::text from public.submissions $q$) as b \gset
-select public.t_ok('13c 応募の free_launch は外から書き換えられない・読めない', :'a' like 'ERR permission denied%' and :'b' like 'ERR permission denied%');
--- 14 BAN された人は枠を使えない
-insert into public.banned_users (user_id) values (public.t_u(14));
-select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 20) $q$) \gset
-select public.t_sub(14) as r \gset
-select public.t_ok('14 BANされた人は無料でも応募できない', :'r' = 'ERR banned');
+select public.t_ok('10c free_launch は外から書き換えられない・読めない', :'a' like 'ERR permission denied%' and :'b' like 'ERR permission denied%');
+select public.t_ok('10d 「先着」の決まり（launch_free_total）は無い', not exists (select 1 from public.settings where key = 'launch_free_total')
+  and not exists (select 1 from pg_proc where proname in ('launch_free_left', 'launch_free_used')));
 select 'ALL OK' as result;
