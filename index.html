@@ -56,7 +56,7 @@ button{font:inherit;color:inherit}
 .side hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
 @media (min-width:1100px){.side{display:grid}.top a.back{display:none}}
 .slide .bgfx{position:absolute;inset:0;transform:scale(1.2);background:center/cover no-repeat;filter:blur(32px) brightness(.7) saturate(1.4);pointer-events:none}
-.slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%);pointer-events:none}
+.slide .shade{position:absolute;inset:auto 0 0 0;height:min(75%,calc(var(--info,200px) + 90px));background:linear-gradient(transparent,#000c 35%,#000f 65%);pointer-events:none}
 .slide .media{cursor:pointer}
 .vtag{position:absolute;z-index:1;left:8px;top:calc(var(--vt) + 6px);pointer-events:none;font-size:10px;font-weight:700;line-height:1.4;padding:0 6px;border-radius:5px;background:#0008;color:#ffffffd9;border:1px solid #ffffff30}
 /* 真ん中の「▶ 遊ぶ」は、その作品が最初に画面に入ってから1.5秒だけ出す */
@@ -65,11 +65,17 @@ button{font:inherit;color:inherit}
 .slide.hinting .playhint{animation:hintOnce 1.5s ease-out forwards}
 @keyframes hintOnce{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.slide.hinting .playhint{animation:hintOnce 1.5s steps(1,end) forwards}}
-.slide video.media+.playhint{left:0;right:0;top:var(--vt);bottom:var(--vb)}
-.slide img.media+.playhint{left:0;right:0;top:calc(64px + env(safe-area-inset-top));height:calc(100% - 64px - 46%)}
+.slide video.media+.playhint,.slide video.media+.playhint+.pauselay{left:0;right:0;top:var(--vt);bottom:var(--vb)}
+.slide img.media+.playhint,.slide img.media+.playhint+.pauselay{left:0;right:0;top:calc(64px + env(safe-area-inset-top));height:calc(100% - 64px - 46%)}
+/* 動画をタップして止めたとき（または写真のとき）に、真ん中に出す「▶ 遊ぶ」。ここを押したときだけゲームが開く */
+.pauselay{position:absolute;z-index:3;display:none;place-items:center;pointer-events:none}
+.slide.paused .pauselay{display:grid}.slide.paused .playhint{display:none}
+.pauselay button{pointer-events:auto;min-height:44px;min-width:120px;border:1px solid #ffffff66;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:16px;font-weight:800;padding:10px 24px;cursor:pointer;box-shadow:0 4px 18px #0008}
+.pauselay small{display:block;margin-top:6px;font-size:12px;color:#fff;text-shadow:0 1px 3px #000;text-align:center}
 /* タブレット（タッチで幅600px以上）：動画は、題名などの上の空きいっぱいに、真ん中に置く（上で切れない） */
 @media (min-width:600px) and (pointer:coarse){ .slide{--vt:calc(70px + env(safe-area-inset-top));--vb:250px} }
-@media (hover:hover) and (pointer:fine) and (min-width:900px){ .slide{--vt:66px;--vb:18px} }
+/* PC：説明は動画の下に置く（動画の文字と重ならない） */
+@media (hover:hover) and (pointer:fine) and (min-width:900px){ .slide{--vt:66px;--vb:var(--info,200px)} }
 .info{position:absolute;z-index:2;left:16px;right:84px;bottom:calc(24px + env(safe-area-inset-bottom));display:grid;gap:8px}
 .info .by .sample{color:var(--accent)}
 .info h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
@@ -198,10 +204,10 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 @media (orientation:landscape) and (max-height:500px){
  .slide{max-width:none;--vt:0px;--vb:0px}
  .slide .media,.slide video.media,.slide img.media{top:0;bottom:0;left:0;right:auto;width:calc(100% - 330px);height:100%;max-width:none}
- .slide video.media+.playhint,.slide img.media+.playhint{left:0;right:auto;width:calc(100% - 330px);top:0;bottom:0;height:auto}
+ .slide video.media+.playhint,.slide img.media+.playhint,.slide video.media+.playhint+.pauselay,.slide img.media+.playhint+.pauselay{left:0;right:auto;width:calc(100% - 330px);top:0;bottom:0;height:auto}
  .slide img.media{object-fit:contain;object-position:center}
  .vtag{top:58px}
- .shade{inset:0 0 0 auto;width:340px;height:auto;background:linear-gradient(90deg,transparent,#000c 35%)}
+ .slide .shade{inset:0 0 0 auto;width:340px;height:auto;background:linear-gradient(90deg,transparent,#000c 35%)}
  .info{left:calc(100% - 318px);right:calc(12px + env(safe-area-inset-right));top:calc(54px + env(safe-area-inset-top));bottom:auto;gap:5px;max-height:calc(100% - 54px - 70px - env(safe-area-inset-top));overflow:hidden}
  .info h2{font-size:18px}
  .info p{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -423,14 +429,15 @@ order.forEach((g,idx)=>{
   const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:g.cover||('og/'+g.slug+'.png')})
                        : el('img',{class:'media'+(g.cover?' shot':''),src:g.cover||('og/'+g.slug+'.png'),alt:g.title,loading:idx<2?'eager':'lazy'});
   if(g.clip){media.muted=true}
-  media.addEventListener('click',()=>{ play(g) });
+  // タップは「止める／再生する」の切り替え（TikTokと同じ）。ゲームを開くのは「▶ 遊ぶ」のボタンだけ
+  media.addEventListener('click',()=>{ const sl=media.closest('.slide'); if(!sl) return; const on=sl.classList.toggle('paused'); if(media.tagName==='VIDEO'){ on?media.pause():media.play().catch(()=>{}) } });
   const chips = chipsFor(g);
   const r = reacts[g.slug]||'';
   const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),el('span',{class:'lb'},'いいね'));
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:radial-gradient(circle at 50% 38%,"+(g.color||'#7fe0c9')+"44,transparent 65%),url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
-    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button','aria-label':g.title+' を遊ぶ',onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
@@ -499,7 +506,7 @@ if(ALL_SAMPLE){ const n=document.querySelector('.side .sampleNote'); if(n) n.hid
 if(!store.get('introSeen',false)&&!startSlug&&!restored){ $('intro').hidden=false; if(ALL_SAMPLE) $('introSample').hidden=false;
   $('introX').addEventListener('click',closeIntro); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) closeIntro() },{passive:true}); introT=setTimeout(closeIntro,6000) }
 // 画面に入った動画だけ再生
-const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
+const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else{ v.pause(); e.target.classList.remove('paused') }}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
 // 見ていた時間を記録：2秒以内にスワイプした作品は、次から少し下げる
 let viewing=null, viewStart=0;
@@ -595,7 +602,7 @@ let playing=null;
 function endPlay(){
   if(!playing) return;
   const sec=Math.round((Date.now()-playing.t)/1000), slug=playing.slug; playing=null;
-  if(sec<1||sec>21600) return;
+  if(sec<3||sec>21600) return;  // 3秒より短いものは、まちがってひらいたものとして送らない
   try{ fetch(SB_URL+'/rest/v1/play_sessions',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:slug,client_id:CLIENT,seconds:sec,device:DEVICE})}).catch(()=>{}) }catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && playing && playing.external) endPlay() });
