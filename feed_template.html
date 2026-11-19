@@ -495,7 +495,7 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='ArrowDown'||e.key==='PageDown'||e.key==='j'){ e.preventDefault(); slideStep(1) }
   if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='k'){ e.preventDefault(); slideStep(-1) }
-  if(e.key==='Home'||e.key==='End'){ const all=[...feed.querySelectorAll('.slide[data-slug]')], n=e.key==='Home'?all[0]:all[all.length-1]; if(n){ e.preventDefault(); n.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}) } }
+  if(e.key==='Home'||e.key==='End'){ const all=[...feed.querySelectorAll('.slide[data-slug]')], n=e.key==='Home'?all[0]:all[all.length-1]; if(n){ e.preventDefault(); const far=Math.abs(Math.round(feed.scrollTop/feed.clientHeight)-all.indexOf(n))>1; n.scrollIntoView({behavior:far||matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}) } }  // 遠いときは一気に飛ぶ（ゆっくり動かすと、途中で止まって先頭に戻らないことがあった）
 });
 // 「作品へ飛ぶ」：キーボードで左メニューを飛ばして作品へ
 ['skip','skipIn'].forEach(id=>{ const a=$(id); if(a) a.addEventListener('click',e=>{ e.preventDefault(); feed.focus({preventScroll:true}); const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)], b=cur&&cur.querySelector('.rail .play'); if(b) b.focus({preventScroll:true}) }) });

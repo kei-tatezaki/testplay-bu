@@ -151,7 +151,7 @@
 </div>
 </article>
 </main>
-<p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
+<div class="empty" id="empty" hidden><p style="margin:0 0 12px">この条件の作品はまだありません。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
 <footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>9作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
@@ -164,6 +164,7 @@ document.querySelectorAll('.filters').forEach(n=>{const f=()=>{const o=n.scrollW
 const fT=document.getElementById('fToggle'),fW=document.getElementById('fwrap');
 fT.addEventListener('click',()=>{const o=fW.classList.toggle('open');fT.setAttribute('aria-expanded',String(o));fT.lastElementChild.textContent=o?'▴':'▾'});
 function sumF(){const t=[];document.querySelectorAll('.filters').forEach(n=>{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):''}
+document.getElementById('fReset').addEventListener('click',()=>{F=G=M=P='';document.querySelectorAll('.filters').forEach(n=>{n.querySelectorAll('button').forEach(x=>{const v=x.dataset.f!==undefined?x.dataset.f:x.dataset.g!==undefined?x.dataset.g:x.dataset.m!==undefined?x.dataset.m:x.dataset.p;x.setAttribute('aria-pressed',String(v===''))})});apply();sumF()});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply(); sumF();
