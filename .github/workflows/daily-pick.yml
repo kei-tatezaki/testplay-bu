@@ -1,8 +1,8 @@
-name: 今日のおすすめをDiscordに投稿
+name: 毎日17時のおすすめをDiscordに投稿
 
 on:
   schedule:
-    - cron: "0 9 * * *"  # 毎日 18:00（日本時間）
+    - cron: "0 8 * * *"  # 毎日 17:00（日本時間）
   workflow_dispatch:      # Actions画面から手動でも動かせる
 
 jobs:

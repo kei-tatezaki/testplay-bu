@@ -1,0 +1,20 @@
+name: 新作をDiscordに知らせる
+
+on:
+  push:
+    branches: [main]
+    paths: [games.json]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 前のコミットの games.json と比べるため
+      - name: サイトに反映されるのを待つ（画像がDiscordに表示されるように）
+        run: sleep 90
+      - name: 増えた作品を投稿
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 scripts/notify_new.py "${{ github.event.before }}"
