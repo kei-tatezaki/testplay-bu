@@ -25,14 +25,15 @@ button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:flex-start;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
 .top *{pointer-events:auto}
-.top a.back{font-size:22px;line-height:1;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:50%}
+.top a.back{font-size:13px;line-height:1;min-height:40px;display:inline-flex;align-items:center;gap:5px;padding:0 12px;border-radius:999px;white-space:nowrap}
 .top a.tpb-me{padding:3px 10px 3px 3px;min-height:40px}.top a.tpb-me.in{padding:3px;background:none}
 .rail a.who{display:grid;justify-items:center;text-decoration:none;position:relative;margin-bottom:2px}
 .rail a.who .tpb-av{border:2px solid #fff;box-shadow:0 1px 6px #0008}
 .info .by a{color:inherit;text-decoration:none;font-weight:700}
 @media (max-height:640px){.rail{gap:10px}.rb .ic{width:44px;height:44px;font-size:19px}}
 .logo{font-weight:800;letter-spacing:.06em;font-size:17px;white-space:nowrap}
-@media (max-width:400px){.logo{font-size:15px;letter-spacing:.02em}}
+@media (max-width:400px){.logo{font-size:14px;letter-spacing:0}}
+@media (max-width:340px){.logo-t{display:none}}
 .top a.tpb-me{padding:3px!important}
 .top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
@@ -136,7 +137,7 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめに戻る">←</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><span class="sp" style="flex:1"></span><span data-me></span></div>
+<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめ（作品の一覧）を見る"><span aria-hidden="true">▦</span> まとめ</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">🎮 操作がわかりにくい</button>
 <button type="button" data-r="heavy">🐢 重い・うまく動かない</button>

@@ -200,5 +200,61 @@
     "controls": "タップ／1・2・3キー",
     "play": "play/houkago/",
     "clip": "clips/houkago.mp4"
+  },
+  {
+    "author": "テストプレイ部 運営",
+    "x": "",
+    "sample": true,
+    "stage": "プロトタイプ",
+    "youtube": "",
+    "discord": "https://discord.com/channels/1572684471348498582/1572800090626854942",
+    "platform": "both",
+    "added": "2026-11-19",
+    "creator": "unei",
+    "slug": "calc",
+    "title": "たしざんダッシュ",
+    "check": "難しさ",
+    "genre": "計算",
+    "minutes": "30秒",
+    "oneliner": "出てくる計算の答えを3つからえらぶ、30秒のスピード勝負。",
+    "question": "問題がむずかしくなるペースはどう？ まちがえて2秒へるのは、きびしすぎない？",
+    "highlights": [
+      "5問ごとに数字が大きくなり、とちゅうから引き算もまざる",
+      "続けて当てると点が増える",
+      "キーボードの1・2・3でも遊べる"
+    ],
+    "color": "#ffd166",
+    "bg": "#0f2a23",
+    "controls": "タップ／1・2・3キー",
+    "play": "play/calc/",
+    "clip": "clips/calc.mp4"
+  },
+  {
+    "author": "テストプレイ部 運営",
+    "x": "",
+    "sample": true,
+    "stage": "プロトタイプ",
+    "youtube": "",
+    "discord": "https://discord.com/channels/1572684471348498582/1572800090626854942",
+    "platform": "both",
+    "added": "2026-11-19",
+    "creator": "unei",
+    "slug": "odd",
+    "title": "ひとつだけちがう",
+    "check": "楽しさ",
+    "genre": "観察",
+    "minutes": "30秒",
+    "oneliner": "1つだけ色がちがうマスをさがす、30秒の目のよさ勝負。",
+    "question": "色の差が小さくなっていくのは楽しい？ どのレベルで「もう見えない」と思った？",
+    "highlights": [
+      "進むほどマスが増えて、色の差が小さくなる",
+      "まちがえると3秒へる",
+      "終わったら答えのマスがわかる"
+    ],
+    "color": "#a855f7",
+    "bg": "#f6f3fb",
+    "controls": "タップ／クリック",
+    "play": "play/odd/",
+    "clip": "clips/odd.mp4"
   }
 ]

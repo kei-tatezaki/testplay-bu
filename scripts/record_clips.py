@@ -62,10 +62,26 @@ def bot_houkago(pg):
         pg.wait_for_timeout(1700); pg.click("#text"); pg.wait_for_timeout(900)
         pg.click(f"#choices button >> nth={pick}")
     pg.wait_for_timeout(1700); pg.click("#text"); pg.wait_for_timeout(1500)
+def bot_calc(pg):
+    pg.wait_for_timeout(500); pg.click("#go"); t=time.time(); k=0
+    while time.time()-t<9.5:
+        d=pg.evaluate("__dbg()"); k+=1
+        if d["playing"]:
+            v=d["ans"] if k%7 else d["ans"]+999
+            b=pg.locator(f"#opts button[data-v='{d['ans']}']") if k%7 else pg.locator("#opts button >> nth=0")
+            try: b.dispatch_event("pointerdown",timeout=500)
+            except Exception: pass
+        pg.wait_for_timeout(620)
+def bot_odd(pg):
+    pg.wait_for_timeout(500); pg.click("#go"); t=time.time()
+    while time.time()-t<9.5:
+        d=pg.evaluate("__dbg()")
+        if d["playing"]: pg.locator(f"#board button >> nth={d['odd']}").dispatch_event("pointerdown")
+        pg.wait_for_timeout(850)
 def wait(sec): return lambda pg: pg.wait_for_timeout(int(sec*1000))
 #        slug      要素      始める前のJS  動かし方        切り出す秒(開始,長さ)  画像を撮る秒
 GAMES={"jump":("#c",JUMP,wait(10.5),(0.8,8),6),"stack":("#c",STACK,wait(11),(0.8,8.5),7.5),"stars":("#c",STARS,wait(11),(0.8,8.5),6),
-       "color":("body",None,bot_dom_color,(0.5,8),4),"lights":("body",None,bot_lights,(0.6,9),4.35),"memo":("body",None,bot_memo,(0.8,9),6),"houkago":("fixed",None,bot_houkago,(1.0,9),6.2)}
+       "color":("body",None,bot_dom_color,(0.5,8),4),"lights":("body",None,bot_lights,(0.6,9),4.35),"calc":("body",None,bot_calc,(0.8,8.5),5),"odd":("body",None,bot_odd,(0.8,8.5),6.5),"memo":("body",None,bot_memo,(0.8,9),6),"houkago":("fixed",None,bot_houkago,(1.0,9),6.2)}
 only=sys.argv[1:] or list(GAMES)
 srv=subprocess.Popen(["python3","-m","http.server","8766"],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); time.sleep(1)
 try:

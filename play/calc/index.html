@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/icon-32.png">
+<title>たしざんダッシュ</title>
+<style>
+:root{--bg:#0f2a23;--ink:#eafff6;--muted:#8fc4b0;--line:#1f4a3d;--accent:#ffd166;--ok:#7ee0a8;--ng:#ff8a7a}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;box-sizing:border-box;min-height:100vh;user-select:none;-webkit-user-select:none}
+h1{margin:0;font-size:20px;letter-spacing:.06em}
+p{margin:0;color:var(--muted);font-size:13px;text-align:center}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.hud{display:flex;gap:18px;font-weight:800;font-variant-numeric:tabular-nums;font-size:16px}
+#bar{width:min(86vw,340px);height:10px;border-radius:99px;background:#ffffff1a;overflow:hidden}
+#fill{height:100%;width:100%;background:var(--accent);border-radius:99px}
+#q{font-size:clamp(44px,14vw,64px);font-weight:800;letter-spacing:.04em;min-height:1.3em;transition:color .1s}
+#q.ok{color:var(--ok)}#q.ng{color:var(--ng)}
+#opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:min(86vw,340px)}
+#opts button{font:inherit;font-size:26px;font-weight:800;border:0;border-radius:16px;padding:18px 0;background:#1c4a3d;color:var(--ink);cursor:pointer;touch-action:manipulation}
+#opts button:active{transform:scale(.96)}
+#opts button small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
+#go{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:999px;padding:12px 28px;background:var(--accent);color:#2a1f00;cursor:pointer}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>たしざんダッシュ</h1>
+<p>答えを3つの中からえらぶ。30秒でどこまでいける？ 続けて当てると点が増える。キーボードは 1・2・3。</p>
+<div class="hud"><span id="score">0 点</span><span id="combo"></span></div>
+<div id="bar"><div id="fill"></div></div>
+<div id="q" aria-live="polite">？ ＋ ？</div>
+<div id="opts"></div>
+<button id="go" type="button">スタート</button>
+<p id="best">ベスト：0 点</p>
+<script>
+(function(){
+const $=id=>document.getElementById(id),q=$('q'),opts=$('opts'),go=$('go');
+let playing=false,end=0,score=0,combo=0,n=0,ans=0,best=0,raf=0;
+try{best=+localStorage.getItem('tashizan-best')||0}catch(e){}
+$('best').textContent='ベスト：'+best+' 点';
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function next(){n++;const lv=Math.min(4,Math.floor(n/5));let a,b,op='＋';
+ if(lv===0){a=rnd(1,9);b=rnd(1,9)}else if(lv===1){a=rnd(5,19);b=rnd(3,12)}else if(lv===2){a=rnd(11,39);b=rnd(6,29)}
+ else if(lv===3){a=rnd(20,60);b=rnd(3,19);op='−'}else{a=rnd(12,59);b=rnd(12,49);if(Math.random()<.4){op='−';if(b>a)[a,b]=[b,a]}}
+ ans=op==='＋'?a+b:a-b;q.textContent=a+' '+op+' '+b;q.className='';
+ const s=new Set([ans]);while(s.size<3){const d=[1,2,10,-1,-2,-10][rnd(0,5)];if(ans+d>=0)s.add(ans+d)}
+ const arr=[...s].sort(()=>Math.random()-.5);opts.replaceChildren();
+ arr.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.dataset.v=v;b.innerHTML=v+'<small>'+(i+1)+'</small>';b.addEventListener('pointerdown',e=>{e.preventDefault();pick(v)});opts.append(b)})}
+function pick(v){if(!playing)return;
+ if(v===ans){combo++;score+=10+Math.min(20,(combo-1)*2);q.className='ok'}else{combo=0;end-=2000;q.className='ng'}
+ $('score').textContent=score+' 点';$('combo').textContent=combo>=3?combo+' れんぞく！':'';setTimeout(()=>{if(playing)next()},90)}
+function tick(){const left=end-performance.now();$('fill').style.width=Math.max(0,left/300)+'%';if(left<=0){stop();return}raf=requestAnimationFrame(tick)}
+function start(){playing=true;score=0;combo=0;n=0;$('score').textContent='0 点';$('combo').textContent='';go.hidden=true;end=performance.now()+30000;next();tick()}
+function stop(){playing=false;cancelAnimationFrame(raf);q.textContent=score+' 点';q.className='';opts.replaceChildren();go.hidden=false;go.textContent='もう一回';
+ if(score>best){best=score;try{localStorage.setItem('tashizan-best',best)}catch(e){}$('best').textContent='ベスト：'+best+' 点（こうしん！）'}}
+go.addEventListener('click',start);
+window.addEventListener('keydown',e=>{const k='123'.indexOf(e.key);const bs=opts.querySelectorAll('button');if(k>=0&&bs[k])pick(+bs[k].dataset.v);if((e.code==='Space'||e.code==='Enter')&&!playing){e.preventDefault();start()}});
+window.__dbg=()=>({playing,ans,score,combo});
+})();
+</script>
+</body>
+</html>
