@@ -256,7 +256,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:#000;border:0}
 .thumb{position:relative;display:block}
-.rate{position:absolute;left:6px;top:6px;font-size:11px;font-weight:800;line-height:1.6;padding:0 7px;border-radius:4px;color:#fff;background:#b8860b}
+.rate{position:absolute;left:6px;top:6px;font-size:12px;font-weight:800;line-height:1.6;padding:0 7px;border-radius:4px;color:#fff;background:#b8860b}
 .rate.rate-r18{background:#d6405e}
 .chip.rate-r15{border-color:#d4a017;color:#d4a017}
 .chip.rate-r18{border-color:#e05a74;color:#e05a74;font-weight:700}
@@ -287,7 +287,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .tile{display:grid;gap:8px;min-width:0}
 .tile[hidden]{display:none}
 .tile .media{border-radius:12px}
-.dur{position:absolute;right:6px;bottom:6px;background:#000c;color:#fff;font-size:11px;font-weight:700;line-height:1.6;padding:0 6px;border-radius:4px}
+.dur{position:absolute;right:6px;bottom:6px;background:#000c;color:#fff;font-size:12px;font-weight:700;line-height:1.6;padding:0 6px;border-radius:4px}
 .meta{display:grid;gap:0;min-width:0}
 .meta .t{color:var(--ink);font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
 .meta .by{font-size:12px;line-height:1.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -322,7 +322,7 @@ a.by-chip:hover{text-decoration:underline}
 .phead h1{margin:0;font-size:22px;line-height:1.3}
 .phead .handle{color:var(--muted);font-size:13px;margin-top:-6px}
 .phead .bio{margin:0;max-width:520px;white-space:pre-wrap;font-size:14px}
-.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent);vertical-align:middle}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent);vertical-align:middle}
 .pstats{display:flex;gap:18px;justify-content:center;font-size:13px;color:var(--muted)}
 .pstats b{display:block;color:var(--ink);font-size:17px;line-height:1.3}
 .links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
@@ -633,6 +633,14 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h1>説明するより、<br>遊んでもらおう。</h1>
 <p>小さく遊べる版を出すだけで、作品ページができます。遊んだ人の数も、もらった感想も、それを受けて直した記録も、ぜんぶ1ページに残ります。</p>
 <div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="#url">遊べるURLの作り方</a></div>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>いま、できる約束</h2>
+<ul class="checks">
+<li><b>いまは始めたばかりです。</b>最初のころに載せた作品は、運営がDiscordで紹介します。</li>
+<li><b>載るまでの目安：</b>運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。</li>
+</ul>
 </div></section>
 
 <section class="card"><div class="body">
