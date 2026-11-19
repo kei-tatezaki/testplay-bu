@@ -329,6 +329,7 @@
     ".tpb-btn{font:inherit;font-weight:700;font-size:15px;min-height:46px;border:0;border-radius:12px;padding:10px 16px;background:var(--accent,#4fb3aa);color:var(--accent-ink,#0d1714);cursor:pointer;text-align:center;text-decoration:none}" +
     ".tpb-btn.ghost{background:#8882;color:inherit;font-weight:500}" +
     ".tpb-btn:disabled{opacity:.6}" +
+    ".tpb-prov{display:grid;gap:8px}.tpb-prov:empty{display:none}" +
     ".tpb-msg{margin:0;min-height:1.2em;font-size:13px;text-align:center}.tpb-msg.err{color:#e2674f}" +
     ".tpb-toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:95;background:#1d2430;color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;display:none;box-shadow:0 8px 30px #0008;max-width:calc(100% - 24px)}" +
     ".tpb-toast.show{display:block}" +
@@ -372,11 +373,11 @@
   var T = window.TPB, el = T.el;
   T.loginBox = function (title, text) {
     var msg = el("p", { class: "msg", "aria-live": "polite" });
-    var prov = el("div", { style: "display:grid;gap:8px" });
+    var prov = el("div", { class: "tpb-prov" });
     var email = el("input", { type: "email", inputmode: "email", autocomplete: "email", placeholder: "メールアドレス", "aria-label": "メールアドレス" });
-    var send = el("button", { class: "btn", type: "submit" }, "メールでログイン（リンクが届きます）");
+    var send = el("button", { class: "btn", type: "submit" }, "メールでログイン");
     var back = location.origin + location.pathname + location.search;
-    var form = el("form", { class: "form", novalidate: true }, email, send);
+    var form = el("form", { class: "form", novalidate: true }, email, send, el("p", { class: "muted", style: "margin:-6px 0 0;font-size:12px" }, "メールにリンクが届きます。このページを開いたのと同じブラウザでリンクを開いてね。"));
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var v = email.value.trim();
@@ -385,7 +386,7 @@
       var r = await T.sb().auth.signInWithOtp({ email: v, options: { emailRedirectTo: back } });
       send.disabled = false;
       if (r.error) { msg.className = "msg err"; msg.textContent = "送れなかった…時間をおいてもう一度試してね" }
-      else msg.textContent = "メールを送ったよ。届いたリンクをこのブラウザで開くと、ログインできます（迷惑メールも確認してね）";
+      else msg.textContent = "メールを送ったよ。届いたリンクを、このページを開いたのと同じブラウザで開くと、ログインできます（迷惑メールも確認してね）";
     });
     fetch(T.SB_URL + "/auth/v1/settings", { headers: { apikey: T.SB_KEY } }).then(function (r) { return r.json() }).then(function (st) {
       var ext = (st && st.external) || {};

@@ -322,7 +322,7 @@ a.by-chip:hover{text-decoration:underline}
 button.btn{border:0;font:inherit;font-weight:700;cursor:pointer;justify-content:center}
 button.btn.ghost{border:1px solid var(--line);font-weight:500}
 button.btn:disabled{opacity:.6}
-.msg{font-size:13px;color:var(--muted);min-height:1.2em;margin:0}
+.msg{font-size:13px;color:var(--muted);margin:0}.msg:empty{display:none}
 .msg.err{color:#d2553f}
 .muted{color:var(--muted)}
 .notice{background:var(--soft);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6;display:flex;gap:6px 12px;align-items:center;flex-wrap:wrap}
@@ -507,7 +507,7 @@ def build():
 {cards}
 </main>
 <p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
-<footer>登録なしで遊べます ・ 感想は任意 ・ {len(games)}作品 ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
+<footer>遊ぶのは登録なし。感想を書くときだけログイン ・ {len(games)}作品 ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
 let F='',P='';

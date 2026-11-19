@@ -157,7 +157,9 @@ textarea{min-height:72px;resize:vertical}
 .actions{display:grid;gap:8px}
 .btn{border:0;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:15px;background:var(--accent);color:var(--accent-ink);text-align:center;text-decoration:none}
 .btn.ghost{background:#ffffff14;color:var(--ink);font-weight:500}
-.msg{font-size:13px;color:var(--muted);min-height:1.2em;text-align:center}
+.msg{font-size:13px;color:var(--muted);text-align:center;margin:0}.msg:empty{display:none}
+#providers{display:grid;gap:8px}#providers:empty{display:none}
+#loginBg .sheet{gap:12px}.lform{display:grid;gap:8px}.lnote{margin:0;font-size:12px;color:var(--muted);line-height:1.5}.lnote b{color:var(--ink)}
 .msg.err{color:#ff8f7a}
 @media (prefers-reduced-motion:reduce){.feed{scroll-behavior:auto}}
 </style>
@@ -180,13 +182,13 @@ textarea{min-height:72px;resize:vertical}
 <a href="creators.html"><span class="ic">🛠</span>作品を載せたい人へ</a>
 <a href="submit.html"><span class="ic">＋</span>作品を応募する</a>
 <a href="__DISCORD__" target="_blank" rel="noopener" class="join"><span class="ic">💬</span>Discordに参加する</a>
-<p>学生が作ったゲームを、5分でつまみ食い。<br>遊ぶのに登録はいりません。</p>
+<p>学生が作ったゲームを、5分でつまみ食い。<br>遊ぶのは登録なし。感想を書くときだけログイン。</p>
 <p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--accent);text-decoration:underline">最初の作品を募集中</a></p>
 <p><a href="privacy.html" style="display:inline;padding:0;font-size:12px;color:var(--muted);text-decoration:underline">集める情報と使い道</a></p>
 </nav>
 <main class="feed" id="feed" tabindex="-1" aria-label="作品フィード"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
-<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>登録なし・無料です。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span></span><button type="button" id="introX">OK</button></div>
+<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span></span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
@@ -204,9 +206,9 @@ textarea{min-height:72px;resize:vertical}
 <div class="sheet-bg" id="loginBg">
   <div class="sheet" role="dialog" aria-labelledby="lTitle">
     <h3 id="lTitle">感想を送るにはログインしてね</h3>
-    <p class="sub">遊ぶ・👍・🤔はログインなしでOK。感想を書く人だけログインしてください（名前は運営にだけ見えます）。</p>
-    <div id="providers" style="display:grid;gap:8px"></div>
-    <div style="display:grid;gap:8px"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス"><button class="btn ghost" type="button" id="lSend">メールでログイン（リンクが届きます）</button></div>
+    <p class="sub">遊ぶ・👍・🤔は、ログインなしでOK。感想を書くときだけ、ログインしてね（名前は運営にだけ見えます）。</p>
+    <div id="providers"></div>
+    <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button><p class="lnote">メールにリンクが届きます。<b>このページを開いたのと同じブラウザ</b>でリンクを開いてね。</p></div>
     <p class="msg" id="lMsg" aria-live="polite"></p>
     <button class="btn ghost" type="button" id="lClose">あとで</button>
     <p class="who"><a href="privacy.html" style="color:inherit">集める情報と使い道</a></p>
@@ -572,7 +574,7 @@ const sbc = () => TPB.sb();
 async function getSession(){ const sb=sbc(); if(!sb) return null; try{ const {data}=await sb.auth.getSession(); return data.session }catch(e){ return null } }
 function userName(s){ const m=(s&&s.user&&s.user.user_metadata)||{}; return m.full_name||m.name||((s&&s.user&&s.user.email)||'').split('@')[0]||'ログイン中' }
 function closeLogin(){ $('loginBg').classList.remove('open'); TPB.layer.close('login') }
-function needLogin(g){ store.set('pendingFb',g.slug); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }) }
+function needLogin(g){ store.set('pendingFb',g.slug); store.set('pendingFbT',Date.now()); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }) }
 $('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); closeLogin() });
 $('loginBg').addEventListener('click',e=>{ if(e.target===$('loginBg')) $('lClose').click() });
 $('lSend').addEventListener('click',async()=>{
@@ -583,7 +585,7 @@ $('lSend').addEventListener('click',async()=>{
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
   $('lSend').disabled=false;
   if(error){ msg.className='msg err'; msg.textContent='送れなかった…時間をおいてもう一度試してね' }
-  else msg.textContent='メールを送ったよ。届いたリンクを開くと、この画面に戻って感想を書けます（迷惑メールも確認してね）';
+  else msg.textContent='メールを送ったよ。届いたリンクを、このページを開いたのと同じブラウザで開くと、この作品の感想を書けます（迷惑メールも確認してね）';
 });
 // 使えるログイン方法（DiscordやGoogleはSupabaseで有効にしたものだけ出す）
 fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{
@@ -595,6 +597,7 @@ fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).th
 // ログインから戻ってきたら、書きかけだった作品の感想シートを開く
 async function resumePending(){
   const slug=store.get('pendingFb',''); if(!slug) return;
+  if(Date.now()-store.get('pendingFbT',0)>2*3600*1000){ store.set('pendingFb',''); return }  // 古い書きかけは開かない
   const s=await getSession(); if(!s) return;
   store.set('pendingFb',''); closeLogin();
   const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]');
