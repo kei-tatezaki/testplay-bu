@@ -241,6 +241,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 @media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 6px;font-size:13px}}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
+.site-lead{font-size:13px;margin:-10px 0 0;text-wrap:balance}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
@@ -448,7 +449,8 @@ def build():
         (make_r18_og if is_r18(g) else make_og)(g, ROOT / f"og/{g['slug']}.png")
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = (AGE_GATE if is_r18(g) else "") + f"""<div class="wrap">
-<header class="bar"><a class="ghost-link" href="../../list.html">← まとめ</a><span class="bar-r"><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="../../"><img src="../../assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="../../list.html">ほかの作品を見る</a><span data-me></span></span></header>
+<p class="lead site-lead">学生のゲームを5分でつまみ食い。遊ぶのは登録なし</p>
 <article class="card">
 {media_html(g, '../../')}
 <div class="body">
@@ -496,7 +498,7 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
@@ -526,7 +528,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample = next((g for g in games if g.get("updates")), games[0] if games else None)
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ</p>
@@ -667,7 +669,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 
     # プライバシーの説明
     privacy = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
