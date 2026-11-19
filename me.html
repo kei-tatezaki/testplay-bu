@@ -80,7 +80,11 @@ function render(){
       PROFILE?el('a',{class:'btn ghost',href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,
       ISADMIN?el('a',{class:'btn ghost',href:'./admin.html'},'管理ページ'):null,
       el('button',{class:'btn ghost',type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); location.reload() }},'ログアウト'))));
-  const bar=el('div',{class:'tabs',role:'tablist','aria-label':'マイページ'},tabs.map(([k,l])=>el('button',{type:'button',role:'tab','aria-selected':String(k===TAB),onclick:()=>{ TAB=k; history.replaceState(null,'','#'+k); render() }},l)));
+  const bar=el('div',{class:'tabs',role:'tablist','aria-label':'マイページ'},tabs.map(([k,l])=>el('button',{type:'button',role:'tab',id:'tab-'+k,'aria-selected':String(k===TAB),tabindex:k===TAB?'0':'-1',onclick:()=>{ TAB=k; history.replaceState(null,'','#'+k); render() }},l)));
+  // ← → Home End でもタブを切りかえられる
+  bar.addEventListener('keydown',e=>{ const ks=tabs.map(t=>t[0]); let i=ks.indexOf(TAB);
+    if(e.key==='ArrowRight') i=(i+1)%ks.length; else if(e.key==='ArrowLeft') i=(i-1+ks.length)%ks.length; else if(e.key==='Home') i=0; else if(e.key==='End') i=ks.length-1; else return;
+    e.preventDefault(); TAB=ks[i]; history.replaceState(null,'','#'+TAB); render(); const b=document.getElementById('tab-'+TAB); if(b) b.focus() });
   main.replaceChildren(head,bar,pane);
   ({games:paneGames,played:panePlayed,fb:paneFb,edit:paneEdit})[TAB](pane);
 }
@@ -97,11 +101,11 @@ async function paneGames(pane){
   const box=el('div',{class:'subs'}); pane.append(box);
   try{
     const {data}=await sb.rpc('my_submissions'); if(!data||!data.length) return;
-    const ST={new:['確認中',''],ok:['載せました',''],ng:['見送り','ng']};
+    const ST={new:['確認中',''],ok:['載せました',''],ng:['見送り','ng']}, STE={new:['確認中',''],ok:['直しました',''],ng:['見送り','ng']};
     box.append(el('h2',{style:'margin:8px 0 0;font-size:16px'},'応募したもの'));
     data.forEach(s=>{ const g=s.game_slug&&T.game(s.game_slug);
       box.append(el('div',{class:'sub'},
-        el('div',null,el('span',{class:'st '+ST[s.status][1]},ST[s.status][0]),' ',el('b',null,s.kind==='edit'?'直しの依頼：'+(g?g.title:s.game_slug):(s.data.title||'（タイトルなし）'))),
+        el('div',null,el('span',{class:'st '+(s.kind==='edit'?STE:ST)[s.status][1]},(s.kind==='edit'?STE:ST)[s.status][0]),' ',el('b',null,s.kind==='edit'?'直しの依頼：'+(g?g.title:s.game_slug):(s.data.title||'（タイトルなし）'))),
         el('div',{class:'by'},new Date(s.created_at).toLocaleDateString('ja-JP')+(s.kind==='new'&&s.data.play_url?' ・ '+s.data.play_url:'')),
         s.kind==='edit'&&s.data.note?el('div',null,s.data.note):null,
         s.admin_note?el('div',null,'運営から：'+s.admin_note):null)) });
@@ -144,15 +148,15 @@ function shrink(file){
     im.onerror=()=>{ URL.revokeObjectURL(url); ng(new Error('image')) }; im.src=url });
 }
 function paneEdit(pane){
-  const p=PROFILE||{handle:'',name:nameOf(),bio:'',avatar_url:'',links:[],video:''};
+  const p=PROFILE||{handle:'',name:'',bio:'',avatar_url:'',links:[],video:''};
   let avatarUrl=p.avatar_url||'', newBlob=null;
   const msg=el('p',{class:'msg','aria-live':'polite'});
-  const avBox=el('span',null,T.avatar({name:p.name,avatar:avatarUrl},72));
+  const avBox=el('span',null,T.avatar({name:p.name||'？',avatar:avatarUrl},72));
   const file=el('input',{type:'file',accept:'image/png,image/jpeg,image/webp',hidden:true});
   file.addEventListener('change',async()=>{ const f=file.files[0]; if(!f) return;
     try{ newBlob=await shrink(f); avBox.replaceChildren(T.avatar({name:'',avatar:URL.createObjectURL(newBlob)},72)); msg.className='msg'; msg.textContent='画像を選びました。「保存する」を押すと変わります' }
     catch(e){ msg.className='msg err'; msg.textContent='この画像は使えませんでした。PNGかJPEGの画像を選んでね' } });
-  const name=el('input',{type:'text',maxlength:30,value:p.name,required:true,autocomplete:'nickname'});
+  const name=el('input',{type:'text',maxlength:30,value:p.name,placeholder:'ゲームを作っている名前',required:true,autocomplete:'nickname'});
   const handle=el('input',{type:'text',maxlength:20,value:p.handle,placeholder:'例：taro_games',autocapitalize:'none',autocomplete:'off',spellcheck:'false',pattern:'[a-z0-9_]{3,20}'});
   const bio=el('textarea',{maxlength:160,placeholder:'例：大学2年。Unityで2Dアクションを作っています。'}); bio.value=p.bio||'';
   const cnt=el('span',{class:'count'}); const upd=()=>cnt.textContent=[...bio.value].length+' / 160'; bio.addEventListener('input',upd); upd();
@@ -164,7 +168,7 @@ function paneEdit(pane){
     el('div',{class:'avrow'},avBox,el('div',{style:'display:grid;gap:4px'},el('button',{class:'btn ghost',type:'button',onclick:()=>file.click()},'アイコンの画像を選ぶ'),
       avatarUrl?el('button',{type:'button',class:'by',style:'border:0;background:none;text-decoration:underline;cursor:pointer;text-align:left;padding:4px 0',onclick:()=>{ avatarUrl=''; newBlob=null; avBox.replaceChildren(T.avatar({name:name.value},72)) }},'画像をはずす'):null,
       el('span',{class:'hint'},'自分で用意した画像を使ってね。写真は顔がわからないものがおすすめ')),file),
-    el('label',null,'名前',name),
+    el('label',null,el('span',null,'名前 ',el('small',null,'ここに入れた名前は、みんなに見えます')),name),
     el('label',null,el('span',null,'ID ',el('small',null,'プロフィールのURLになります。半角の英小文字・数字・_ で3〜20文字')),el('span',{class:'idrow'},el('span',null,'@'),handle)),
     el('label',null,el('span',null,'ひとこと ',el('small',null,'書かなくてもOK')),bio,cnt),
     el('div',{style:'display:grid;gap:6px'},el('b',{style:'font-size:14px'},'リンク ',el('small',{class:'hint'},'X・YouTube・itch.io・unityroom・自分のサイトなど')),links),

@@ -134,3 +134,6 @@ dialog.np[open]{display:grid}
 dialog.np::backdrop{background:#0009}
 dialog.np h2{margin:0;font-size:18px}dialog.np p{margin:0;font-size:14px}
 dialog.np .btn{min-height:44px;font-size:15px}
+/* タブ：スマホ（360px）でも4つとも収める */
+@media (max-width:420px){.tabs{gap:0}.tabs button{flex:1 1 auto;padding:10px 4px;font-size:13px}}
+@media (max-width:380px){.tabs button{padding:10px 2px;font-size:12.5px;letter-spacing:-.02em}}
