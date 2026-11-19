@@ -154,6 +154,10 @@ header p{margin:4px 0 0;color:var(--muted)}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
 .brand img{border-radius:50%}
 .bar .btn{padding:7px 14px;font-size:14px}
+.bar-r{display:flex;gap:8px;align-items:center;flex:none}
+.brand,.ghost-link,.bar .btn{white-space:nowrap}
+@media (max-width:420px){.brand{font-size:16px}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 10px;font-size:13px}}
+.ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -325,7 +329,7 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a></span></header>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
 <nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
@@ -349,6 +353,72 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
                                          "学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。",
                                          f"{BASE}/list.html", f"{BASE}/og/site.png", body, ""), encoding="utf-8")
+
+    # 作る人へ（作品を載せたい人向けの案内ページ）
+    sample = next((g for g in games if g.get("updates")), games[0] if games else None)
+    sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
+    creators = f"""<div class="wrap">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<section class="card hero-c"><div class="body">
+<p class="eyebrow">作品を載せたい人へ</p>
+<h1>説明するより、<br>遊んでもらおう。</h1>
+<p>小さく遊べる版を出すだけで、作品ページができます。遊んだ人の数も、もらった感想も、それを受けて直した記録も、ぜんぶ1ページに残ります。</p>
+<p><a class="btn" href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discordで運営に声をかける</a></p>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>こんな人に使ってほしい</h2>
+<ul class="checks">
+<li>ゲームは作ったけど、ポートフォリオに載せるにはちょっと薄いと感じている人</li>
+<li>機能をひとつずつ文章で説明するのがダルい人</li>
+<li>作ったゲームが、誰にも遊ばれないまま眠っている人</li>
+<li>面接で「ユーザーの声を聞いて改善した経験」を話せるようにしたい人</li>
+</ul>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>載せるとできること</h2>
+<ul class="checks">
+<li><b>遊べる作品ページ</b>：遊ぶボタン、動画、あなたが確かめたいことが1ページにまとまる。URLを1本貼るだけでポートフォリオになる</li>
+<li><b>数字が自動で並ぶ</b>：遊んだ人の数、「また遊びたい」の割合、感想の数</li>
+<li><b>直した記録が残る</b>：感想を読んで直したら「感想でアップデート」に、いつ・どんな声で・何を直したかが残る</li>
+<li><b>説明は全部書かなくていい</b>：遊んでもらえば伝わる</li>
+</ul>
+<p class="muted">例：{sample_link}（もらった感想で直した記録つき）</p>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>完成していなくても大丈夫</h2>
+<p>テスト部屋だけ、最初の1面だけ、チュートリアルだけでも、立派な作品ページになります。重いゲームは、遊ぶ部分だけを切り出した「小さい版」にしてください。</p>
+<h3>載せるのに必要なもの</h3>
+<ul>
+<li>ブラウザで遊べるURL（容量は200MB以下がおすすめ）</li>
+<li>一言（何をするゲームか）</li>
+<li>画像1枚（あれば5〜10秒の動画も）</li>
+<li>対応端末（PCのみ／スマホのみ／PC・スマホ）</li>
+<li>あなたが確かめたいこと（操作感・楽しさ・チュートリアルなど）</li>
+</ul>
+<p>いまは運営に声をかけてもらえれば、こちらで載せます。そのうちサイトから自分で投稿できるようになります。</p>
+<p><a class="btn" href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discordで運営に声をかける</a></p>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>運営の約束</h2>
+<p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
+</div></section>
+<footer><a href="./list.html">← まとめに戻る</a></footer>
+</div>
+<style>
+.hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}}
+.eyebrow{{color:var(--accent);font-weight:700;font-size:13px;margin:0;letter-spacing:.06em}}
+.checks{{list-style:none;padding:0;margin:0;display:grid;gap:10px}}
+.checks li{{padding-left:26px;position:relative}}
+.checks li::before{{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}}
+.wrap h3{{font-size:15px;margin:16px 0 6px}}
+</style>"""
+    (ROOT / "creators.html").write_text(page("作品を載せたい人へ｜テストプレイ部",
+                                             "説明するより、遊んでもらおう。小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録が残る作品ページができます。",
+                                             f"{BASE}/creators.html", f"{BASE}/og/site.png", creators, ""), encoding="utf-8")
 
     # トップはショート風のフィード
     data = json.dumps(games, ensure_ascii=False).replace("</", "<\\/")
