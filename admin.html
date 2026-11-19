@@ -52,11 +52,12 @@ tr.hidden td{opacity:.45}
 
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
-  <p class="muted" style="margin:0">メールアドレスを入れると、ログイン用のリンクが届きます。届いたメールのリンクを、このブラウザで開いてください。</p>
+  <p class="muted" style="margin:0">メールアドレスを入れると、ログイン用のリンクと6けたの番号が届きます。リンクを開くか、番号を入れてください。</p>
   <label for="email">メールアドレス</label>
   <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
-  <button class="primary" id="sendLink">ログイン用のリンクを送る</button>
+  <button class="primary" id="sendLink">ログイン用のメールを送る</button>
   <div id="loginMsg" class="muted"></div>
+  <div id="otpHere"></div>
 </section>
 
 <section id="claimBox" class="card login" hidden>
@@ -152,11 +153,12 @@ tr.hidden td{opacity:.45}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/tpb.js"></script>
 <script>
 "use strict";
 const SB_URL = 'https://jwrzqaxuvmdbroemenng.supabase.co';
 const SB_KEY = 'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+const sb = TPB.sb();  // tpb.js が作った1つを使い回す
 const $ = id => document.getElementById(id);
 let GAMES = {}, FB = [];
 
@@ -182,13 +184,15 @@ async function start(){
   show(!error && exists === false ? 'claimBox' : 'denyBox');
 }
 
+const otp = TPB.otpBlock({ btnClass: 'primary' }); $('otpHere').append(otp);
 $('sendLink').onclick = async () => {
   const email = $('email').value.trim();
   if (!email) return;
   $('sendLink').disabled = true;
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
   $('sendLink').disabled = false;
-  $('loginMsg').textContent = error ? '送れませんでした：' + error.message : 'メールを送りました。届いたリンクを開いてください（迷惑メールも確認してね）';
+  $('loginMsg').textContent = error ? '送れませんでした：' + error.message : 'メールを送りました。メールのリンクを開くか、届いた6けたの番号を下に入れてください（迷惑メールも確認してね）';
+  if (!error) otp.open(email);
 };
 $('claim').onclick = async () => {
   const r = await rpc('claim_first_admin');

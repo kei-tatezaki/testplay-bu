@@ -369,6 +369,37 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
 })();
 
+// メールの6けたの番号でログインする箱。Xなどのアプリ内ブラウザでは、メールのリンクを開くと別のブラウザになってログインできないことがあるため、番号でも入れるようにする。
+// 使い方：var b = TPB.otpBlock({ onDone: fn }); 好きな場所に置く。メールを送ったあとに b.open(メールアドレス) を呼ぶ。
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el;
+  T.otpBlock = function (o) {
+    o = o || {};
+    var email = "";
+    var input = el("input", { type: "text", inputmode: "numeric", autocomplete: "one-time-code", maxlength: "10", placeholder: "メールの6けたの番号", "aria-label": "メールに届いた6けたの番号" });
+    var btn = el("button", { type: "button", class: o.btnClass || "btn" }, "番号でログイン");
+    var msg = el("p", { class: "msg", "aria-live": "polite", style: "margin:0;font-size:13px" });
+    var box = el("div", { class: "otp", hidden: true, style: "display:grid;gap:8px" },
+      el("p", { class: "muted", style: "margin:0;font-size:12px;line-height:1.5" }, "リンクを開けないときは、メールに書いてある6けたの番号を入れてね。"), input, btn, msg);
+    async function go() {
+      var token = input.value.replace(/[\s\u3000]/g, "").replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0) });
+      if (!/^\d{6,10}$/.test(token)) { msg.className = "msg err"; msg.textContent = "メールの番号（数字6けた）を入れてね"; return }
+      var sb = T.sb(); if (!sb) { msg.className = "msg err"; msg.textContent = "いま読み込めませんでした。ページを開き直してね"; return }
+      btn.disabled = true; msg.className = "msg"; msg.textContent = "確かめています…";
+      var r = await sb.auth.verifyOtp({ email: email, token: token, type: "email" });
+      btn.disabled = false;
+      if (r.error) { msg.className = "msg err"; msg.textContent = "番号が合いませんでした。メールをもう一度見てね（時間がたつと使えなくなります）"; return }
+      msg.textContent = "ログインしたよ"; if (o.onDone) o.onDone();
+    }
+    btn.addEventListener("click", go);
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); go() } });
+    box.open = function (addr) { email = addr; box.hidden = false; box.style.display = "grid"; msg.textContent = ""; input.value = "" };
+    box.hidden = true; box.style.display = "none";
+    return box;
+  };
+})();
+
 // ログインの箱（マイページ・応募フォーム用）。使えるログイン方法だけボタンを出す
 (function () {
   "use strict";
@@ -379,7 +410,8 @@
     var email = el("input", { type: "email", inputmode: "email", autocomplete: "email", placeholder: "メールアドレス", "aria-label": "メールアドレス" });
     var send = el("button", { class: "btn", type: "submit" }, "メールでログイン");
     var back = location.origin + location.pathname + location.search;
-    var form = el("form", { class: "form", novalidate: true }, email, send, el("p", { class: "muted", style: "margin:-6px 0 0;font-size:12px" }, "メールにリンクが届きます。このページを開いたのと同じブラウザでリンクを開いてね。"));
+    var otp = T.otpBlock({ btnClass: "btn", onDone: function () { location.reload() } });
+    var form = el("form", { class: "form", novalidate: true }, email, send, el("p", { class: "muted", style: "margin:-6px 0 0;font-size:12px" }, "メールに、リンクと6けたの番号が届きます。どちらでもログインできます。"));
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var v = email.value.trim();
@@ -388,7 +420,7 @@
       var r = await T.sb().auth.signInWithOtp({ email: v, options: { emailRedirectTo: back } });
       send.disabled = false;
       if (r.error) { msg.className = "msg err"; msg.textContent = "送れなかった…時間をおいてもう一度試してね" }
-      else msg.textContent = "メールを送ったよ。届いたリンクを、このページを開いたのと同じブラウザで開くと、ログインできます（迷惑メールも確認してね）";
+      else { msg.textContent = "メールを送ったよ。メールのリンクを開くか、届いた6けたの番号を下に入れてね（迷惑メールも確認してね）"; otp.open(v) }
     });
     fetch(T.SB_URL + "/auth/v1/settings", { headers: { apikey: T.SB_KEY } }).then(function (r) { return r.json() }).then(function (st) {
       var ext = (st && st.external) || {};
@@ -398,6 +430,6 @@
     }).catch(function () {});
     return el("section", { class: "card", style: "max-width:460px;margin:0 auto;width:100%" }, el("div", { class: "body" },
       el("h1", { style: "font-size:20px;margin:0" }, title), el("p", { class: "muted", style: "margin:0;font-size:14px" }, text),
-      prov, form, msg, el("a", { class: "by", href: T.base + "privacy.html" }, "集める情報と使い道")));
+      prov, form, msg, otp, el("a", { class: "by", href: T.base + "privacy.html" }, "集める情報と使い道")));
   };
 })();
