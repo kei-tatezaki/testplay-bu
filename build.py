@@ -151,6 +151,8 @@ header p{margin:4px 0 0;color:var(--muted)}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:#000;border:0}
+.thumb{position:relative;display:block}
+.thumb-play{position:absolute;right:10px;bottom:10px;background:#000b;color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:999px}
 .yt{position:relative}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body{padding:16px;display:grid;gap:10px}
 .body h2{margin:0;font-size:21px;line-height:1.4}
@@ -235,7 +237,7 @@ def discord_link(g, prefix=""):
 
 def card(g, prefix):
     return f"""<article class="card" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
-{media_html(g, prefix)}
+<a class="thumb" href="{prefix}./?g={e(g['slug'])}" aria-label="{e(g['title'])}をショートで見る">{media_html(g, prefix)}<span class="thumb-play">▶ ショートで見る</span></a>
 <div class="body">
 <h2>{e(g['title'])}</h2>
 <div class="chips">{chips_html(g)}</div>
@@ -258,7 +260,7 @@ def build():
         make_og(g, ROOT / f"og/{g['slug']}.png")
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = f"""<div class="wrap">
-<a href="../../">← テストプレイ部（スワイプで見る）</a>
+<a href="../../list.html">← まとめに戻る</a>
 <article class="card">
 {media_html(g, '../../')}
 <div class="body">
@@ -299,7 +301,7 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header><h1>テストプレイ部 まとめ</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a href="./">← スワイプで見る</a></p></header>
+<header><h1>テストプレイ部 まとめ</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a class="btn" href="./">▶ ショートで見る</a></p></header>
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
 <nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
 <main id="list" class="grid">

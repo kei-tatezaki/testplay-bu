@@ -23,8 +23,9 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
+.top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:flex-start;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
 .top *{pointer-events:auto}
+.top a.back{font-size:22px;line-height:1;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:50%}
 .logo{font-weight:800;letter-spacing:.06em;font-size:17px}
 .top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
@@ -88,7 +89,7 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="top"><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><a href="list.html">まとめで見る</a></div>
+<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめに戻る">←</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><span class="sp"></span></div>
 <main class="feed" id="feed" aria-label="作品フィード"></main>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
@@ -137,6 +138,13 @@ const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
 const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
 // 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
 const order = GAMES.map((g,i)=>({g,i})).sort((a,b)=> (canPlay(b.g)-canPlay(a.g)) || (played.has(a.g.slug)-played.has(b.g.slug)) || (b.i-a.i)).map(x=>x.g);
+// まとめから作品をタップして来たとき（?g=作品ID）は、その作品を最初に出す
+const startSlug = new URLSearchParams(location.search).get('g');
+if(startSlug){ const k=order.findIndex(g=>g.slug===startSlug); if(k>0) order.unshift(order.splice(k,1)[0]) }
+// ← は、まとめから来たときは「戻る」（スクロール位置もそのまま）、それ以外はまとめを開く
+document.getElementById('back').addEventListener('click',e=>{
+  try{ const r=new URL(document.referrer); if(r.origin===location.origin && /list\.html$/.test(r.pathname) && history.length>1){ e.preventDefault(); history.back() } }catch(_){}
+});
 
 const feed = $('feed');
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
