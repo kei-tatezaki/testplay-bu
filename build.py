@@ -223,7 +223,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .wide .filters::-webkit-scrollbar{display:none}
 .wide .filters button{white-space:nowrap;flex:none}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
+.brand{min-height:40px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
 .brand img{border-radius:50%}
 .bar .btn{padding:7px 14px;font-size:14px}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
@@ -537,6 +537,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <li><b>説明は全部書かなくていい</b>：遊んでもらえば伝わる</li>
 </ul>
 <p class="muted">例：{sample_link}（もらった感想で直した記録つき）</p>
+<div class="shots">
+<figure><a href="./games/{e(sample["slug"]) if sample else ""}/"><img src="assets/guide/game.jpg" alt="作品ページの例。動画、作った人、確かめたいこと、遊ぶボタンが並んでいる" loading="lazy" width="600" height="1140"></a><figcaption>作品ページ（じっさいの画面）</figcaption></figure>
+<figure><a href="./profile.html?u=unei"><img src="assets/guide/profile.jpg" alt="プロフィールの例。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="600" height="1140"></a><figcaption>プロフィール（じっさいの画面）</figcaption></figure>
+<figure class="widefig"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"><figcaption>開発者ページ（見本。数字は例です）— 遊んだ人の数、どこで離れたか、感想が見られる</figcaption></figure>
+</div>
 </div></section>
 
 <section class="card"><div class="body">
@@ -612,6 +617,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 .checks li{{padding-left:26px;position:relative}}
 .checks li::before{{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}}
 .wrap h3{{font-size:15px;margin:16px 0 6px}}
+.shots{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+.shots figure{{margin:0;display:grid;gap:4px}}
+.shots img{{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}}
+.shots figcaption{{font-size:12px;color:var(--muted)}}
+.shots .widefig{{grid-column:1/-1}}
 </style>"""
     (ROOT / "creators.html").write_text(page("作品を載せたい人へ｜テストプレイ部",
                                              "説明するより、遊んでもらおう。小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録が残る作品ページができます。",

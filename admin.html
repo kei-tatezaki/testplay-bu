@@ -18,6 +18,7 @@ header h1 img{border-radius:50%}
 .muted{color:var(--muted)}
 button,.btn{border:1px solid var(--line);background:#ffffff0d;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+a{color:var(--accent)}
 button.danger{border-color:#ff6b6b66;color:var(--bad)}
 button:disabled{opacity:.5;cursor:default}
 input,select{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font:inherit}
@@ -237,7 +238,7 @@ async function loadSubs(){
     const rows = s.kind === 'edit'
       ? `<div><b>直しの依頼：${esc(GAMES[s.game_slug]?.title || s.game_slug)}</b></div><div class="free">${esc(d.note || '')}</div>`
       : `<div><b>${esc(d.title || '')}</b> ${d.rating ? `<span class="tag ban">${esc(d.rating.toUpperCase())}</span>` : ''}</div><div>${url}</div><div>${esc(d.oneliner || '')}</div>
-         <div class="muted">${[d.platform, d.minutes, d.genre, d.stage, d.check && '確かめたい：' + d.check, d.controls && '操作：' + d.controls].filter(Boolean).map(esc).join(' ・ ')}</div>
+         <div class="muted">${[({pc:'PCのみ',sp:'スマホのみ',both:'PC・スマホ'})[d.platform], d.minutes, d.genre, d.stage, d.check && '確かめたい：' + d.check, d.controls && '操作：' + d.controls].filter(Boolean).map(esc).join(' ・ ')}</div>
          ${d.question ? `<div>質問：${esc(d.question)}</div>` : ''}${d.image_url ? `<div>画像：${esc(d.image_url)}</div>` : ''}${d.note ? `<div class="free">メモ：${esc(d.note)}</div>` : ''}`;
     return `<div class="card" style="padding:12px;display:grid;gap:4px">
       <div class="muted">${fmt(s.created_at)} ・ ${esc(s.by_name || '')}（${esc(s.by_email || '')}）${s.handle ? ' ・ <a href="profile.html?u=' + esc(s.handle) + '" target="_blank">@' + esc(s.handle) + '</a>' : ' ・ プロフィールなし'}

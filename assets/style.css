@@ -11,7 +11,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .wide .filters::-webkit-scrollbar{display:none}
 .wide .filters button{white-space:nowrap;flex:none}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
+.brand{min-height:40px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
 .brand img{border-radius:50%}
 .bar .btn{padding:7px 14px;font-size:14px}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
