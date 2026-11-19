@@ -374,6 +374,9 @@
 (function () {
   "use strict";
   var T = window.TPB, el = T.el;
+  // メールの文面に番号（{{ .Token }}）を入れるには、Supabaseで自前のメール送信（SMTP）の設定が要る。
+  // 設定が終わるまでは番号が届かないので、番号の欄は出さない。終わったら true にする。
+  T.OTP_ENABLED = false;
   T.otpBlock = function (o) {
     o = o || {};
     var email = "";
@@ -394,7 +397,7 @@
     }
     btn.addEventListener("click", go);
     input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); go() } });
-    box.open = function (addr) { email = addr; box.hidden = false; box.style.display = "grid"; msg.textContent = ""; input.value = "" };
+    box.open = function (addr) { if (!T.OTP_ENABLED) return; email = addr; box.hidden = false; box.style.display = "grid"; msg.textContent = ""; input.value = "" };
     box.hidden = true; box.style.display = "none";
     return box;
   };
