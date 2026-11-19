@@ -165,7 +165,7 @@ async function load(){
     return n? Math.round((pts+1.5)/(n+3)*100)+'%' : '—' })();
   $('kpis').innerHTML=[
     ['遊んだ人',s.plays+'人'],['遊んだ回数',s.sessions+'回'],['遊んだ時間（真ん中）',fmtSec(s.median_seconds),'半分の人はこれより長く遊んだ'],
-    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate,'もう一回遊びたいと答えた割合のめやす'],['いいね（👍）',s.likes],['感想',s.feedbacks+'件']
+    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度（めやす）',rate,'もう一回遊びたいと答えた割合。数が少ないうちは補正しています'],['いいね（👍）',s.likes],['感想',s.feedbacks+'件']
   ].map(([k,v,n])=>`<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span>${n?`<small>${esc(n)}</small>`:''}</div>`).join('');
   const B=s.buckets||[0,0,0,0,0];
   bars('buckets',[['30秒未満',B[0],'bad'],['30秒〜1分',B[1],'warn'],['1〜3分',B[2]],['3〜5分',B[3]],['5分以上',B[4]]]);

@@ -97,7 +97,7 @@ tr.hidden td{opacity:.45}
 
   <div data-panel="games" hidden>
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
-      <thead><tr><th>作品</th><th>遊んだ人</th><th>感想</th><th>遊びたい度</th><th>👍</th><th>🤔 操作</th><th>🤔 重い</th><th>🤔 おもしろさ</th><th>興味なし</th></tr></thead>
+      <thead><tr><th>作品</th><th>遊んだ人</th><th>感想</th><th>遊びたい度（めやす）</th><th>👍</th><th>🤔 操作</th><th>🤔 重い</th><th>🤔 おもしろさ</th><th>興味なし</th></tr></thead>
       <tbody id="gameRows"></tbody>
     </table></div>
   </div>
@@ -131,7 +131,7 @@ tr.hidden td{opacity:.45}
   </div>
 
   <div data-panel="profiles" hidden>
-    <p class="muted" style="margin-top:0">みんなが作ったプロフィールです。よくない名前や画像は「隠す」で見えなくできます（本人のマイページには残ります）。</p>
+    <p class="muted" style="margin-top:0">みんなが作ったプロフィールです。よくない名前や画像は「非表示にする」で見えなくできます（本人のマイページには残ります）。</p>
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
       <thead><tr><th>アイコン</th><th>名前</th><th>ID</th><th>ひとこと</th><th>直した日</th><th>操作</th></tr></thead>
       <tbody id="profRows"></tbody>
@@ -205,6 +205,7 @@ function ask(title, body, withInput, def){
     $('mNo').onclick = () => done(null);
   });
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) { e.preventDefault(); $('mNo').click() } });
 $('logout').onclick = $('logout2').onclick = async () => { await sb.auth.signOut(); start(); };
 sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') start(); });
 
@@ -220,11 +221,15 @@ async function loadAll(){
     $('fGame').innerHTML = '<option value="">すべての作品</option>' + games.map(g => `<option value="${esc(g.slug)}">${esc(g.title)}</option>`).join('');
   } catch (e) {}
   await Promise.all([loadFb(), loadGames(), loadBans(), loadOwners(), loadSubs(), loadReports(), loadProfiles()]);
+  // 最初だけ：未対応の応募か報告があるタブを開く（応募が先）
+  if (!loadAll.done) { loadAll.done = true;
+    const t = SUBS.some(s => s.status === 'new') ? 'subs' : REPS.some(r => !r.done) ? 'reports' : '';
+    if (t) document.querySelector('[role=tab][data-tab="' + t + '"]').click(); }
 }
 
 // ---- 応募 ----
 const SUB_ST = { new: '確認中', ok: '載せた', ng: '見送り' };
-let SUBS = [];
+let SUBS = [], REPS = [];
 function subJson(s){
   const d = s.data || {};
   const slug = (d.title || 'game').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'new-game';
@@ -263,18 +268,18 @@ $('subRows').onclick = async (e) => {
 // ---- 報告 ----
 const REASON = { broken: '動かない・遊べない', bad_content: 'いやな気持ちになる内容', rating: '年齢制限が合っていない', copy: 'ほかの人の作品のまね', spam: '宣伝・いたずら', other: 'そのほか' };
 async function loadReports(){
-  const rows = await rpc('admin_reports');
+  const rows = await rpc('admin_reports'); REPS = rows;
   const n = rows.filter(r => !r.done).length; $('repN').textContent = n ? '（' + n + '）' : '';
   $('repRows').innerHTML = rows.map(r => `<tr style="${r.done ? 'opacity:.55' : ''}"><td>${fmt(r.created_at)}</td>
     <td>${r.kind === 'game' ? `作品：<a href="games/${esc(r.target)}/" target="_blank">${esc(GAMES[r.target]?.title || r.target)}</a>` : `プロフィール：<a href="profile.html?u=${esc(r.target)}" target="_blank">@${esc(r.target)}</a>`}</td>
     <td>${esc(REASON[r.reason] || r.reason)}</td><td class="free">${esc(r.detail)}</td><td>${esc(r.by_name || 'ログインなし')}<div class="muted" style="font-size:11px">${esc((r.client_id || '').slice(0, 8))}</div></td>
-    <td><div class="acts"><button data-rep="${r.id}" data-val="${!r.done}">${r.done ? '未対応に戻す' : '対応済みにする'}</button>${r.kind === 'profile' ? `<button class="danger" data-hide="${esc(r.target)}">プロフィールを隠す</button>` : ''}</div></td></tr>`).join('')
+    <td><div class="acts"><button data-rep="${r.id}" data-val="${!r.done}">${r.done ? '未対応に戻す' : '対応済みにする'}</button>${r.kind === 'profile' ? `<button class="danger" data-hide="${esc(r.target)}">プロフィールを非表示にする</button>` : ''}</div></td></tr>`).join('')
     || '<tr><td colspan="6" class="muted">まだ報告はありません</td></tr>';
 }
 $('repRows').onclick = async (e) => {
   const b = e.target.closest('button[data-rep]'), h = e.target.closest('button[data-hide]');
   if (b) { toast(await rpc('admin_report_done', { rid: b.dataset.rep, val: b.dataset.val === 'true' })); await loadReports(); }
-  if (h) { if (!(await ask('プロフィールを隠しますか？', '@' + h.dataset.hide + ' のプロフィールが、ほかの人から見えなくなります。あとで戻せます。', false))) return;
+  if (h) { if (!(await ask('プロフィールを非表示にしますか？', '@' + h.dataset.hide + ' のプロフィールが、ほかの人から見えなくなります。あとで戻せます。', false))) return;
     toast(await rpc('admin_profile_hide', { h: h.dataset.hide, hide: true })); await loadProfiles(); }
 };
 
@@ -284,13 +289,13 @@ async function loadProfiles(){
   $('profRows').innerHTML = rows.map(p => `<tr style="${p.hidden ? 'opacity:.55' : ''}">
     <td>${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="" width="40" height="40" style="border-radius:50%;object-fit:cover">` : '—'}</td>
     <td>${esc(p.name)}</td><td><a href="profile.html?u=${esc(p.handle)}" target="_blank">@${esc(p.handle)}</a></td><td class="free">${esc(p.bio)}</td><td>${fmt(p.updated_at)}</td>
-    <td><button data-ph="${esc(p.handle)}" data-val="${!p.hidden}" class="${p.hidden ? '' : 'danger'}">${p.hidden ? '表示に戻す' : '隠す'}</button></td></tr>`).join('')
+    <td><button data-ph="${esc(p.handle)}" data-val="${!p.hidden}" class="${p.hidden ? '' : 'danger'}">${p.hidden ? '表示に戻す' : '非表示にする'}</button></td></tr>`).join('')
     || '<tr><td colspan="6" class="muted">まだプロフィールはありません</td></tr>';
 }
 $('profRows').onclick = async (e) => {
   const b = e.target.closest('button[data-ph]'); if (!b) return;
   const hide = b.dataset.val === 'true';
-  if (hide && !(await ask('プロフィールを隠しますか？', '@' + b.dataset.ph + ' のプロフィールが、ほかの人から見えなくなります。あとで戻せます。', false))) return;
+  if (hide && !(await ask('プロフィールを非表示にしますか？', '@' + b.dataset.ph + ' のプロフィールが、ほかの人から見えなくなります。あとで戻せます。', false))) return;
   toast(await rpc('admin_profile_hide', { h: b.dataset.ph, hide })); await loadProfiles();
 };
 
@@ -312,7 +317,7 @@ function renderFb(){
       <td class="free">${esc(f.free || '')}</td>
       <td><b>${esc(f.author || '')}</b><br><span class="muted">端末 ${esc(f.client_id.slice(0,8))}… ・ この人の感想 ${f.by_same_client}件</span>${f.banned?' <span class="tag ban">BAN中</span>':''}</td>
       <td><div class="acts">
-        ${f.hidden ? `<button data-act="show" data-id="${f.id}">戻す</button>` : `<button data-act="hide" data-id="${f.id}">消す</button>`}
+        ${f.hidden ? `<button data-act="show" data-id="${f.id}">表示に戻す</button>` : `<button data-act="hide" data-id="${f.id}">非表示にする</button>`}
         ${f.banned ? '' : `<button class="danger" data-act="ban" data-id="${f.id}">BAN</button>`}
       </div></td></tr>`;
   }).join('') || '<tr><td colspan="6" class="muted">感想はまだありません</td></tr>';
@@ -338,7 +343,8 @@ async function loadGames(){
   const rows = await rpc('game_stats', { since_days: 3650 });
   const by = {}; rows.forEach(r => by[r.game_slug] = r);
   const slugs = [...new Set([...Object.keys(GAMES), ...Object.keys(by)])];
-  const rate = s => { const n=s.feedbacks+s.likes+s.hmms; return n ? Math.round((s.again_much+0.5*s.again_some+s.likes+1.5)/(n+3)*100)+'%（'+n+'人）' : '—' };
+  // 開発者ページ・作品ページと同じ計算：(すごく遊びたい＋ちょっと遊びたい×0.5＋いいね＋1.5)÷(感想＋いいね＋うーん＋3)
+  const rate = s => { const n=s.feedbacks+s.likes+s.hmms; return n ? Math.round((s.again_much+0.5*s.again_some+s.likes+1.5)/(n+3)*100)+'%（めやす・'+n+'人）' : '—' };
   $('gameRows').innerHTML = slugs.map(slug => {
     const s = by[slug] || {plays:0,likes:0,hmms:0,feedbacks:0,again_much:0,again_some:0,hmm_controls:0,hmm_heavy:0,hmm_fun:0,not_for_me:0};
     return `<tr><td><a href="games/${esc(slug)}/" style="color:var(--accent)">${esc(GAMES[slug]?.title || slug)}</a></td>
