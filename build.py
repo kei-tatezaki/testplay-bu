@@ -120,6 +120,7 @@ def all_sample(games):
 
 
 NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span>'
+               '<b class="lfb" data-lf><span data-lf-t>最初の10作品は投稿無料</span></b>'
                '<a class="btn" href="{p}submit.html">作品を応募する</a></div>')
 
 
@@ -635,100 +636,38 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     creators = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <main>
-{NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <section class="card hero-c"><div class="body">
-<p class="eyebrow">作品を載せたい人へ</p>
+<p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
-<p>小さく遊べる版を出すだけで、作品ページができます。遊んだ人の数も、もらった感想も、それを受けて直した記録も、ぜんぶ1ページに残ります。</p>
-<div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="#url">遊べるURLの作り方</a></div>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>いま、できる約束</h2>
-<ul class="checks">
-<li><b>いまは始めたばかりです。</b>最初のころに載せた作品は、運営がDiscordで紹介します。</li>
-<li><b>載るまでの目安：</b>運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。</li>
-</ul>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>載せるまでの流れ</h2>
+<p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
+<div class="lfhero" data-lf><b data-lf-t>最初の10作品は投稿無料</b><span>ポイントなしで応募できます（1人1回）。見送りになった枠は戻ります。</span></div>
+<div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small></div>
+<h2 class="flow-h">載るまでの流れ</h2>
 <ol class="steps">
-<li><b>遊べるURLを作る</b><br>ブラウザで開いてすぐ遊べるURLを用意します。作り方は<a href="#url">下の「遊べるURLの作り方」</a>へ。</li>
-<li><b>ポイントをためる</b><br>応募には <b>30pt</b> いります。ほかの人の作品を遊んで、40字以上の感想を書くとたまります。くわしくは<a href="#points">下の「ポイントのしくみ」</a>へ。</li>
-<li><b>URLを運営にわたす</b><br><a href="./submit.html">応募フォーム</a>に、作品名・URL・一言の3つを書いて送るだけ。Discordで運営に声をかけてもOK。</li>
-<li><b>運営が遊んで、作品ページを作る</b><br>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。載ったらDiscordの「新作とおすすめ」に流れます。</li>
-<li><b>数字と感想を見る</b><br>ログインすると、<a href="./dev.html">開発者ページ</a>で遊んだ人の数・遊んだ時間・感想が見られます。<a href="./me.html">マイページ</a>でプロフィールも作れます。</li>
+<li><b>応募フォームに3つを書いて送る</b><br>まだURLがない人は、<a href="#url">遊べるURLの作り方</a>へ。</li>
+<li><b>運営が遊んでから、作品ページを作る</b><br>運営がひとりで見ているので、1週間ほどかかることがあります。1週間たっても載らなければ、Discordで声をかけてね。載ったらDiscordで紹介します。</li>
+<li><b>数字と感想を見る</b><br><a href="./dev.html">開発者ページ</a>で、遊んだ人の数・遊んだ時間・感想が見られます。</li>
 </ol>
-</div></section>
-
-<section class="card" id="points"><div class="body">
-<h2>ポイントのしくみ</h2>
-<p>テストプレイ部は、遊んで感想を送り合う場所です。作品を載せたい人は、まず ほかの人の作品に感想を送って、ポイントをためます。</p>
-<h3>ためる</h3>
-<ul class="checks">
-<li>ログインして、<b>遊んだ作品</b>に、一言を<b>40字以上</b>（空白は数えません）で書いた感想を送ると、ポイントがつきます。</li>
-<li>感想が少ない作品ほど、たくさんもらえます：感想が0〜2件の作品は <b>+10pt</b>、3〜9件は <b>+5pt</b>、10件以上は <b>+2pt</b>（多い作品にも書けますが、もらえるのは少しです）。</li>
-<li>自分の作品、遊んでいない作品、同じ言葉のくり返しの感想には、つきません（感想は送れます）。</li>
-<li>もらえるのは、1日 <b>50pt</b> までです。</li>
-<li>運営が感想を非表示にしたら、その感想でもらった分は取り消されます。表示に戻れば、返ります。</li>
-</ul>
-<h3>つかう</h3>
-<ul class="checks">
-<li>作品を応募するとき、<b>30pt</b> つかいます（足りないときは、応募フォームにそう出ます）。</li>
-<li>載っている作品の<b>直しの依頼</b>は、ポイントはいりません。</li>
-<li>運営が作品を<b>見送り</b>にしたときは、つかった30ptを返します。</li>
-</ul>
-<p class="muted">数字（40字・50pt・30pt など）は、様子を見て運営が変えることがあります。いまのポイントは<a href="./me.html#pt">マイページ</a>で見られます。</p>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>こんな人に使ってほしい</h2>
-<ul class="checks">
-<li>ゲームは作ったけど、ポートフォリオに載せるにはちょっと薄いと感じている人</li>
-<li>機能をひとつずつ説明するのが大変な人</li>
-<li>作ったゲームが、誰にも遊ばれないまま眠っている人</li>
-<li>面接で「ユーザーの声を聞いて改善した経験」を話せるようにしたい人</li>
-</ul>
+<div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discordで声をかける</a></div>
 </div></section>
 
 <section class="card"><div class="body">
 <h2>載せるとできること</h2>
 <ul class="checks">
-<li><b>遊べる作品ページ</b>：遊ぶボタン、動画、あなたが確かめたいことが1ページにまとまる。URLを1本貼るだけでポートフォリオになる</li>
-<li><b>数字が自動で並ぶ</b>：遊んだ人の数、「また遊びたい」の割合、感想の数</li>
-<li><b>直した記録が残る</b>：感想を読んで直したら「感想でアップデート」に、いつ・どんな声で・何を直したかが残る</li>
-<li><b>説明は全部書かなくていい</b>：遊んでもらえば伝わる</li>
+<li><b>遊べる作品ページ</b>：遊ぶボタン・動画・確かめたいことが1ページに。URLを1本貼るだけでポートフォリオになります</li>
+<li><b>数字が自動で並ぶ</b>：遊んだ人の数、「また遊びたい」の割合、感想</li>
+<li><b>直した記録が残る</b>：感想を読んで直すと「感想でアップデート」に残ります（例：{sample_link}）</li>
 </ul>
-<p class="muted">例：{sample_link}（もらった感想で直した記録つき）</p>
+<details class="mini"><summary>見本の画面を見る</summary>
 <div class="shots">
-<figure><button type="button" class="zoomb" aria-label="作品ページの見本を大きく見る"><img src="assets/guide/game.jpg" alt="作品ページの見本。動画、作った人、確かめたいこと、遊ぶボタンが並んでいる" loading="lazy" width="720" height="1280"></button><figcaption>作品ページ（見本・数字は例です）<br><a href="./games/{e(sample["slug"]) if sample else ""}/">じっさいのページを見る</a></figcaption></figure>
-<figure><button type="button" class="zoomb" aria-label="プロフィールの見本を大きく見る"><img src="assets/guide/profile.jpg" alt="プロフィールの見本。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="720" height="1280"></button><figcaption>プロフィール（見本・数字は例です）<br><a href="./profile.html?u=unei">じっさいのページを見る</a></figcaption></figure>
-<figure class="widefig"><button type="button" class="zoomb" aria-label="開発者ページの見本を大きく見る"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"></button><figcaption>開発者ページ（見本・数字は例です）。遊んだ人の数、どこで離れたか、感想が見られます。タップで大きく見られます</figcaption></figure>
-</div>
+<figure><button type="button" class="zoomb" aria-label="作品ページの見本を大きく見る"><img src="assets/guide/game.jpg" alt="作品ページの見本。動画、作った人、確かめたいこと、遊ぶボタンが並んでいる" loading="lazy" width="720" height="1280"></button><figcaption>作品ページ（数字は例です）</figcaption></figure>
+<figure><button type="button" class="zoomb" aria-label="プロフィールの見本を大きく見る"><img src="assets/guide/profile.jpg" alt="プロフィールの見本。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="720" height="1280"></button><figcaption>プロフィール（数字は例です）</figcaption></figure>
+<figure class="widefig"><button type="button" class="zoomb" aria-label="開発者ページの見本を大きく見る"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"></button><figcaption>開発者ページ（数字は例です）。タップで大きく見られます</figcaption></figure>
+</div></details>
 </div></section>
 
-<section class="card"><div class="body">
-<h2>完成していなくても大丈夫</h2>
-<p>テスト部屋だけ、最初の1面だけ、チュートリアルだけでも、立派な作品ページになります。重いゲームは、遊ぶ部分だけを切り出した「小さい版」にしてください。</p>
-<h3>載せるのに必要なもの（必須は3つだけ）</h3>
-<ul>
-<li><b>必須</b>：作品名</li>
-<li><b>必須</b>：ブラウザで遊べるURL（容量は200MB以下がおすすめ）</li>
-<li><b>必須</b>：一言（何をするゲームか）</li>
-</ul>
-<h3>あれば書いてね（任意）</h3>
-<ul>
-<li>対応端末（PCのみ／スマホのみ／PC・スマホ）、あなたが確かめたいこと（操作感・楽しさ・チュートリアルなど）</li>
-<li>遊んだ人への質問（はい・いいえで答えられるもの）、ジャンル、操作、年齢制限</li>
-<li><b>プレイ動画</b>：運営が撮ります（自分で用意してもOK）</li>
-<li><b>画像</b>：任意です。なければ運営が作ります</li>
-</ul>
-<div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discordで運営に声をかける</a></div>
-</div></section>
-
-<section class="card" id="url"><div class="body">
-<details class="fold" id="urlFold"><summary>遊べるURLの作り方<small>タップでひらく</small></summary>
+<section class="card"><div class="body folds">
+<details class="fold" id="url"><summary>遊べるURLの作り方<small>タップでひらく</small></summary>
 <p>「ダウンロードして遊ぶ」ではなく、<b>ブラウザで開いてすぐ遊べるURL</b>がおすすめです。遊ぶ人の数がまるで変わります。どれも無料です。</p>
 <div class="ways">
 <div class="way"><b>unityroom</b><span class="muted">Unityで作った人に。日本語でかんたん</span>
@@ -748,45 +687,55 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <li><b>スマホで動くかわからない</b>：わからなければ「PCのみ」で出してOK。あとから変えられます</li>
 <li><b>URLがまだない</b>：Discordで聞いてくれれば、運営がいっしょに見ます</li>
 </ul>
-<h3>URLの渡し方</h3>
-<p>URLができたら、<a href="./submit.html">応募フォーム</a>に貼って送ってください。Discordの人は、運営にURLを送るだけでも大丈夫です。</p>
-<div class="row"><a class="btn" href="./submit.html">作品を応募する</a></div>
 </details>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>よくある質問</h2>
+<details class="fold" id="points"><summary>ポイントのしくみ<small>タップでひらく</small></summary>
+<p>テストプレイ部は、遊んで感想を送り合う場所です。ポイントは、ほかの人の作品に感想を送るとたまり、作品を応募するときに使います。</p>
+<p class="lfp" data-lf><b>いまなら：</b>最初の10作品は、ポイントなしで応募できます（1人1回・見送りになった枠は戻ります）。ポイントがいるのは、無料枠がなくなってからです。</p>
+<h3>ためる</h3>
+<ul class="checks">
+<li>ログインして、<b>遊んだ作品</b>に、一言を<b>40字以上</b>（空白は数えません）で書いた感想を送ると、ポイントがつきます。</li>
+<li>感想が少ない作品ほど多く：0〜2件の作品は <b>+10pt</b>、3〜9件は <b>+5pt</b>、10件以上は <b>+2pt</b>。</li>
+<li>自分の作品、遊んでいない作品、同じ言葉のくり返しの感想には、つきません（感想は送れます）。</li>
+<li>もらえるのは、1日 <b>50pt</b> までです。運営が感想を非表示にしたら、その分は取り消されます（表示に戻れば返ります）。</li>
+</ul>
+<h3>つかう</h3>
+<ul class="checks">
+<li>作品の応募：<b>30pt</b>（足りないときは、応募フォームにそう出ます）。見送りになったら返します。</li>
+<li>載っている作品の<b>直しの依頼</b>：ポイントはいりません。</li>
+</ul>
+<p class="muted">数字（40字・50pt・30pt など）は、様子を見て運営が変えることがあります。いまのポイントは<a href="./me.html#pt">マイページ</a>で見られます。</p>
+</details>
+<details class="fold" id="faq"><summary>よくある質問<small>タップでひらく</small></summary>
 <h3>お金はかかる？</h3><p>かかりません。載せるのも、遊ぶのも無料です。</p>
 <h3>作品はだれのもの？</h3><p>作った人のものです。テストプレイ部は、遊べるURLへの入口と感想を集める場所を用意するだけです。</p>
 <h3>あとで直したり、消したりできる？</h3><p>できます。ログインして、自分の作品の「⋮」→「直したいところを運営に送る」から送るか、Discordで運営に言ってください。</p>
-<h3>どんな感想が届く？</h3><p>「もう一回遊びたい？」「どこまで遊んだ？」などの選ぶ質問と、一言です。だれが書いたかは作った人には見えません。<a href="./games/{e(sample["slug"]) if sample else ""}/">作品ページの例</a>で、じっさいの見え方を確かめられます。</p>
-<h3>プロフィールは作れる？</h3><p><a href="./me.html">マイページ</a>で、名前・アイコン・ひとこと・X や itch.io などのリンクを書けます。作品のとなりのアイコンから、あなたのプロフィールと作品の一覧に飛べるようになります。例：<a href="./profile.html?u=unei">運営のプロフィール</a></p>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>年齢制限のある作品について</h2>
-<p>ホラーや暴力表現のある作品（R15）、18歳以上向けの作品（R18）も載せられます。載せるときに、どちらにあたるかを教えてください。</p>
-<p><b>年齢の確認は自己申告です。</b>高校生も来る場所なので、R18作品は表紙で隠し、作品の中身は外のサイトに置いてもらいます。</p>
+<h3>どんな感想が届く？</h3><p>「もう一回遊びたい？」「どこまで遊んだ？」などの選ぶ質問と、一言です。だれが書いたかは作った人には見えません。遊んでから書いてね。遊ばずに書いた、ふざけた感想や、作品をけなすだけの感想は運営が消します。<a href="./games/{e(sample["slug"]) if sample else ""}/">作品ページの例</a>で見え方を確かめられます。</p>
+<h3>プロフィールは作れる？</h3><p><a href="./me.html">マイページ</a>で、名前・アイコン・ひとこと・X や itch.io などのリンクを書けます。例：<a href="./profile.html?u=unei">運営のプロフィール</a></p>
+<h3>だれが運営しているの？</h3><p><b>たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）です。連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>。応募のこと、直したいところ、消してほしいときなど、なんでも声をかけてください。</p>
+</details>
+<details class="fold" id="rating"><summary>年齢制限のある作品について<small>タップでひらく</small></summary>
+<p>ホラーや暴力表現のある作品（R15）、18歳以上向けの作品（R18）も載せられます。載せるときに、どちらにあたるかを教えてください。<b>年齢の確認は自己申告です。</b>高校生も来る場所なので、R18作品は表紙で隠し、作品の中身は外のサイトに置いてもらいます。</p>
 <ul>
 <li><b>R15</b>：作品に「R15」の印がつきます</li>
 <li><b>R18</b>：見る人が18歳以上だと確認するまで、作品は表紙で隠れます。作品の画像や動画はこのサイトには置かず、共通の表紙を使います。ゲーム本体は、年齢制限のある作品を置けるサイトに置いてください</li>
 <li>R18の作品は、Discordの新作通知と毎日のおすすめには流れません</li>
 <li>未成年を性的に描いたもの、実在の人物を性的に描いたものは載せられません</li>
 </ul>
-</div></section>
-
-<section class="card"><div class="body">
-<h2>運営について</h2>
-<p><b>運営者：たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）</p>
-<p>連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。応募のこと、直したいところ、消してほしいときなど、なんでもここで声をかけてください。</p>
-<h3>運営の約束</h3>
-<p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想は運営が消します。遊んでから書いてね。遊ばずに書いた、ふざけた感想は運営が消します。</p>
+</details>
 </div></section>
 </main>
 <footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
-.hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}}
+.hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 8px}}
+.hero-c .body{{display:grid;gap:14px}}.hero-c p{{margin:0}}.lead2{{color:var(--muted)}}
+.lfhero{{border:2px solid var(--accent);background:var(--soft);border-radius:12px;padding:10px 14px;display:grid;gap:2px}}.lfhero b{{font-size:20px;color:var(--accent)}}.lfhero span{{font-size:14px}}
+.need{{display:grid;gap:2px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}}.need b{{font-size:16px}}.need small{{color:var(--muted);font-size:13px}}
+.flow-h{{font-size:16px;margin:2px 0 -4px}}
+.lfp{{background:var(--soft);border-radius:10px;padding:8px 12px}}
+details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:700;font-size:14px}}
+.folds details.fold{{border-top:1px solid var(--line)}}.folds details.fold:first-child{{border-top:0}}
+.folds details.fold>summary{{font-size:17px;min-height:52px}}
 .eyebrow{{color:var(--accent);font-weight:700;font-size:13px;margin:0;letter-spacing:.06em}}
 .checks{{list-style:none;padding:0;margin:0;display:grid;gap:10px}}
 .checks li{{padding-left:26px;position:relative}}
@@ -814,10 +763,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 }})();
 </script>
 <script>
-(function(){{var d=document.getElementById('urlFold');if(!d)return;
- function openIf(){{if(location.hash==='#url'){{d.open=true;d.scrollIntoView()}}}}
+(function(){{var ds=[].slice.call(document.querySelectorAll('details.fold[id]'));if(!ds.length)return;
+ function byId(id){{return ds.filter(function(d){{return d.id===id}})[0]}}
+ function openIf(){{var d=byId(location.hash.slice(1));if(d){{d.open=true;d.scrollIntoView()}}}}
  openIf();addEventListener('hashchange',openIf);
- document.addEventListener('click',function(e){{var a=e.target.closest&&e.target.closest('a[href="#url"]');if(a){{d.open=true;setTimeout(function(){{d.scrollIntoView({{behavior:'smooth'}})}},0)}}}});
+ document.addEventListener('click',function(e){{var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var d=byId(a.getAttribute('href').slice(1));if(d){{d.open=true;setTimeout(function(){{d.scrollIntoView({{behavior:'smooth'}})}},0)}}}});
 }})();
 </script>"""
     (ROOT / "creators.html").write_text(page("作品を載せたい人へ｜テストプレイ部",
