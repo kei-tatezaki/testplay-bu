@@ -23,6 +23,8 @@ p{margin:0;color:var(--muted);font-size:13px;text-align:center}
 #opts button:active{transform:scale(.96)}
 #opts button small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
 #go{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:999px;padding:12px 28px;background:var(--accent);color:#2a1f00;cursor:pointer}
+/* 横向きのスマホなど背が低いとき：見出しと説明を隠して詰め、スタートが画面に入るようにする */
+@media (max-height:420px){h1,.tag,#rule,p.small,.lead{display:none}body{gap:4px;padding:6px 12px}}
 </style>
 </head>
 <body>

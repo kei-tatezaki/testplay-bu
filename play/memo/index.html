@@ -20,6 +20,9 @@ p{margin:0;color:var(--muted);font-size:13px;text-align:center}
 #status{font-size:17px;font-weight:800;color:var(--ink);min-height:1.5em}
 #go{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:999px;padding:12px 28px;background:var(--ink);color:var(--bg);cursor:pointer}
 #lv{font-size:14px}
+/* 横向きのスマホなど背が低いとき：見出しと説明を隠して詰め、スタートが画面に入るようにする */
+@media (max-height:420px){h1,.tag,#rule,p.small,.lead{display:none}body{gap:4px;padding:6px 12px}}
+@media (max-height:420px){#pads{width:min(78vw,calc(100dvh - 150px))}.pad{border-radius:14px}#pads{gap:8px}}
 </style>
 </head>
 <body>

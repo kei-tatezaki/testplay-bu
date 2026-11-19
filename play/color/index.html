@@ -43,6 +43,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 @media (max-height:570px){body:has(#savePanel:not([hidden])) .panel:not(#savePanel){display:none}}
 @media (max-height:600px){.tag,#rule{display:none}.word{font-size:40px;height:44px;line-height:44px}.grid button{height:48px}#rank li:nth-child(n+4){display:none}}
 @media (prefers-reduced-motion:reduce){.flash-ok,.flash-ng{animation:none}}
+/* 横向きのスマホなど背が低いとき：見出しと説明を隠して詰め、スタートが画面に入るようにする */
+@media (max-height:420px){h1,.tag,#rule,p.small,.lead{display:none}body{gap:4px;padding:6px 12px}}
 </style>
 </head>
 <body>

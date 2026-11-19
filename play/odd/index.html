@@ -19,6 +19,9 @@ p{margin:0;color:var(--muted);font-size:13px;text-align:center}
 #board button.hit{outline:4px solid var(--ink);outline-offset:-4px}
 #go{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:999px;padding:12px 28px;background:var(--ink);color:var(--bg);cursor:pointer}
 #msg{font-weight:800;min-height:1.4em;font-size:16px}
+/* 横向きのスマホなど背が低いとき：見出しと説明を隠して詰め、スタートが画面に入るようにする */
+@media (max-height:420px){h1,.tag,#rule,p.small,.lead{display:none}body{gap:4px;padding:6px 12px}}
+@media (max-height:420px){#board{width:min(86vw,calc(100dvh - 170px))}}
 </style>
 </head>
 <body>

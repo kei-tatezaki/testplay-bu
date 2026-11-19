@@ -27,6 +27,8 @@ h1{margin:0;font-size:20px;letter-spacing:.06em;color:#fff3e0}
 /* スマホの高さでも、縦にスクロールしなくて遊べるように詰める */
 @media (max-height:780px){body{gap:6px;padding:8px 12px;min-height:100dvh}#card{padding:12px;gap:8px}#scene{height:84px;font-size:40px}#text{font-size:15px;line-height:1.75;min-height:0}#choices{gap:6px}#choices button{padding:9px 12px;min-height:44px}h1{font-size:18px}}
 @media (max-height:600px){.tag,.sub{display:none}#scene{height:56px;font-size:32px}#text{line-height:1.6}}
+/* 横向きのスマホなど背が低いとき：見出しと説明を隠して詰め、スタートが画面に入るようにする */
+@media (max-height:420px){h1,.tag,#rule,p.small,.lead{display:none}body{gap:4px;padding:6px 12px}}
 </style>
 </head>
 <body>
