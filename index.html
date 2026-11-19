@@ -157,7 +157,9 @@ button{font:inherit;color:inherit}
  .toast.stack{width:auto}
  #tpbToast{border-radius:14px;text-align:center}
 }
-body[data-note=bottom] #tpbToast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
+/* 👍などの一言のトーストは、作品の一言（下）にかからないよう、上のバーの下に出す */
+#tpbToast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
+body[data-note=top] #tpbToast{top:calc(176px + env(safe-area-inset-top))}
 #tpbToast{z-index:62}
 .loading{height:100dvh;display:grid;place-items:center;color:var(--muted);font-size:14px}
 /* feedback sheet */
@@ -190,6 +192,8 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 .info .by a .byav{display:none}
 @media (max-height:640px){.rail{gap:8px;bottom:calc(20px + env(safe-area-inset-bottom))}.rb .ic{width:44px;height:44px;font-size:19px}.rb{padding:0}.rb .lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.info{bottom:calc(16px + env(safe-area-inset-bottom));gap:6px}.info h2{font-size:20px}}
 @media (max-height:580px){.rail a.who,.rail span.who{display:none}.info .by a{display:inline-flex;align-items:center;gap:6px}.info .by a .byav{display:inline-flex}.info .by a .byav .tpb-av{border:1px solid #fff}}
+/* 作者名のリンクは、押す場所を高さ44px以上にする（見た目の高さはそのまま） */
+.info .by a{display:inline-flex;align-items:center;min-height:44px;margin:-13px 0}
 /* スマホを横向きにしたとき：動画を左、題名などと右の列（遊ぶ・👍・🤔・感想・⋮）を右に置く。右の列は横に1列 */
 @media (orientation:landscape) and (max-height:500px){
  .slide{max-width:none;--vt:0px;--vb:0px}
@@ -205,9 +209,11 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
  .rail a.who{display:none}
  .hint{right:auto;width:calc(100% - 330px)}
  .intro{left:12px;right:auto;top:auto;bottom:12px;width:calc(100% - 354px)}
- .toast,.toast.stack,#tpbToast{left:12px;right:auto;transform:none;width:calc(100% - 354px);max-width:none;bottom:calc(12px + env(safe-area-inset-bottom))}
+ .toast,.toast.stack,#tpbToast{left:12px;right:auto;transform:none;width:calc(100% - 354px);max-width:none}
+ .toast,.toast.stack{bottom:calc(12px + env(safe-area-inset-bottom))}
+ #tpbToast{top:calc(56px + env(safe-area-inset-top))}
  .toast#after{top:calc(56px + env(safe-area-inset-top));bottom:auto}
- body[data-note=bottom] #tpbToast{top:auto}
+ body[data-note=top] #tpbToast{top:calc(150px + env(safe-area-inset-top))}
  .logo-t{display:none}
  .info .by a{display:inline-flex;align-items:center;gap:6px}.info .by a .byav{display:inline-flex}
 }
@@ -527,6 +533,8 @@ $('why').addEventListener('click',e=>{
   if(!r) return;
   hmmWhy[g.slug]=r; store.set('hmmWhy',hmmWhy);
   setReact(g,'hmm',btn,r);
+  // 「好みのジャンルじゃない」は、お礼を読めるくらい待ってから次の作品へ進む
+  if(r==='genre') setTimeout(()=>{ const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)]; if(cur&&cur.dataset.slug===g.slug&&!document.querySelector('.sheet-bg.open')&&!$('player').classList.contains('open')) slideStep(1) },1400);
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&whyFor) closeWhy() });
 feed.addEventListener('scroll',()=>{ if(whyFor) closeWhy() },{passive:true});
@@ -674,6 +682,7 @@ document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
     b.setAttribute('aria-pressed',String(on));
     picks[k]=[...box.querySelectorAll('.opt[aria-pressed="true"]')].map(x=>x.dataset.v);
     fs.classList.remove('err'); const fe=fs.querySelector('.ferr'); if(fe) fe.remove();
+    if(!document.querySelector('#sheet fieldset.err')&&$('sMsg').classList.contains('err')){ $('sMsg').textContent=''; $('sMsg').className='msg' }
     if(k==='reach') $('stopAt').hidden = !(picks.reach||[]).includes('途中でやめた');
   }},label)) });
 });
