@@ -38,6 +38,9 @@ tr.hidden td{opacity:.45}
 .tag.warn{border-color:var(--warn);color:var(--warn)}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
 #msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008}
+button,.btn,header a{white-space:nowrap}
+.loaderr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;color:var(--bad)}
+@media (pointer:coarse){button,.btn,select,input,header a,.tabs button{min-height:44px}header a{display:inline-flex;align-items:center}}
 @media (max-width:760px){
   thead{display:none} tr{display:grid;border-bottom:1px solid var(--line);padding:8px 0} td{border:0;padding:2px 0} td.free{max-width:none}
 }
@@ -121,6 +124,7 @@ tr.hidden td{opacity:.45}
 
   <div data-panel="subs" hidden>
     <p class="muted" style="margin-top:0">サイトのフォームから届いた応募です。①URLを開いて遊ぶ → ②「games.json用」をコピーして games.json に足す（slug・色は直す）→ ③ビルドしてプッシュ → ④「作者」タブでこの人を作者にする → ⑤「載せた」を押す（直しの依頼は、直したら「直した」を押す）。</p>
+    <label style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="subOnlyNew"> 確認中だけ見る</label>
     <div id="subRows" style="display:grid;gap:10px"></div>
   </div>
 
@@ -147,7 +151,7 @@ tr.hidden td{opacity:.45}
 <div id="modal" hidden style="position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50">
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle" style="width:min(440px,calc(100% - 32px));display:grid;gap:12px">
     <b id="mTitle"></b><div id="mBody" class="muted"></div>
-    <input id="mInput" placeholder="理由（あとで見返す用）" aria-label="理由">
+    <input id="mInput" placeholder="" aria-label="メモ">
     <div style="display:flex;gap:8px;justify-content:flex-end"><button id="mNo">やめる</button><button id="mYes" class="danger">実行する</button></div>
   </div>
 </div>
@@ -200,10 +204,10 @@ $('claim').onclick = async () => {
   else { show('denyBox'); }
 };
 // ブラウザの確認ダイアログは使わず、ページの中で確認する
-function ask(title, body, withInput, def){
+function ask(title, body, withInput, def, placeholder){
   return new Promise(res => {
     $('mTitle').textContent=title; $('mBody').textContent=body;
-    $('mInput').hidden=!withInput; $('mInput').value=def||'';
+    $('mInput').hidden=!withInput; $('mInput').value=def||''; $('mInput').placeholder=placeholder||''; $('mInput').setAttribute('aria-label',placeholder||'メモ');
     const opener = document.activeElement; document.querySelector('.wrap').inert = true;
     $('modal').hidden=false; (withInput?$('mInput'):$('mYes')).focus();
     const done = v => { $('modal').hidden=true; document.querySelector('.wrap').inert = false; if (opener && opener.isConnected) try { opener.focus() } catch (e) {} $('mYes').onclick=$('mNo').onclick=null; res(v) };
@@ -230,13 +234,28 @@ document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => {
   document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
+const LOADERS = { fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles() };
+function setLoadErr(k, failed){
+  const panel = document.querySelector('[data-panel="' + k + '"]'); if (!panel) return;
+  let box = panel.querySelector(':scope > .loaderr');
+  if (!failed) { if (box) box.hidden = true; return }
+  if (!box) { box = document.createElement('div'); box.className = 'loaderr'; box.setAttribute('role', 'alert');
+    const t = document.createElement('span'); t.textContent = 'このタブは読み込めませんでした';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'もう一度';
+    b.onclick = async () => { b.disabled = true; try { await LOADERS[k](); setLoadErr(k, false) } catch (e) { setLoadErr(k, true) } b.disabled = false };
+    box.append(t, b); panel.prepend(box) }
+  box.hidden = false;
+}
 async function loadAll(){
   try {
     const games = await (await fetch('games.json?' + Date.now())).json();
     GAMES = {}; games.forEach(g => GAMES[g.slug] = g);
     $('fGame').innerHTML = '<option value="">すべての作品</option>' + games.map(g => `<option value="${esc(g.slug)}">${esc(g.title)}</option>`).join('');
   } catch (e) {}
-  await Promise.all([loadFb(), loadGames(), loadBans(), loadOwners(), loadSubs(), loadReports(), loadProfiles()]);
+  // どれか1つの読み込みが失敗しても、ほかは止めない。失敗したタブにだけ「読み込めませんでした・もう一度」を出す
+  const keys = Object.keys(LOADERS);
+  const rs = await Promise.allSettled(keys.map(k => LOADERS[k]()));
+  rs.forEach((r, i) => setLoadErr(keys[i], r.status === 'rejected'));
   // 最初だけ：未対応の応募か報告があるタブを開く（応募が先）
   if (!loadAll.done) { loadAll.done = true;
     const t = SUBS.some(s => s.status === 'new') ? 'subs' : REPS.some(r => !r.done) ? 'reports' : '';
@@ -260,10 +279,11 @@ function subJson(s){
     minutes: d.minutes || '', oneliner: d.oneliner || '', question: d.question || '', highlights: [], play: d.play_url || '', youtube: '', clip: '',
     rating: d.rating || undefined, color: '#7fe0c9', bg: '#10141c', platform: d.platform || 'both', controls: d.controls || '', added: new Date().toISOString().slice(0, 10) }, null, 2);
 }
-async function loadSubs(){
-  SUBS = await rpc('admin_submissions');
+async function loadSubs(){ SUBS = await rpc('admin_submissions'); renderSubs() }
+function renderSubs(){
   const n = SUBS.filter(s => s.status === 'new').length; $('subN').textContent = n ? '（' + n + '）' : '';
-  $('subRows').innerHTML = SUBS.map(s => { const d = s.data || {};
+  const onlyNew = $('subOnlyNew').checked;
+  $('subRows').innerHTML = SUBS.filter(s => !onlyNew || s.status === 'new').map(s => { const d = s.data || {};
     const url = /^https:\/\//.test(d.play_url || '') ? `<a href="${esc(d.play_url)}" target="_blank" rel="noopener noreferrer">${esc(d.play_url)}</a>` : esc(d.play_url || '');
     const rows = s.kind === 'edit'
       ? `<div><b>直しの依頼：${esc(GAMES[s.game_slug]?.title || s.game_slug)}</b></div><div class="free">${esc(d.note || '')}</div>`
@@ -277,13 +297,14 @@ async function loadSubs(){
       ${s.admin_note ? `<div class="muted">運営メモ（本人に見えます）：${esc(s.admin_note)}</div>` : ''}
       <div class="acts">${s.kind === 'new' ? `<button data-copy="${s.id}">games.json用をコピー</button>` : ''}
         <button data-sub="${s.id}" data-st="ok">${s.kind === 'edit' ? '直した' : '載せた'}</button><button data-sub="${s.id}" data-st="ng" class="danger">見送り</button>${s.status !== 'new' ? `<button data-sub="${s.id}" data-st="new">確認中に戻す</button>` : ''}</div></div>`;
-  }).join('') || '<span class="muted">まだ応募はありません</span>';
+  }).join('') || '<span class="muted">' + (onlyNew ? '確認中の応募はありません' : 'まだ応募はありません') + '</span>';
 }
+$('subOnlyNew').onchange = () => { renderSubs() };
 $('subRows').onclick = async (e) => {
   const c = e.target.closest('button[data-copy]'), b = e.target.closest('button[data-sub]');
   if (c) { const s = SUBS.find(x => x.id === c.dataset.copy); try { await navigator.clipboard.writeText(subJson(s)); toast('コピーしました。games.json に貼って、slug と色を直してください') } catch (err) { toast('コピーできませんでした') } }
   if (b) { const st = b.dataset.st, s0 = SUBS.find(x => x.id === b.dataset.sub);
-    const note = st === 'new' ? '' : await ask(st === 'ok' ? (s0 && s0.kind === 'edit' ? '「直した」にしますか？' : '「載せた」にしますか？') : '「見送り」にしますか？', '下のメモは応募した本人のマイページに出ます（空でもOK）。', true, '');
+    const note = st === 'new' ? '' : await ask(st === 'ok' ? (s0 && s0.kind === 'edit' ? '「直した」にしますか？' : '「載せた」にしますか？') : '「見送り」にしますか？', '下に書いた一言は、応募した本人のマイページに出ます。空でもOKです。', true, '', '本人に伝える一言（空でもOK・本人のマイページに出ます）');
     if (note === false || note === null) return;
     toast(await rpc('admin_submission_set', { sid: b.dataset.sub, st, note: typeof note === 'string' && note !== '理由なし' ? note : '' })); await loadSubs(); }
 };
@@ -355,7 +376,7 @@ $('fbRows').onclick = async (e) => {
   if (b.dataset.act === 'hide') { toast(await rpc('admin_set_hidden', { fid: id, hide: true })); }
   if (b.dataset.act === 'show') { toast(await rpc('admin_set_hidden', { fid: id, hide: false })); }
   if (b.dataset.act === 'ban') {
-    const why = await ask('この人をBANしますか？', `${f?.author || 'この人'}の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、アカウントと端末の両方で、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想');
+    const why = await ask('この人をBANしますか？', `${f?.author || 'この人'}の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、アカウントと端末の両方で、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想', '理由（運営だけが見ます）');
     if (why === null) return;
     toast(await rpc('admin_ban', { fid: id, why }));
   }
