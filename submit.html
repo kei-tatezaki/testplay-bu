@@ -107,13 +107,13 @@ function newForm(){
   pv.open=matchMedia('(min-width:521px)').matches;
   const PL={both:'PC・スマホ',pc:'PCのみ',sp:'スマホのみ'};
   function drawPv(){ const v=k=>f[k].value.trim();
-    pvBody.replaceChildren(el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),
+    pvBody.replaceChildren(...[el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),
       el('h2',null,v('title')||'（作品名）'),
       el('p',{class:'one'},v('oneliner')||'（一言）'),
       el('div',{class:'row'},el('span',{class:'btn'},'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
       el('div',{class:'chips'},v('rating')?el('span',{class:'chip rate-'+v('rating')},v('rating').toUpperCase()):null,el('span',{class:'chip plat'},PL[v('platform')]),el('span',{class:'chip'},v('stage')),v('genre')?el('span',{class:'chip'},v('genre')):null,el('span',{class:'chip check'},'確かめたい：'+v('check'))),
       v('controls')?el('div',{class:'by'},'操作：'+v('controls')):null,
-      v('question')?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),v('question')):null) }
+      v('question')?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),v('question')):null].filter(Boolean)) }
   form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
   form.addEventListener('submit',async e=>{ e.preventDefault();
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }

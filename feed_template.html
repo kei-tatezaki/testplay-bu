@@ -649,6 +649,8 @@ feed.addEventListener('scroll',()=>closeNote('after'),{passive:true});
 // ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
 function maybeInvite(){
   if(store.get('joined',false)) return;
+  // 感想やログインの画面が開いているあいだは出さない（かぶって読めなくなるため）
+  if($('sheetBg').classList.contains('open')||$('loginBg').classList.contains('open')) return;
   const today=new Date().toDateString(); if(store.get('inviteDay','')===today) return;
   store.set('inviteDay',today); showNote('invite',8000);
 }
@@ -742,6 +744,7 @@ ready.then(()=>{ const sb=sbc(); if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev===
 
 let sheetGame=null, sheetOpener=null;
 async function openSheet(g){
+  closeNote('invite');
   hideAfter(); hideNeedPlay();
   const ses=await getSession(); if(!ses){ needLogin(g); return }
   $('sheet').classList.remove('done');
