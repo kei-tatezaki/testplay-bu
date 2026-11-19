@@ -88,14 +88,14 @@ main.replaceChildren(
     p.bio?el('p',{class:'bio'},p.bio):null,
     links.length?el('nav',{class:'links','aria-label':'リンク'},links):null,
     acts),
-  (window.TPB_DATA.allSample&&games.length&&games.every(g=>g.sample))?el('div',{class:'notice',role:'note'},el('span',null,el('b',null,'いまは運営のお試し作品だけです。'),'最初の作品を募集中です。'),el('a',{class:'btn',href:'./submit.html'},'作品を応募する')):null,
+  (window.TPB_DATA.allSample&&games.length&&games.every(g=>g.sample))?el('div',{class:'notice',role:'note'},el('span',null,el('b',null,'いまは運営のお試し作品だけです。'),'最初の作品を募集中です。'),el('b',{class:'lfb','data-lf':''},el('span',{'data-lf-t':''},'最初の10作品は投稿無料')),el('a',{class:'btn',href:'./submit.html'},'作品を応募する')):null,
   vid?el('div',{class:'sec'},el('h2',null,'紹介動画')):null,
   vid?el('div',{class:'video'},el('button',{type:'button',class:'vplay','aria-label':p.name+' の紹介動画を見る（YouTubeから読み込みます）',onclick:e=>{
     const box=e.currentTarget.parentElement; box.replaceChildren(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+vid+'?autoplay=1',title:p.name+' の紹介動画',allow:'encrypted-media; picture-in-picture; autoplay',allowfullscreen:true}));
   }},el('span',{class:'vp','aria-hidden':'true'},'▶'),el('span',{class:'vt'},'紹介動画を見る'),el('small',null,'押すとYouTubeから読み込みます'))):null,
   el('div',{class:'sec'},el('h2',null,'作品'),el('span',{class:'by'},games.length?'画像をタップするとショートで見られます':'')),
   games.length?grid:el('p',{class:'empty'},'まだ作品がありません。'));
-main.style.display='grid'; main.style.gap='16px';
+main.style.display='grid'; main.style.gap='16px'; T.lfApply();
 // 自分のプロフィールなら「編集」を出す
 if(T.maybeLoggedIn()){
   const s=await T.session(); if(!s) return;

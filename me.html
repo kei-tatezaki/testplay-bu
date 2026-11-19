@@ -149,6 +149,10 @@ async function panePoints(pane){
   pane.replaceChildren();
   if(!d){ pane.append(el('div',{class:'callout'},el('b',null,'ポイントを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>render()},'もう一度'))); pane.append(howCard()); return }
   const need=Math.max(0,d.submit_cost-d.balance);
+  if(d.launch_free_left>0) pane.append(el('section',{class:'card',style:'border:2px solid var(--accent)'},el('div',{class:'body',style:'display:grid;gap:4px'},
+    el('h2',{style:'margin:0;font-size:18px;color:var(--accent)'},'いまなら投稿無料'),
+    el('p',{style:'margin:0'},'最初の'+(d.launch_free_total||10)+'作品まで・のこり '+d.launch_free_left+' 作品。'+(d.is_admin?'':d.launch_free_can?'あなたは、ポイントなしで応募できます。':'無料で応募できるのは1人1回です。')),
+    d.launch_free_can&&!d.is_admin?el('a',{class:'btn',href:'./submit.html',style:'justify-self:start'},'無料で作品を応募する'):null)));
   pane.append(el('section',{class:'card'},el('div',{class:'body',style:'display:grid;gap:10px'},
     el('div',{class:'ptbig'},el('b',null,d.balance+'pt'),el('span',{class:'note'},'いま持っているポイント')),
     el('p',{class:'note',style:'margin:0'},'今日もらった分：'+d.today+' / '+d.daily_cap+'pt'),

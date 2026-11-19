@@ -16,6 +16,7 @@
 .two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
 .pvbody{pointer-events:none;opacity:.6;user-select:none;-webkit-user-select:none}.pvbody .btn{cursor:default;filter:grayscale(.6)}
+.lfbox{border:2px solid var(--accent);background:var(--soft)}.lfbox h2{margin:0;font-size:22px;color:var(--accent)}.lfbox .big{font-size:18px;font-weight:700;margin:0}
 .req{color:#d2553f;font-size:12px;font-weight:700;margin-left:2px}
 .form label>span>small{display:block;margin-top:2px;line-height:1.5}
 </style>
@@ -39,14 +40,32 @@ const ERR={too_many:'確認中の応募が5件あります。運営の確認が�
 let SES=null, PTS=null;  // PTS：自分のポイント（my_points）。取れなかったら null のまま（ポイントなしの今までどおりに動く）
 const ptBox=el('section',{class:'card',id:'ptBox',hidden:true});
 async function loadPts(){ try{ const r=await sb.rpc('my_points'); PTS=r.error?null:(r.data||null) }catch(e){ PTS=null } }
+// 「いまなら投稿無料」の帯：一番上。枠があるときだけ出す（無料枠の数は my_points か launch_free_left から）
+const lfBox=el('section',{class:'card lfbox',id:'lfBox',hidden:true});
+function drawLf(){
+  const left=PTS&&PTS.launch_free_left!=null?PTS.launch_free_left:T.launchFreeNow();
+  lfBox.replaceChildren();
+  if(editSlug||!(left>0)){ lfBox.hidden=true; return }
+  const total=PTS&&PTS.launch_free_total?PTS.launch_free_total:10;
+  const line=!PTS?(SES?null:'ログインして応募すると、ポイントなしで受け付けます。'):PTS.is_admin?null
+    :PTS.launch_free_can?'あなたの応募は、ポイントなしで受け付けます。'
+    :'無料で応募できるのは、1人1回です。2回目からは '+PTS.submit_cost+'pt いります。';
+  lfBox.hidden=false;
+  lfBox.append(el('div',{class:'body',style:'display:grid;gap:6px'},
+    el('h2',null,'いまなら投稿無料'),
+    el('p',{class:'big'},'最初の'+total+'作品まで・のこり '+left+' 作品'),
+    line?el('p',{style:'margin:0;font-size:14px'},line):null,
+    el('p',{class:'muted',style:'margin:0;font-size:13px'},'見送りになった作品の枠は、ほかの人に戻ります。')));
+}
 const NEWBTN=[];  // 「応募する」ボタン（ポイントが足りないときは押せなくする）
-function lacking(){ return !!PTS&&!PTS.is_admin&&PTS.balance<PTS.submit_cost }
+function lacking(){ return !!PTS&&!PTS.is_admin&&!PTS.launch_free_can&&PTS.balance<PTS.submit_cost }
 function drawPts(){
   ptBox.hidden=!PTS||!!editSlug; ptBox.replaceChildren();
   if(!PTS||editSlug){ NEWBTN.forEach(b=>b.disabled=false); return }
   const short=lacking();
   ptBox.append(el('div',{class:'body',style:'display:grid;gap:8px'},
     PTS.is_admin?el('p',{style:'margin:0'},el('b',null,'運営はポイントなしで応募できます。'))
+      :PTS.launch_free_can?el('p',{style:'margin:0;font-size:14px'},'いまのポイント ',el('b',{style:'color:var(--accent)'},PTS.balance+'pt'),'。無料枠で応募するので、ポイントはつかいません。')
       :el('p',{style:'margin:0;font-size:16px'},el('b',null,'投稿には '+PTS.submit_cost+'pt 要ります。'),' いま ',el('b',{style:'color:var(--accent)'},PTS.balance+'pt'),'。'),
     short?el('p',{style:'margin:0;font-size:14px'},'あと '+(PTS.submit_cost-PTS.balance)+'pt です。感想の少ない作品に40字以上の感想を書くと貯まります。'):null,
     short?el('div',{class:'row'},el('a',{class:'btn',href:'./'},'▶ ショートで感想を書く'),el('a',{class:'btn ghost',href:'./me.html#pt'},'ポイントのしくみ')):null));
@@ -64,10 +83,10 @@ function done(text){
 }
 async function send(kind,slug,data,btn,msg){
   btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
-  const {error}=await sb.rpc('submission_send',{p_kind:kind,p_slug:slug||null,p_data:data});
+  const {data:res,error}=await sb.rpc('submission_send',{p_kind:kind,p_slug:slug||null,p_data:data});
   btn.disabled=false;
-  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; if(error.message==='not_enough_points') loadPts().then(()=>drawPts()); return false }
-  return true;
+  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; if(error.message==='not_enough_points') loadPts().then(()=>{ drawPts(); drawLf() }); return false }
+  return res||'ok';
 }
 function editForm(){
   const g=T.game(editSlug);
@@ -139,13 +158,15 @@ function newForm(){
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
-    if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。'+(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':'')) });
+    const r=await send('new',null,d,btn,msg);
+    if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'「最初の10作品は投稿無料」の枠で受け付けました。ポイントはつかっていません。':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':''))) });
   form.insertBefore(pv,form.querySelector('label'));  // 見本は、作品名の欄の上に置く（スマホでは畳んでおく）
-  main.replaceChildren(ptBox,form); drawPts();
+  main.replaceChildren(lfBox,ptBox,form); drawPts(); drawLf();
 }
 async function start(){
   SES=sb?await T.session():null;
-  if(!SES){ main.replaceChildren(T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
+  T.launchFree().then(drawLf);
+  if(!SES){ drawLf(); main.replaceChildren(lfBox,T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
     el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
       el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
         el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'プレイ動画は、運営が撮ります（自分で用意してもOK）')),

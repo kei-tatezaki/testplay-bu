@@ -86,7 +86,7 @@ select public.t_ok('10e 使った枠より少なくしても、残りは0（マ�
 select public.t_as(3, $q$ select public.admin_settings_set('launch_free_total', 12) $q$) \gset
 -- 11 my_points に枠の情報
 select public.t_as(13, $q$ select public.my_points() $q$) as r \gset
-select public.t_ok('11a 枠が残っていて、まだ使っていない人は launch_free_can = true', (:'r')::jsonb ->> 'launch_free_can' = 'true' and (:'r')::jsonb ->> 'launch_free_left' = '2');
+select public.t_ok('11a 枠が残っていて、まだ使っていない人は launch_free_can = true', (:'r')::jsonb ->> 'launch_free_can' = 'true' and (:'r')::jsonb ->> 'launch_free_left' = '2' and (:'r')::jsonb ->> 'launch_free_total' = '12');
 select public.t_as(2, $q$ select public.my_points() $q$) as r \gset
 select public.t_ok('11b もう使った人は launch_free_can = false', (:'r')::jsonb ->> 'launch_free_can' = 'false' and (:'r')::jsonb ->> 'launch_free_left' = '2');
 select public.t_as(1, $q$ select public.my_points() $q$) as r \gset

@@ -151,6 +151,7 @@ begin
     'submit_cost', setting_int('submit_cost', 30),
     'is_admin', is_admin(),
     'launch_free_left', launch_free_left(),
+    'launch_free_total', setting_int('launch_free_total', 0),
     'launch_free_can', launch_free_left() > 0 and not exists (select 1 from submissions s where s.user_id = uid and s.free_launch and s.status <> 'ng'),
     'recent', (select coalesce(jsonb_agg(jsonb_build_object(
                  'delta', r.delta, 'reason', r.reason, 'note', r.note, 'created_at', r.created_at, 'label', r.label)
