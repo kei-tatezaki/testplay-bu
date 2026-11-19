@@ -60,9 +60,9 @@
 </ul>
 <p class="muted">例：<a href="./games/color/">いろタッチ30の作品ページ</a>（もらった感想で直した記録つき）</p>
 <div class="shots">
-<figure><a href="./games/color/"><img src="assets/guide/game.jpg" alt="作品ページの例。動画、作った人、確かめたいこと、遊ぶボタンが並んでいる" loading="lazy" width="600" height="1140"></a><figcaption>作品ページ（じっさいの画面）</figcaption></figure>
-<figure><a href="./profile.html?u=unei"><img src="assets/guide/profile.jpg" alt="プロフィールの例。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="600" height="1140"></a><figcaption>プロフィール（じっさいの画面）</figcaption></figure>
-<figure class="widefig"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"><figcaption>開発者ページ（見本。数字は例です）— 遊んだ人の数、どこで離れたか、感想が見られる</figcaption></figure>
+<figure><button type="button" class="zoomb" aria-label="作品ページの見本を大きく見る"><img src="assets/guide/game.jpg" alt="作品ページの見本。動画、作った人、確かめたいこと、遊ぶボタンが並んでいる" loading="lazy" width="720" height="1280"></button><figcaption>作品ページ（見本・数字は例です）<br><a href="./games/color/">じっさいのページを見る</a></figcaption></figure>
+<figure><button type="button" class="zoomb" aria-label="プロフィールの見本を大きく見る"><img src="assets/guide/profile.jpg" alt="プロフィールの見本。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="720" height="1280"></button><figcaption>プロフィール（見本・数字は例です）<br><a href="./profile.html?u=unei">じっさいのページを見る</a></figcaption></figure>
+<figure class="widefig"><button type="button" class="zoomb" aria-label="開発者ページの見本を大きく見る"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"></button><figcaption>開発者ページ（見本・数字は例です）。遊んだ人の数、どこで離れたか、感想が見られます。タップで大きく見られます</figcaption></figure>
 </div>
 </div></section>
 
@@ -154,7 +154,19 @@
 .shots img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}
 .shots figcaption{font-size:12px;color:var(--muted)}
 .shots .widefig{grid-column:1/-1}
+.zoomb{border:0;padding:0;background:none;cursor:zoom-in;display:block;width:100%}
+.zoomv{position:fixed;inset:0;z-index:100;background:#000d;overflow:auto;display:grid;place-items:start center;padding:12px;cursor:zoom-out}
+.zoomv img{width:min(1000px,100%);min-width:min(100%,640px);height:auto;border-radius:10px}
 </style>
+<script>
+(function(){var v=null,last=null;
+ function close(){if(v){v.remove();v=null;if(last)last.focus()}}
+ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.zoomb');if(!b)return;last=b;
+  v=document.createElement('div');v.className='zoomv';v.setAttribute('role','dialog');v.setAttribute('aria-label','見本を大きく見る（タップで閉じる）');v.tabIndex=-1;
+  var im=b.querySelector('img').cloneNode();im.removeAttribute('loading');v.append(im);v.onclick=close;document.body.append(v);v.focus()});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+})();
+</script>
 <script>
 (function(){var d=document.getElementById('urlFold');if(!d)return;
  function openIf(){if(location.hash==='#url'){d.open=true;d.scrollIntoView()}}

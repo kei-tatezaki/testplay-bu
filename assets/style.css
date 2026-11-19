@@ -16,6 +16,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .bar .btn{padding:7px 14px;font-size:14px;min-height:44px;align-items:center}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
 .brand,.ghost-link,.bar .btn{white-space:nowrap}
+.brand{overflow:hidden}
 @media (max-width:480px){.hide-sm{display:none!important}}
 @media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 6px;font-size:13px}}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;min-height:44px;display:inline-flex;align-items:center}
