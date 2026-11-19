@@ -67,7 +67,7 @@ button{font:inherit;color:inherit}
 .rb[aria-pressed="true"] .ic{background:#ffffff;color:#000}
 .hint{position:absolute;bottom:calc(6px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:11px;color:#ffffff80;pointer-events:none}
 .end{padding:32px;text-align:center;display:grid;gap:12px;place-items:center}
-.end a{color:var(--accent)}
+.end a{color:var(--accent);display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid #ffffff30;border-radius:999px;text-decoration:none}
 /* play overlay */
 .player{position:fixed;inset:0;z-index:40;background:#000;display:none;flex-direction:column}
 .player.open{display:flex}
@@ -310,7 +310,7 @@ order.forEach((g,idx)=>{
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'))));
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'),el('a',{href:'creators.html'},'自分の作品を載せたい'))));
 
 // PC：↑↓キーと右のボタンで前後の作品へ
 function slideStep(d){
