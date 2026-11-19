@@ -63,27 +63,47 @@ def make_og(game, out):
     d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 24, H], fill=hex_rgb(accent))
     d.text((80, 70), "テストプレイ部", font=font(FONT_BOLD, 34), fill=muted)
+    # ゲーム画面の画像（shots/<slug>.png）があれば右に置く
+    shot = ROOT / f"shots/{game['slug']}.png"
+    TW = W - 160
+    if shot.exists():
+        sh = Image.open(shot).convert("RGB")
+        sh.thumbnail((430, 510), Image.LANCZOS)
+        sx, sy = W - 60 - sh.width, (H - sh.height) // 2
+        mask = Image.new("L", sh.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle([0, 0, sh.width - 1, sh.height - 1], radius=18, fill=255)
+        d.rounded_rectangle([sx - 4, sy - 4, sx + sh.width + 3, sy + sh.height + 3], radius=22, fill=hex_rgb(accent))
+        im.paste(sh, (sx, sy), mask)
+        TW = sx - 80 - 40
     title = game["title"]
     size = 96 if len(title) <= 10 else 72
-    d.text((80, 150), title, font=font(FONT_BOLD, size), fill=ink)
+    while size > 40 and d.textlength(title, font=font(FONT_BOLD, size)) > TW:
+        size -= 4
+    d.text((80, 150 + (96 - size) // 2), title, font=font(FONT_BOLD, size), fill=ink)
     # 一言を2行まで折り返す
     f = font(FONT_REG, 38)
     line, lines = "", []
     for ch in game.get("oneliner", ""):
-        if d.textlength(line + ch, font=f) > W - 160:
+        if d.textlength(line + ch, font=f) > TW:
             lines.append(line)
             line = ch
         else:
             line += ch
     if line:
         lines.append(line)
-    for i, ln in enumerate(lines[:2]):
-        d.text((80, 300 + i * 56), ln, font=f, fill=ink)
+    maxl = 2 if TW > 800 else 3
+    if len(lines) > maxl:
+        lines = lines[:maxl]
+        lines[-1] = lines[-1][:-1] + "…"
+    for i, ln in enumerate(lines):
+        d.text((80, (300 if TW > 800 else 270) + i * 56), ln, font=f, fill=ink)
     chips = [game.get("stage", ""), "確かめたい：" + game.get("check", ""), game.get("minutes", "")]
     x = 80
     cf = font(FONT_BOLD, 30)
     for c in [c for c in chips if c and c != "確かめたい："]:
         w = d.textlength(c, font=cf) + 48
+        if x + w > 80 + TW:
+            break
         d.rounded_rectangle([x, 470, x + w, 530], radius=30, outline=hex_rgb(accent), width=3)
         d.text((x + 24, 480), c, font=cf, fill=ink)
         x += w + 16
@@ -220,6 +240,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .rate.rate-r18{background:#d6405e}
 .chip.rate-r15{border-color:#d4a017;color:#d4a017}
 .chip.rate-r18{border-color:#e05a74;color:#e05a74;font-weight:700}
+video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:440px}
 .yt{position:relative}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body{padding:16px;display:grid;gap:10px}
 .body h2{margin:0;font-size:21px;line-height:1.4}

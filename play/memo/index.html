@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/icon-32.png">
+<title>おぼえてピカッ</title>
+<style>
+:root{--bg:#fbf7ef;--ink:#2b2620;--muted:#7d7466;--line:#e2dccf}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;box-sizing:border-box;min-height:100vh;user-select:none;-webkit-user-select:none}
+h1{margin:0;font-size:20px;letter-spacing:.06em}
+p{margin:0;color:var(--muted);font-size:13px;text-align:center}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+#pads{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(78vw,300px)}
+.pad{aspect-ratio:1;border:0;border-radius:22px;cursor:pointer;background:var(--c);opacity:.38;transition:opacity .08s,transform .08s;touch-action:manipulation;font-size:15px;font-weight:800;color:#0005}
+.pad.on{opacity:1;transform:scale(1.05);box-shadow:0 0 0 5px #fff,0 0 26px var(--c)}
+.pad:disabled{cursor:default}
+#status{font-size:17px;font-weight:800;color:var(--ink);min-height:1.5em}
+#go{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:999px;padding:12px 28px;background:var(--ink);color:var(--bg);cursor:pointer}
+#lv{font-size:14px}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>おぼえてピカッ</h1>
+<p>光った順番をおぼえて、同じ順番で押す。1回ごとに1つ長くなる。キーボードは 1〜4。</p>
+<div id="status" aria-live="polite">どこまでおぼえられる？</div>
+<div id="pads">
+<button class="pad" style="--c:#ff6b6b" data-i="0" aria-label="あか（1）" disabled>1</button>
+<button class="pad" style="--c:#4dabf7" data-i="1" aria-label="あお（2）" disabled>2</button>
+<button class="pad" style="--c:#51cf66" data-i="2" aria-label="みどり（3）" disabled>3</button>
+<button class="pad" style="--c:#fcc419" data-i="3" aria-label="きいろ（4）" disabled>4</button>
+</div>
+<button id="go" type="button">スタート</button>
+<p id="lv">ベスト：0こ</p>
+<script>
+(function(){
+const pads=[...document.querySelectorAll('.pad')],st=document.getElementById('status'),go=document.getElementById('go'),lv=document.getElementById('lv');
+const FREQ=[262,330,392,494];let seq=[],pos=0,busy=false,playing=false,best=0,ac=null;
+try{best=+localStorage.getItem('pika-best')||0}catch(e){}
+lv.textContent='ベスト：'+best+'こ';
+function beep(i,bad){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),v=ac.createGain();o.type=bad?'sawtooth':'sine';o.frequency.value=bad?120:FREQ[i];v.gain.setValueAtTime(.12,ac.currentTime);v.gain.exponentialRampToValueAtTime(.001,ac.currentTime+(bad?.5:.28));o.connect(v).connect(ac.destination);o.start();o.stop(ac.currentTime+(bad?.5:.3))}catch(e){}}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function light(i,ms){pads[i].classList.add('on');beep(i);await wait(ms);pads[i].classList.remove('on')}
+function enable(v){pads.forEach(p=>p.disabled=!v)}
+async function show(){busy=true;enable(false);st.textContent='よく見て…（'+seq.length+'こ）';await wait(600);
+ const ms=Math.max(200,460-seq.length*22);for(const i of seq){await light(i,ms);await wait(Math.max(90,ms*.4))}
+ pos=0;busy=false;enable(true);st.textContent='きみの番！'}
+function next(){seq.push(Math.floor(Math.random()*4));show()}
+async function tap(i){if(busy||!playing)return;light(i,160);
+ if(seq[pos]!==i){playing=false;enable(false);beep(0,true);const n=seq.length-1;if(n>best){best=n;try{localStorage.setItem('pika-best',best)}catch(e){}lv.textContent='ベスト：'+best+'こ'}
+  st.textContent='ざんねん！ '+n+'こ おぼえた';pads[seq[pos]].classList.add('on');await wait(900);pads.forEach(p=>p.classList.remove('on'));go.hidden=false;go.textContent='もう一回';return}
+ pos++;if(pos===seq.length){busy=true;st.textContent='せいかい！';await wait(650);next()}}
+pads.forEach(p=>p.addEventListener('pointerdown',e=>{e.preventDefault();tap(+p.dataset.i)}));
+window.addEventListener('keydown',e=>{const k='1234'.indexOf(e.key);if(k>=0)tap(k);if((e.code==='Space'||e.code==='Enter')&&!playing){e.preventDefault();start()}});
+function start(){seq=[];playing=true;go.hidden=true;next()}
+go.addEventListener('click',start);
+window.__dbg=()=>({seq:seq.slice(),pos,busy,playing});
+})();
+</script>
+</body>
+</html>

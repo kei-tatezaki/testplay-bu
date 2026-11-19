@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ほしひろい｜テストプレイ部</title>
+<meta name="description" content="かごを左右に動かして★をひろい、赤い岩をよける45秒。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="ほしひろい｜テストプレイ部">
+<meta property="og:description" content="かごを左右に動かして★をひろい、赤い岩をよける45秒。">
+<meta property="og:url" content="https://kei-tatezaki.github.io/testplay-bu/games/stars/">
+<meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/stars.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1f6f6a">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../../assets/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="bar"><a class="ghost-link" href="../../list.html">← まとめ</a><span class="bar-r"><span data-me></span></span></header>
+<article class="card">
+<video class="media" src="../../clips/stars.mp4" autoplay muted loop playsinline poster="../../og/stars.png"></video>
+<div class="body">
+<div class="meta2"><h2 style="flex:1">ほしひろい</h2><button class="tpb-kebab" type="button" data-menu="stars" data-in-page aria-label="ほしひろい のメニュー" aria-haspopup="menu">⋮</button></div>
+<div class="byrow"><a class="by-chip" data-by="stars" data-size="32" href="../../profile.html?u=unei"><img class="tpb-av" src="../../assets/icon-192.png" alt="" width="32" height="32" style="width:32px;height:32px" loading="lazy">テストプレイ部 運営</a></div>
+<div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">よけゲー</span><span class="chip">1〜3分</span><span class="chip check">確かめたい：操作感</span></div>
+<p class="one">かごを左右に動かして★をひろい、赤い岩をよける45秒。</p>
+<div><b>見どころ</b><ul class="hl"><li>★を続けてひろうと点が上がる</li><li>岩に3回当たると終わり</li><li>時間がたつほど岩がふえる</li></ul></div>
+<div class="by">操作：指やマウスで左右／← →キー</div>
+<div class="q"><b>作者が確かめたいこと</b>指（マウス）についてくる動きは気持ちいい？ 岩に当たったとき、納得できた？</div>
+
+<div class="row"><a class="btn" data-play="stars" href="../../play/stars/">▶ 遊ぶ</a><a class="btn ghost" href="../.././#fb-stars">💬 感想を送る</a></div>
+</div>
+</article>
+<section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
+<footer>感想はトップのフィードの「💬感想」から送れます</footer>
+</div>
+<script>
+(async function(){
+ const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
+ // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
+ fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/rpc/game_stats',{method:'POST',headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json'},body:'{"since_days":3650}'})
+  .then(r=>r.ok?r.json():[]).then(rows=>{const x=(rows||[]).find(r=>r.game_slug==='stars'); if(!x) return;
+   const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
+   const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
+   if(why.length) t.push('🤔 '+why.join('、'));
+   document.getElementById('react').textContent=t.join(' ・ ');}).catch(()=>{});
+ const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+ try{
+  const r=await fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.stars&order=created_at.desc&limit=100',{headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u'}});
+  const rows=await r.json();
+  if(!Array.isArray(rows)||!rows.length){box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}
+  const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
+  sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
+  box.innerHTML=rows.map(x=>'<div class="fbitem">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
+ }catch(e){box.textContent='感想を読み込めませんでした'}
+})();
+</script>
+<script>
+document.addEventListener('click',function(ev){
+ var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;
+ try{
+  var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
+  if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
+ }catch(e){}
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="../../assets/data.js" defer></script>
+<script src="../../assets/tpb.js" defer></script>
+</body>
+</html>

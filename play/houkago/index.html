@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/icon-32.png">
+<title>展示まであと3分</title>
+<style>
+:root{--bg:#2a1f1a;--paper:#fff8ec;--ink:#3a2c22;--muted:#8c7868;--accent:#d9622b;--line:#e8dcc8}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;box-sizing:border-box;min-height:100vh}
+.tag{font-size:11px;color:#c9b7a6;border:1px solid #5a463a;border-radius:999px;padding:2px 10px}
+h1{margin:0;font-size:20px;letter-spacing:.06em;color:#fff3e0}
+.sub{margin:0;color:#c9b7a6;font-size:13px;text-align:center}
+#card{width:100%;max-width:460px;background:var(--paper);border-radius:16px;padding:18px;box-sizing:border-box;display:grid;gap:14px;box-shadow:0 10px 30px #0006}
+#scene{height:120px;border-radius:10px;background:var(--sc,#f3d9b1);display:grid;place-items:center;font-size:54px;position:relative;overflow:hidden;transition:background .3s}
+#clock{position:absolute;right:10px;top:8px;font-size:13px;font-weight:800;background:#fff9;border-radius:999px;padding:2px 10px;color:var(--ink)}
+#who{font-size:12px;font-weight:800;color:var(--accent);min-height:1.2em}
+#text{margin:0;font-size:16px;line-height:1.9;min-height:6.5em;white-space:pre-wrap}
+#choices{display:grid;gap:8px}
+#choices button{font:inherit;font-size:15px;text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--ink);min-height:48px}
+#choices button:hover,#choices button:focus-visible{border-color:var(--accent);outline:none}
+#choices button b{color:var(--accent);margin-right:6px}
+#ends{font-size:12px;color:#c9b7a6}
+.end{font-weight:800;color:var(--accent)}
+</style>
+</head>
+<body>
+<span class="tag">テストプレイ部 運営サンプル</span>
+<h1>展示まであと3分</h1>
+<p class="sub">えらぶだけの短いお話。エンドは3つ。キーボードは 1・2・3。</p>
+<div id="card">
+<div id="scene"><span id="emoji">🏫</span><span id="clock"></span></div>
+<div id="who"></div>
+<p id="text"></p>
+<div id="choices"></div>
+</div>
+<p id="ends"></p>
+<script>
+(function(){
+// s: 場面  e: 絵文字  c: 背景色  t: のこり時間  w: だれ  x: 文  o: [えらぶ文, 次]
+const S={
+ start:{e:'🏫',c:'#f3d9b1',t:'のこり 3:00',w:'',x:'文化祭の朝。ゲーム部の部室。\nきみが作ったゲーム「ねこの大脱走」の展示は、あと3分で始まる。\n最後にもう一回だけ動かしてみたら、2面でねこがカベにめりこんだ。',o:[['いますぐ自分で直す','fix1'],['となりのミナトに遊んでもらう','play1'],['見なかったことにする','ignore1']]},
+ fix1:{e:'⌨️',c:'#cfe3f5',t:'のこり 2:10',w:'',x:'コードを開く。当たり判定のあたりがあやしい。\n数字をひとつ変えると、ねこはめりこまなくなった。\nかわりに、ねこが空を飛ぶようになった。',o:[['もっと直す','fix2'],['ミナトに見てもらう','play2']]},
+ fix2:{e:'🔥',c:'#f7c9b8',t:'のこり 0:20',w:'',x:'直す。飛ばなくなった。こんどは床をすりぬける。\n直す。すりぬけなくなった。こんどはタイトル画面が出ない。\nチャイムが鳴った。',o:[['……','endB']]},
+ play1:{e:'🎮',c:'#d8efd3',t:'のこり 2:30',w:'ミナト',x:'「いいよ、貸して」\nミナトは説明を読まずに始めて、1面を10秒でクリアした。\n2面。ねこがカベにめりこむ。ミナトは笑っている。\n「これ、わざと？ カベの中を通ると近道になるじゃん」',o:[['「バグなんだ、ごめん」','play2'],['「……わざとだよ」','lie']]},
+ play2:{e:'💡',c:'#fff1b8',t:'のこり 1:30',w:'ミナト',x:'「全部は直さなくていいと思う」\nミナトは画面を指さした。\n「2面の入口にカベがあるから、みんなここでめりこむ。カベを1マスずらせば、ふつうに遊ぶ人はまず当たらないよ」',o:[['カベを1マスずらす','endA'],['いや、ちゃんと全部直したい','fix2']]},
+ lie:{e:'😼',c:'#e6d5f5',t:'のこり 1:00',w:'ミナト',x:'「へえー！ じゃあ3面にも近道ある？」\nない。3面のカベは、ただのカベだ。\nミナトは3面のカベに10回ぶつかって、きみの顔を見た。',o:[['正直に言う','play2'],['「上級者向けなんだ」','ignore1']]},
+ ignore1:{e:'🙈',c:'#e3e3e3',t:'のこり 0:00',w:'',x:'展示が始まった。\n最初のお客さんは小学生だった。2面で、ねこがカベにめりこんだ。\n「すげー！ カベぬけできる！」\n小学生は友だちを3人つれてきた。',o:[['そのままにする','endC']]},
+ endA:{e:'🎉',c:'#ffe7a8',t:'展示スタート',w:'エンド1：1マスの直し',x:'カベを1マスずらした。10秒で終わった。\n展示のあいだ、めりこんだ人は1人もいなかった。\n\nひとりで3分なやむより、だれかに1分遊んでもらうほうが早いこともある。',end:'A'},
+ endB:{e:'🌇',c:'#f0c2a8',t:'展示スタート',w:'エンド2：ひとりで直しつづけた',x:'展示は始まったけれど、画面にはエラーの文字。\nきみは部室のすみで、まだコードを直している。\n\nミナトが「一回遊ばせてよ」と言っていたのを、思い出した。',end:'B'},
+ endC:{e:'🐈',c:'#d5ecf5',t:'展示スタート',w:'エンド3：カベぬけ名人',x:'その日いちばん人が集まったのは「カベぬけねこ」だった。\nだれも3面には行かなかったけれど、みんな笑っていた。\n\nバグが、いちばんの見どころになることもある。たまに。',end:'C'}
+};
+const $=id=>document.getElementById(id),card=$('card');
+let seen=[];try{seen=JSON.parse(localStorage.getItem('houkago-ends')||'[]')}catch(e){}
+function ends(){$('ends').textContent='見つけたエンド：'+seen.length+' / 3'}
+let cur='start',tm=0;
+function go(k){cur=k;const s=S[k];$('scene').style.setProperty('--sc',s.c);$('emoji').textContent=s.e;$('clock').textContent=s.t;$('who').textContent=s.w;$('who').className=s.end?'end':'';
+ clearInterval(tm);const full=s.x,t=$('text');let i=0;t.textContent='';const box=$('choices');box.replaceChildren();
+ function done(){clearInterval(tm);t.textContent=full;
+  if(s.end){if(!seen.includes(s.end)){seen.push(s.end);try{localStorage.setItem('houkago-ends',JSON.stringify(seen))}catch(e){}}ends();
+   const b=document.createElement('button');b.type='button';b.innerHTML='<b>↺</b>最初から（べつのエンドをさがす）';b.onclick=()=>go('start');box.append(b)}
+  else s.o.forEach((o,n)=>{const b=document.createElement('button');b.type='button';const k=document.createElement('b');k.textContent=n+1;b.append(k,o[0]);b.onclick=()=>go(o[1]);box.append(b)})}
+ tm=setInterval(()=>{i+=2;t.textContent=full.slice(0,i);if(i>=full.length)done()},28);
+ t.onclick=done;$('scene').onclick=done;}
+window.addEventListener('keydown',e=>{const bs=[...document.querySelectorAll('#choices button')];if(!bs.length){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();$('text').click()}return}
+ const n='123'.indexOf(e.key);if(n>=0&&bs[n])bs[n].click()});
+ends();go('start');
+})();
+</script>
+</body>
+</html>
