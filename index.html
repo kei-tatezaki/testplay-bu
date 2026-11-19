@@ -119,7 +119,7 @@ textarea{min-height:72px;resize:vertical}
 </div>
 
 <script>
-const GAMES = [{"slug": "jump", "title": "ワンタップ・ジャンプ", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "操作感", "genre": "ランゲーム", "minutes": "1〜3分", "oneliner": "タップでジャンプして、赤いブロックをよけ続けるランゲーム。", "question": "ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？", "highlights": ["長押しすると高く跳べる", "進むほどスピードが上がる", "ベスト記録が残る"], "play": "play/jump/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870", "color": "#ffb23e", "bg": "#10141c", "platform": "both", "controls": "タップ／スペースキー"}, {"slug": "color", "title": "いろタッチ30", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "楽しさ", "genre": "反射神経", "minutes": "30秒", "oneliner": "文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。", "question": "もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？", "highlights": ["文字の意味にだまされる「文字の色」モード", "逆にだまされる「書いてある色」モード（NEW）", "モードごとのスコアランキング（NEW）"], "play": "play/color/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#d6453d", "bg": "#f4f1ea", "updates": [{"date": "2026-11-19", "text": "「書いてある色をタップするほうが楽しそう」「スコアでランキングを作ってほしい」という感想をもとに、「書いてある色」モードとランキングを追加しました。"}], "platform": "both", "controls": "タップ／クリック"}, {"slug": "lights", "title": "ひかりけし", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "チュートリアル", "genre": "パズル", "minutes": "3〜5分", "oneliner": "光るマスを全部消すパズル。最初の2面がチュートリアルになっている。", "question": "説明を読まなくてもルールがわかる？どの面でつまずいた？", "highlights": ["押したマスと上下左右がひっくり返る", "全5ステージ", "最後に各面のクリア秒数が出る"], "play": "play/lights/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#7fe0c9", "bg": "#0f1622", "platform": "both", "controls": "タップ／クリック"}];
+const GAMES = [{"slug": "jump", "title": "ワンタップ・ジャンプ", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "操作感", "genre": "ランゲーム", "minutes": "1〜3分", "oneliner": "タップでジャンプして、赤いブロックをよけ続けるランゲーム。", "question": "ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？", "highlights": ["長押しすると高く跳べる", "進むほどスピードが上がる", "ベスト記録が残る"], "play": "play/jump/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624/threads/1572702334947954870", "color": "#ffb23e", "bg": "#10141c", "platform": "both", "controls": "タップ／スペースキー", "added": "2026-11-19"}, {"slug": "color", "title": "いろタッチ30", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "楽しさ", "genre": "反射神経", "minutes": "30秒", "oneliner": "文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。", "question": "もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？", "highlights": ["文字の意味にだまされる「文字の色」モード", "逆にだまされる「書いてある色」モード（NEW）", "モードごとのスコアランキング（NEW）"], "play": "play/color/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#d6453d", "bg": "#f4f1ea", "updates": [{"date": "2026-11-19", "text": "「書いてある色をタップするほうが楽しそう」「スコアでランキングを作ってほしい」という感想をもとに、「書いてある色」モードとランキングを追加しました。"}], "platform": "both", "controls": "タップ／クリック", "added": "2026-11-19"}, {"slug": "lights", "title": "ひかりけし", "author": "テストプレイ部 運営", "x": "", "sample": true, "stage": "プロトタイプ", "check": "チュートリアル", "genre": "パズル", "minutes": "3〜5分", "oneliner": "光るマスを全部消すパズル。最初の2面がチュートリアルになっている。", "question": "説明を読まなくてもルールがわかる？どの面でつまずいた？", "highlights": ["押したマスと上下左右がひっくり返る", "全5ステージ", "最後に各面のクリア秒数が出る"], "play": "play/lights/", "youtube": "", "clip": "", "discord": "https://discord.com/channels/1572684471348498582/1572684778858348624", "color": "#7fe0c9", "bg": "#0f1622", "platform": "both", "controls": "タップ／クリック", "added": "2026-11-19"}];
 const DISCORD_DEFAULT = "https://discord.com/channels/1572684471348498582/1572684778858348624";
 const SB_URL = "https://jwrzqaxuvmdbroemenng.supabase.co", SB_KEY = "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u";
 (function(){
@@ -179,8 +179,13 @@ feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'�
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
 
+// 遊ぶ・👍・🤔 をデータベースに記録（同じ日に何回押しても1回。失敗しても画面は止めない）
+function track(g,kind){
+  try{ fetch(SB_URL+'/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:g.slug,kind,client_id:CLIENT})}).catch(()=>{}) }catch(e){}
+}
 function react(g,kind,btn){
   const cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
+  if(cur) track(g,cur);
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
 }
@@ -194,7 +199,7 @@ let current=null, timer=0;
 function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
 function play(g){
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
-  markPlayed(g); current=g;
+  markPlayed(g); track(g,'play'); current=g;
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
   $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
   scheduleNudge(g);

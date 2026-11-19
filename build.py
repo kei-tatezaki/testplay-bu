@@ -183,6 +183,20 @@ footer{color:var(--muted);font-size:13px;text-align:center}
 """
 
 
+# 「▶ 遊ぶ」を押したらデータベースに記録する（フィードと同じ client_id を使う）
+TRACK_JS = """<script>
+document.addEventListener('click',function(ev){
+ var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;
+ try{
+  var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
+  if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  fetch('""" + SB_URL + """/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'""" + SB_KEY + """','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
+ }catch(e){}
+});
+</script>"""
+
+
 def page(title, desc, url, image, body, prefix):
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -207,6 +221,7 @@ def page(title, desc, url, image, body, prefix):
 </head>
 <body>
 {body}
+{TRACK_JS}
 </body>
 </html>
 """
@@ -226,7 +241,7 @@ def card(g, prefix):
 <div class="chips">{chips_html(g)}</div>
 <p class="one">{e(g['oneliner'])}</p>
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
-<div class="row"><a class="btn" href="{prefix}{e(g['play'])}">▶ 遊ぶ</a><a class="btn ghost" href="{prefix}games/{e(g['slug'])}/">くわしく見る</a>{discord_link(g)}</div>
+<div class="row"><a class="btn" data-play="{e(g['slug'])}" href="{prefix}{e(g['play'])}">▶ 遊ぶ</a><a class="btn ghost" href="{prefix}games/{e(g['slug'])}/">くわしく見る</a>{discord_link(g)}</div>
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>
 </article>"""
@@ -254,7 +269,7 @@ def build():
 {f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
 {''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
-<div class="row"><a class="btn" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g, '../../')}</div>
+<div class="row"><a class="btn" data-play="{e(g['slug'])}" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g, '../../')}</div>
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>
 </article>

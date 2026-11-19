@@ -179,8 +179,13 @@ feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'�
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
 
+// 遊ぶ・👍・🤔 をデータベースに記録（同じ日に何回押しても1回。失敗しても画面は止めない）
+function track(g,kind){
+  try{ fetch(SB_URL+'/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:g.slug,kind,client_id:CLIENT})}).catch(()=>{}) }catch(e){}
+}
 function react(g,kind,btn){
   const cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
+  if(cur) track(g,cur);
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
 }
@@ -194,7 +199,7 @@ let current=null, timer=0;
 function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
 function play(g){
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
-  markPlayed(g); current=g;
+  markPlayed(g); track(g,'play'); current=g;
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
   $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
   scheduleNudge(g);

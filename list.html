@@ -32,7 +32,7 @@
 <div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">パズル</span><span class="chip">3〜5分</span><span class="chip check">確かめたい：チュートリアル</span></div>
 <p class="one">光るマスを全部消すパズル。最初の2面がチュートリアルになっている。</p>
 <div class="q"><b>作者が確かめたいこと</b>説明を読まなくてもルールがわかる？どの面でつまずいた？</div>
-<div class="row"><a class="btn" href="play/lights/">▶ 遊ぶ</a><a class="btn ghost" href="games/lights/">くわしく見る</a><a class="btn ghost" href="./#fb-lights">💬 感想を送る</a></div>
+<div class="row"><a class="btn" data-play="lights" href="play/lights/">▶ 遊ぶ</a><a class="btn ghost" href="games/lights/">くわしく見る</a><a class="btn ghost" href="./#fb-lights">💬 感想を送る</a></div>
 <div class="by">by テストプレイ部 運営</div>
 </div>
 </article>
@@ -43,7 +43,7 @@
 <div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">反射神経</span><span class="chip">30秒</span><span class="chip check">確かめたい：楽しさ</span></div>
 <p class="one">文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。</p>
 <div class="q"><b>作者が確かめたいこと</b>もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？</div>
-<div class="row"><a class="btn" href="play/color/">▶ 遊ぶ</a><a class="btn ghost" href="games/color/">くわしく見る</a><a class="btn ghost" href="./#fb-color">💬 感想を送る</a></div>
+<div class="row"><a class="btn" data-play="color" href="play/color/">▶ 遊ぶ</a><a class="btn ghost" href="games/color/">くわしく見る</a><a class="btn ghost" href="./#fb-color">💬 感想を送る</a></div>
 <div class="by">by テストプレイ部 運営</div>
 </div>
 </article>
@@ -54,7 +54,7 @@
 <div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">ランゲーム</span><span class="chip">1〜3分</span><span class="chip check">確かめたい：操作感</span></div>
 <p class="one">タップでジャンプして、赤いブロックをよけ続けるランゲーム。</p>
 <div class="q"><b>作者が確かめたいこと</b>ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？</div>
-<div class="row"><a class="btn" href="play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="games/jump/">くわしく見る</a><a class="btn ghost" href="./#fb-jump">💬 感想を送る</a></div>
+<div class="row"><a class="btn" data-play="jump" href="play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="games/jump/">くわしく見る</a><a class="btn ghost" href="./#fb-jump">💬 感想を送る</a></div>
 <div class="by">by テストプレイ部 運営</div>
 </div>
 </article>
@@ -69,6 +69,17 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
 }));
+</script>
+<script>
+document.addEventListener('click',function(ev){
+ var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;
+ try{
+  var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
+  if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
+ }catch(e){}
+});
 </script>
 </body>
 </html>

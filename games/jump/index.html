@@ -32,7 +32,7 @@
 <div class="by">操作：タップ／スペースキー</div>
 <div class="q"><b>作者が確かめたいこと</b>ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？</div>
 
-<div class="row"><a class="btn" href="../../play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="../.././#fb-jump">💬 感想を送る</a></div>
+<div class="row"><a class="btn" data-play="jump" href="../../play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="../.././#fb-jump">💬 感想を送る</a></div>
 <div class="by">by テストプレイ部 運営</div>
 </div>
 </article>
@@ -52,6 +52,17 @@
   box.innerHTML=rows.map(x=>'<div class="fbitem">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
  }catch(e){box.textContent='感想を読み込めませんでした'}
 })();
+</script>
+<script>
+document.addEventListener('click',function(ev){
+ var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;
+ try{
+  var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
+  if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
+ }catch(e){}
+});
 </script>
 </body>
 </html>

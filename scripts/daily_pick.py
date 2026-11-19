@@ -3,13 +3,12 @@
 
 GitHub Actions から毎日1回動かす想定（.github/workflows/daily-pick.yml）。
   DISCORD_WEBHOOK_URL が無い、または --dry-run のときは投稿せずに中身を表示する。
-  --date 2026-11-20 のように日付を指定すると、その日の選び方を確認できる。
 
-選び方（同じ日付なら何度動かしても同じ3本になる）
-  - 追加から7日以内の新作を優先
-  - 感想がまだ少ない作品を優先（感想が集まっていない作品に人を回す）
-  - 前日に出た作品は出にくくする
-  - 3本のうち1本以上はスマホで遊べる作品にする（作品が4本以上あるとき）
+3つの枠で1本ずつ選ぶ（同じ作品は2つの枠に出さない）
+  ⭐ 評価が高い      … 感想の「また遊びたい」と 👍/🤔 から出す遊びたい度
+  ▶ よく遊ばれている … 「遊ぶ」を押した人の数
+  💬 感想が多い      … 届いた感想の数
+数字は直近7日で比べる。7日間に動きがない枠は累計で比べ、それでも0なら新作・感想が少ない作品から選ぶ。
 """
 import argparse
 import datetime as dt
@@ -23,11 +22,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BASE = "https://kei-tatezaki.github.io/testplay-bu"
 SB_URL = "https://jwrzqaxuvmdbroemenng.supabase.co"
-SB_KEY = "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u"  # 公開用キー（読み取りのみ）
+SB_KEY = "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u"  # 公開用キー
 JST = dt.timezone(dt.timedelta(hours=9))
-PICKS = 3
 PLATFORM = {"pc": "PCのみ", "sp": "スマホのみ", "both": "PC・スマホ"}
 WEEKDAY = "月火水木金土日"
+PRIOR_N, PRIOR_MEAN = 3, 0.5  # 評価の数が少ない作品が1件だけで1位にならないようにする
 
 
 def load_games():
@@ -35,17 +34,32 @@ def load_games():
     return [g for g in games if not g.get("hidden")]
 
 
-def feedback_counts():
+def fetch_stats(days):
     req = urllib.request.Request(
-        f"{SB_URL}/rest/v1/feedback_stats?select=game_slug,total",
-        headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}"},
+        f"{SB_URL}/rest/v1/rpc/game_stats",
+        data=json.dumps({"since_days": days}).encode(),
+        headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}", "Content-Type": "application/json"},
+        method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
-            return {row["game_slug"]: int(row["total"]) for row in json.load(r)}
+            return {row["game_slug"]: row for row in json.load(r)}
     except Exception as e:  # 取れなくても投稿は止めない
-        print(f"感想数を取得できませんでした（全部0として扱います）: {e}", file=sys.stderr)
+        print(f"数字を取得できませんでした（{days}日）: {e}", file=sys.stderr)
         return {}
+
+
+def zero(slug):
+    return {"game_slug": slug, "plays": 0, "likes": 0, "hmms": 0, "feedbacks": 0, "again_much": 0, "again_some": 0}
+
+
+def rating(s):
+    """遊びたい度（0〜1）。すごく遊びたい=1、ちょっと=0.5、もういいかな=0、👍=1、🤔=0。"""
+    n = s["feedbacks"] + s["likes"] + s["hmms"]
+    if n == 0:
+        return None, 0
+    points = s["again_much"] + 0.5 * s["again_some"] + s["likes"]
+    return (points + PRIOR_N * PRIOR_MEAN) / (n + PRIOR_N), n
 
 
 def rand01(day, slug):
@@ -53,84 +67,74 @@ def rand01(day, slug):
     return int.from_bytes(h[:8], "big") / 2**64
 
 
-def score(g, day, counts, avoid, last_shown):
-    s = rand01(day, g["slug"])
-    seen = last_shown.get(g["slug"])
-    s += 0.15 * (7 if seen is None else min((day - seen).days, 7))  # しばらく出ていない作品ほど出やすく
-    added = g.get("added")
-    if added:
-        age = (day - dt.date.fromisoformat(added)).days
-        if 0 <= age < 7:
-            s += 1.0
-    s += 0.8 / (1 + counts.get(g["slug"], 0))
-    if g["slug"] in avoid:
-        s -= 1.5
-    return s
+SLOTS = [
+    ("⭐ 評価が高い", lambda s: rating(s)[0] or 0),
+    ("▶ よく遊ばれている", lambda s: s["plays"]),
+    ("💬 感想が多い", lambda s: s["feedbacks"]),
+]
 
 
-def pick(games, day, counts, avoid, last_shown):
-    ranked = sorted(games, key=lambda g: score(g, day, counts, avoid, last_shown), reverse=True)
-    chosen = ranked[:PICKS]
-    if len(games) > PICKS and not any(g.get("platform") in ("sp", "both") for g in chosen):
-        mobile = next((g for g in ranked[PICKS:] if g.get("platform") in ("sp", "both")), None)
-        if mobile:
-            chosen[-1] = mobile
-    return chosen
-
-
-START = dt.date(2026, 11, 19)  # この日から毎日の選び方を積み上げる
-
-
-def todays_picks(day):
-    """開始日から1日ずつ選び直して、前日の結果と「最後に出た日」を引き継ぐ。
-    保存しておく場所がいらず、同じ日付なら必ず同じ結果になる。"""
+def choose(day):
     games = load_games()
-    counts = feedback_counts()
-    prev, last_shown, picks = set(), {}, []
-    d = min(START, day)
-    while d <= day:
-        pool = [g for g in games if dt.date.fromisoformat(g.get("added", START.isoformat())) <= d]
-        avoid = prev if len(pool) >= PICKS * 2 else set()
-        picks = pick(pool, d, counts, avoid, last_shown)
-        prev = {g["slug"] for g in picks}
-        for slug in prev:
-            last_shown[slug] = d
-        d += dt.timedelta(days=1)
-    return picks, counts
+    weekly, total = fetch_stats(7), fetch_stats(3650)
+    picks, used = [], set()
+    for label, metric in SLOTS:
+        pool = [g for g in games if g["slug"] not in used]
+        if not pool:
+            break
+        best = None
+        for stats, period in ((weekly, "直近7日"), (total, "累計")):
+            val = lambda g: metric(stats.get(g["slug"], zero(g["slug"])))
+            top = max(pool, key=lambda g: (val(g), rand01(day, g["slug"])))
+            if val(top) > 0:
+                best = (top, label, period, stats)
+                break
+        if best is None:  # まだ数字がない枠は、新作・感想の少ない作品から
+            def fresh(g):
+                age = (day - dt.date.fromisoformat(g.get("added", day.isoformat()))).days
+                n = total.get(g["slug"], zero(g["slug"]))["feedbacks"]
+                return (1.0 if 0 <= age < 7 else 0) + 0.8 / (1 + n) + rand01(day, g["slug"])
+            best = (max(pool, key=fresh), "🆕 注目", "", total)
+        picks.append(best)
+        used.add(best[0]["slug"])
+    return picks, total
 
 
-def embed(g, counts):
+def embed(g, label, period, total):
     page = f"{BASE}/games/{g['slug']}/"
-    n = counts.get(g["slug"], 0)
-    lines = [g["oneliner"]]
+    t = total.get(g["slug"], zero(g["slug"]))
+    r, n = rating(t)
+    lines = [f"**{label}**" + (f"（{period}）" if period else ""), g["oneliner"]]
     if g.get("question"):
         lines.append(f"\n**作者が確かめたいこと**\n{g['question']}")
     lines.append(f"\n[▶ 遊ぶ]({page}) ・ [💬 感想を送る]({BASE}/#fb-{g['slug']})")
     fields = [
+        {"name": "遊んだ人", "value": f"{t['plays']}人", "inline": True},
+        {"name": "感想", "value": f"{t['feedbacks']}件" if t["feedbacks"] else "まだ0件", "inline": True},
+        {"name": "遊びたい度", "value": f"{round(r * 100)}%（{n}人）" if r is not None else "—", "inline": True},
         {"name": "時間", "value": g.get("minutes") or "—", "inline": True},
         {"name": "端末", "value": PLATFORM.get(g.get("platform"), "—"), "inline": True},
-        {"name": "届いた感想", "value": f"{n}件" if n else "まだ0件。最初の1人になろう", "inline": True},
     ]
-    color = g.get("color", "#5865f2").lstrip("#")
     return {
         "title": g["title"],
         "url": page,
         "description": "\n".join(lines),
-        "color": int(color, 16),
+        "color": int(g.get("color", "#5865f2").lstrip("#"), 16),
         "fields": fields,
         "image": {"url": f"{BASE}/og/{g['slug']}.png"},
-        "footer": {"text": f"{g.get('stage', '')}・{g.get('genre', '')}・by {g.get('author', '')}".strip("・")},
+        "footer": {"text": "・".join(x for x in (g.get("stage"), g.get("genre"), f"by {g.get('author', '')}") if x)},
     }
 
 
-def payload(day, picks, counts):
+def payload(day, picks, total):
     head = f"## 🎮 今日のおすすめ（{day.month}/{day.day} {WEEKDAY[day.weekday()]}）"
-    body = "どれも数分で遊べるよ。遊んだら、ひとことでいいので感想を送ってね。\nこのゲームの話は、この投稿から「スレッド」を作ってどうぞ。"
+    body = ("サイトで評価が高い・よく遊ばれている・感想が多い作品から1本ずつ。\n"
+            "遊んだら、ひとことでいいので感想を送ってね。話したいときは、この投稿から「スレッド」を作ってどうぞ。")
     return {
         "username": "テストプレイ部",
         "avatar_url": f"{BASE}/assets/icon-192.png",
         "content": f"{head}\n{body}",
-        "embeds": [embed(g, counts) for g in picks],
+        "embeds": [embed(g, label, period, total) for g, label, period, _ in picks],
         "allowed_mentions": {"parse": []},
     }
 
@@ -153,13 +157,13 @@ def main():
     args = ap.parse_args()
     day = dt.date.fromisoformat(args.date) if args.date else dt.datetime.now(JST).date()
 
-    picks, counts = todays_picks(day)
+    picks, total = choose(day)
     if not picks:
         print("作品がないので投稿しません")
         return
-    data = payload(day, picks, counts)
+    data = payload(day, picks, total)
+    print(f"{day}: " + " / ".join(f"{label}={g['title']}" for g, label, _, _ in picks))
     url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
-    print(f"{day}: " + " / ".join(g["title"] for g in picks))
     if args.dry_run or not url:
         print(json.dumps(data, ensure_ascii=False, indent=1))
         if not url and not args.dry_run:
