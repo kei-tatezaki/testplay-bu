@@ -739,11 +739,11 @@ $('sheet').addEventListener('submit',async e=>{
   btn.disabled=false;
 });
 // まとめ・作品ページの「感想を送る」から来たら、その作品を出して感想シートを開く
-const m=location.hash.match(/^#fb-([a-z0-9-]+)$/);
+const m=location.hash.match(/^#fb(f?)-([a-z0-9-]+)$/);
 ready.then(()=>{
   if(restored&&restored.slug){ const s0=document.querySelector('.slide[data-slug="'+restored.slug+'"]'); if(s0) s0.scrollIntoView({behavior:'instant'}) }
   resumePending();
-  if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>wantFeedback(g),300) } history.replaceState(null,'',location.pathname+location.search) }
+  if(m){ const g=GAMES.find(x=>x.slug===m[2]); const s=document.querySelector('.slide[data-slug="'+m[2]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>m[1]?openSheet(g):wantFeedback(g),300) } history.replaceState(null,'',location.pathname+location.search) }
 });
 // 作品ページの「▶ 遊ぶ」から来たとき（?g=作品ID&play=1）は、その作品のプレイヤーを自動で開く（R18は年齢の確認が先）
 if(startSlug && new URLSearchParams(location.search).get('play')==='1'){

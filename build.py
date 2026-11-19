@@ -218,6 +218,10 @@ def chips_html(g):
     return "".join(out)
 
 
+# 作品ページ：遊んでいない人が「感想を送る」を押したとき、その場で「先に遊んでみてね」を出す（<dialog>。Tab・Escは箱の中だけ）
+NEED_PLAY_HTML = """<dialog id="needPlay" class="np" aria-labelledby="npT"><h2 id="npT">先に遊んでみてね</h2><p>遊んでからのほうが、いい感想になります。</p>
+<div class="row"><button class="btn" type="button" data-a="play">▶ 遊ぶ</button><button class="btn ghost" type="button" data-a="write">それでも書く</button><button class="btn ghost" type="button" data-a="">やめる</button></div></dialog>"""
+
 CSS = """
 :root{--bg:#f3f4f1;--card:#fff;--ink:#1d2430;--muted:#5d6675;--line:#d9ddd8;--accent:#1f6f6a;--accent-ink:#fff;--soft:#e7efee;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b2129;--ink:#e7eaee;--muted:#9aa3ae;--line:#2c343e;--accent:#4fb3aa;--accent-ink:#0d1714;--soft:#1f2e2d;color-scheme:dark}}
@@ -255,7 +259,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:440px}
 .yt{position:relative}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body{padding:16px;display:grid;gap:10px}
-.body h2{margin:0;font-size:21px;line-height:1.4}
+.body h2,.body h1{margin:0;font-size:21px;line-height:1.4}
 .one{margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
@@ -341,6 +345,12 @@ details.fold>summary small{font-size:13px;font-weight:400;color:var(--muted);mar
 .way b{font-size:15px}
 .way ol{margin:0;padding-left:1.3em}
 [hidden]{display:none!important}
+.btn.ghost.weak{border-color:transparent;color:var(--muted);font-weight:400;text-decoration:underline;padding:10px 12px;min-height:44px}
+dialog.np{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:18px;width:min(380px,calc(100% - 32px));display:none;gap:12px}
+dialog.np[open]{display:grid}
+dialog.np::backdrop{background:#0009}
+dialog.np h2{margin:0;font-size:18px}dialog.np p{margin:0;font-size:14px}
+dialog.np .btn{min-height:44px;font-size:15px}
 """
 
 
@@ -417,7 +427,7 @@ def play_btn(g):
 
 def discord_link(g, prefix=""):
     # 感想はサイトの感想シートで送る（フィードの該当作品を開いてシートを出す）
-    return f'<a class="btn ghost" href="{prefix}./#fb-{e(g["slug"])}">💬 感想を送る</a>'
+    return f'<a class="btn ghost" id="fbBtn" href="{prefix}./#fb-{e(g["slug"])}" data-slug="{e(g["slug"])}">💬 感想を送る</a>'
 
 
 
@@ -456,10 +466,11 @@ def build():
 <article class="card">
 {media_html(g, '../../')}
 <div class="body">
-<div class="meta2"><h2 style="flex:1">{e(g['title'])}</h2><button class="tpb-kebab" type="button" data-menu="{e(g['slug'])}" data-in-page aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button></div>
+<div class="meta2"><h1 style="flex:1">{e(g['title'])}</h1><button class="tpb-kebab" type="button" data-menu="{e(g['slug'])}" data-in-page aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button></div>
 <div class="byrow">{by_html(g, '../../', 32, "by-chip")}{f' <a class="by" href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 <p class="one">{e(g['oneliner'])}</p>
-<div class="row">{play_btn(g)}{discord_link(g, '../../')}<a class="btn ghost" href="../../?g={e(g['slug'])}">ショートで見る</a></div>
+<div class="row" id="actRow">{play_btn(g)}{discord_link(g, '../../')}<a class="btn ghost" href="../../?g={e(g['slug'])}">ショートで見る</a></div>
+{NEED_PLAY_HTML}
 <div class="chips">{chips_html(g)}</div>
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
 {f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
@@ -468,9 +479,24 @@ def build():
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
-<footer>感想はトップのショートの「💬感想」から送れます</footer>
+<footer><a href="../../list.html">← 作品一覧に戻る</a> ・ <a href="../../privacy.html">集める情報と使い道</a></footer>
 </div>
 <script>
+(function(){{
+ // 遊んでいない人には「▶ 遊ぶ」が主ボタン。「感想を送る」は弱く見せ、押したらその場で「先に遊んでみてね」を出す
+ const slug='{g['slug']}', fb=document.getElementById('fbBtn'), dlg=document.getElementById('needPlay'), play=document.querySelector('#actRow .btn.big');
+ let played=[]; try{{ played=JSON.parse(localStorage.getItem('tpb:played')||'[]') }}catch(e){{}}
+ let sent=[]; try{{ sent=JSON.parse(localStorage.getItem('tpb:sent')||'[]') }}catch(e){{}}
+ const did=played.indexOf(slug)>=0||sent.indexOf(slug)>=0;
+ if(!fb||did) return;
+ fb.classList.add('weak');
+ fb.addEventListener('click',function(ev){{ if(!dlg||!dlg.showModal) return; ev.preventDefault(); dlg.showModal(); dlg.querySelector('[data-a=play]').focus() }});
+ if(dlg) dlg.addEventListener('click',function(ev){{
+  const b=ev.target.closest('button'); if(ev.target===dlg){{ dlg.close(); return }} if(!b) return;
+  const a=b.dataset.a; dlg.close();
+  if(a==='play'&&play) play.click(); else if(a==='write') location.href=fb.getAttribute('href').replace('#fb-','#fbf-');
+ }});
+}})();
 (async function(){{
  const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
  // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
