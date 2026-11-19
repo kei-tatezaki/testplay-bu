@@ -98,7 +98,7 @@ tr.hidden td{opacity:.45}
 
   <div data-panel="bans" hidden>
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
-      <thead><tr><th>BANした日時</th><th>理由</th><th>端末ID</th><th>感想の数</th><th>操作</th></tr></thead>
+      <thead><tr><th>BANした日時</th><th>種類</th><th>だれ</th><th>理由</th><th>操作</th></tr></thead>
       <tbody id="banRows"></tbody>
     </table></div>
   </div>
@@ -201,7 +201,7 @@ function renderFb(){
       <td>${esc(title)}${f.is_dev?' <span class="tag dev">開発者</span>':''}${f.hidden?' <span class="tag warn">非表示</span>':''}</td>
       <td>${ans.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</td>
       <td class="free">${esc(f.free || '')}</td>
-      <td class="muted">${esc(f.client_id.slice(0,8))}… <br>この人の感想 ${f.by_same_client}件${f.banned?' <span class="tag ban">BAN中</span>':''}</td>
+      <td><b>${esc(f.author || '')}</b><br><span class="muted">端末 ${esc(f.client_id.slice(0,8))}… ・ この人の感想 ${f.by_same_client}件</span>${f.banned?' <span class="tag ban">BAN中</span>':''}</td>
       <td><div class="acts">
         ${f.hidden ? `<button data-act="show" data-id="${f.id}">戻す</button>` : `<button data-act="hide" data-id="${f.id}">消す</button>`}
         ${f.banned ? '' : `<button class="danger" data-act="ban" data-id="${f.id}">BAN</button>`}
@@ -218,7 +218,7 @@ $('fbRows').onclick = async (e) => {
   if (b.dataset.act === 'hide') { toast(await rpc('admin_set_hidden', { fid: id, hide: true })); }
   if (b.dataset.act === 'show') { toast(await rpc('admin_set_hidden', { fid: id, hide: false })); }
   if (b.dataset.act === 'ban') {
-    const why = await ask('この人をBANしますか？', `この人の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想');
+    const why = await ask('この人をBANしますか？', `${f?.author || 'この人'}の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、アカウントと端末の両方で、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想');
     if (why === null) return;
     toast(await rpc('admin_ban', { fid: id, why }));
   }
@@ -240,15 +240,15 @@ async function loadGames(){
 
 async function loadBans(){
   const rows = await rpc('admin_bans');
-  $('banRows').innerHTML = rows.map(b => `<tr><td class="muted">${fmt(b.created_at)}</td><td>${esc(b.reason||'')}</td>
-    <td class="muted">${esc(b.client_id.slice(0,8))}…</td><td>${b.feedbacks}</td>
-    <td><button data-cid="${esc(b.client_id)}">BANを解く</button></td></tr>`).join('')
+  $('banRows').innerHTML = rows.map(b => `<tr><td class="muted">${fmt(b.created_at)}</td><td>${esc(b.kind)}</td>
+    <td>${esc(b.label||'')}</td><td>${esc(b.reason||'')}</td>
+    <td><button data-cid="${esc(b.ident)}">BANを解く</button></td></tr>`).join('')
     || '<tr><td colspan="5" class="muted">BANしている人はいません</td></tr>';
 }
 $('banRows').onclick = async (e) => {
   const b = e.target.closest('button[data-cid]'); if (!b) return;
   if (!(await ask('BANを解きますか？', '解いたあとは、また感想を送れるようになります。非表示にした感想は自動では戻りません。', false))) return;
-  toast(await rpc('admin_unban', { cid: b.dataset.cid }));
+  toast(await rpc('admin_unban', { ident: b.dataset.cid }));
   await Promise.all([loadFb(), loadBans()]);
 };
 

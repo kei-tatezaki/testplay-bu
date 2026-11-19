@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 BASE = os.environ.get("BASE_URL", "").rstrip("/")
-DISCORD_INVITE = os.environ.get("DISCORD_INVITE", "")
+DISCORD_INVITE = "https://discord.gg/NXYSmu4rAY"  # 期限なしの招待リンク
 # 公開してよいキー（publishable）。データベース側のルールで守っている
 SB_URL = os.environ.get("SB_URL", "https://jwrzqaxuvmdbroemenng.supabase.co")
 SB_KEY = os.environ.get("SB_KEY", "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u")

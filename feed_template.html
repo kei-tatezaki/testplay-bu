@@ -68,6 +68,14 @@ button{font:inherit;color:inherit}
 .why button.x{border:0;background:none;text-align:center;color:var(--muted);font-size:12px;padding:4px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
 .toast.show{display:flex}
+[hidden]{display:none!important}
+.toast a.go{border-radius:999px;padding:6px 12px;font-size:13px;background:#5865F2;color:#fff;text-decoration:none;white-space:nowrap;font-weight:700}
+#sDone{display:none;gap:10px;text-align:center}
+.sheet.done #sDone{display:grid}
+.sheet.done > :not(#sDone){display:none}
+.btn.discord{background:#5865F2;color:#fff}
+.who{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.who button{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
 .toast button{border:0;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
 .toast .go{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .toast .x{background:#ffffff1a}
@@ -111,6 +119,19 @@ textarea{min-height:72px;resize:vertical}
 
 <div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
 
+<div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="__DISCORD__" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
+
+<div class="sheet-bg" id="loginBg">
+  <div class="sheet" role="dialog" aria-labelledby="lTitle">
+    <h3 id="lTitle">感想を送るにはログインしてね</h3>
+    <p class="sub">遊ぶ・👍・🤔はログインなしでOK。感想を書く人だけログインしてください（名前は運営にだけ見えます）。</p>
+    <div id="providers" style="display:grid;gap:8px"></div>
+    <div style="display:grid;gap:8px"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス"><button class="btn ghost" type="button" id="lSend">メールでログイン（リンクが届きます）</button></div>
+    <p class="msg" id="lMsg" aria-live="polite"></p>
+    <button class="btn ghost" type="button" id="lClose">あとで</button>
+  </div>
+</div>
+
 <div class="sheet-bg" id="sheetBg">
   <form class="sheet" id="sheet" aria-labelledby="sTitle">
     <h3 id="sTitle">感想を送る</h3>
@@ -128,9 +149,17 @@ textarea{min-height:72px;resize:vertical}
       <button class="btn ghost" type="button" id="sClose">あとで</button>
     </div>
     <p class="msg" id="sMsg" aria-live="polite"></p>
+    <p class="who" id="sWho"></p>
+    <div id="sDone">
+      <h3>送ったよ！ありがとう</h3>
+      <p class="sub">作者が感想を読んで直したら、Discordでお知らせが届きます。新作や毎日17時のおすすめも流れるよ。</p>
+      <a class="btn discord join" href="__DISCORD__" target="_blank" rel="noopener">Discordで進捗を見る（参加する）</a>
+      <button class="btn ghost" type="button" id="sDoneClose">閉じる</button>
+    </div>
   </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/rank.js"></script>
 <script>
 const GAMES = __GAMES__;
@@ -284,7 +313,15 @@ function confirmWrongDevice(g){
   $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
   return false;
 }
-function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank' }
+function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; maybeInvite() }
+// ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
+function maybeInvite(){
+  if(store.get('joined',false)) return;
+  const today=new Date().toDateString(); if(store.get('inviteDay','')===today) return;
+  store.set('inviteDay',today); $('invite').classList.add('show'); setTimeout(()=>$('invite').classList.remove('show'),12000);
+}
+$('inviteX').addEventListener('click',()=>$('invite').classList.remove('show'));
+document.querySelectorAll('a.join').forEach(a=>a.addEventListener('click',()=>{ store.set('joined',true); $('invite').classList.remove('show') }));
 function scheduleNudge(g){ clearTimeout(timer); if(sent.has(g.slug))return; timer=setTimeout(()=>{ $('toast').classList.add('show') }, 5*60*1000) }
 $('pClose').addEventListener('click',closePlayer);
 $('pFb').addEventListener('click',()=>{ if(current) openSheet(current) });
@@ -317,8 +354,44 @@ const free=$('free'), dev=$('dev');
 dev.checked = !!store.get('dev',false);
 function upd(){ const n=[...free.value.trim()].length; $('count').textContent=n+'文字'+(dev.checked&&n<40?'（あと'+(40-n)+'文字）':''); $('minNote').textContent=dev.checked?'開発者は40文字以上':'任意' }
 free.addEventListener('input',upd); dev.addEventListener('change',()=>{store.set('dev',dev.checked);upd()});
+// ---- ログイン（感想を送るときだけ必要） ----
+const sb = window.supabase ? supabase.createClient(SB_URL, SB_KEY) : null;
+async function getSession(){ if(!sb) return null; try{ const {data}=await sb.auth.getSession(); return data.session }catch(e){ return null } }
+function userName(s){ const m=(s&&s.user&&s.user.user_metadata)||{}; return m.full_name||m.name||((s&&s.user&&s.user.email)||'').split('@')[0]||'ログイン中' }
+function needLogin(g){ store.set('pendingFb',g.slug); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open') }
+$('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); $('loginBg').classList.remove('open') });
+$('loginBg').addEventListener('click',e=>{ if(e.target===$('loginBg')) $('lClose').click() });
+$('lSend').addEventListener('click',async()=>{
+  const email=$('lEmail').value.trim(); const msg=$('lMsg');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.className='msg err'; msg.textContent='メールアドレスを確かめてね'; return }
+  $('lSend').disabled=true; msg.className='msg'; msg.textContent='送信中…';
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  $('lSend').disabled=false;
+  if(error){ msg.className='msg err'; msg.textContent='送れなかった…時間をおいてもう一度試してね' }
+  else msg.textContent='メールを送ったよ。届いたリンクを開くと、この画面に戻って感想を書けます（迷惑メールも確認してね）';
+});
+// 使えるログイン方法（DiscordやGoogleはSupabaseで有効にしたものだけ出す）
+fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{
+  const ext=(st&&st.external)||{};
+  [['discord','Discordでログイン','#5865F2','#fff'],['google','Googleでログイン','#fff','#222']].forEach(([id,label,bg,fg])=>{
+    if(ext[id]) $('providers').append(el('button',{class:'btn',type:'button',style:'background:'+bg+';color:'+fg,onclick:()=>sb.auth.signInWithOAuth({provider:id,options:{redirectTo:location.origin+location.pathname}})},label));
+  });
+}).catch(()=>{});
+// ログインから戻ってきたら、書きかけだった作品の感想シートを開く
+async function resumePending(){
+  const slug=store.get('pendingFb',''); if(!slug) return;
+  const s=await getSession(); if(!s) return;
+  store.set('pendingFb',''); $('loginBg').classList.remove('open');
+  const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]');
+  if(g){ if(sl) sl.scrollIntoView(); setTimeout(()=>openSheet(g),300) }
+}
+if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN') resumePending() });
+
 let sheetGame=null;
-function openSheet(g){
+async function openSheet(g){
+  const ses=await getSession(); if(!ses){ needLogin(g); return }
+  $('sheet').classList.remove('done');
+  $('sWho').innerHTML=''; $('sWho').append('ログイン中：'+userName(ses)+' ・ ', el('button',{type:'button',onclick:async()=>{ await sb.auth.signOut(); closeSheet() }},'ログアウト'));
   sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
@@ -327,6 +400,7 @@ function openSheet(g){
 }
 function closeSheet(){ $('sheetBg').classList.remove('open') }
 $('sClose').addEventListener('click',closeSheet);
+$('sDoneClose').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
 $('sheet').addEventListener('submit',async e=>{
   e.preventDefault(); const g=sheetGame; const msg=$('sMsg');
@@ -337,19 +411,20 @@ $('sheet').addEventListener('submit',async e=>{
     good:picks.good||[], bad:picks.bad||[], answer:(g.question&&(picks.answer||[])[0])||null, free:free.value.trim(), is_dev:dev.checked, client_id:CLIENT};
   const btn=$('sheet').querySelector('button[type=submit]'); btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
   try{
-    const res=await fetch(SB_URL+'/rest/v1/feedback',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(payload)});
-    if(res.ok){
-      sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='送ったよ！ありがとう。作者に届きます';
+    const {error}=await sb.from('feedback').insert(payload);
+    if(!error){
+      sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
       const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb:nth-child(4)'); if(lab) lab.lastChild.textContent='送った';
-      setTimeout(closeSheet,1200);
+      $('sheet').classList.add('done'); $('sheet').scrollTop=0;
     } else {
-      const j=await res.json().catch(()=>({}));
+      const code=error.code||'', m=error.message||'';
       msg.className='msg err';
-      if(res.status===409||j.code==='23505') msg.textContent='この作品にはもう感想を送ってるよ。ありがとう！';
-      else if(j.message==='banned_word') msg.textContent='使えない言葉が入っているみたい。言い方を変えてみてね';
-      else if(j.message==='banned') msg.textContent='この端末からは感想を送れなくなっています。心当たりがない場合は運営に連絡してね';
-      else if(j.message==='lazy_dev') msg.textContent='同じ言葉のくり返しになっているみたい。遊んで気づいたことを具体的に書いてね';
-      else if((j.message||'').includes('dev_min_length')) msg.textContent='開発者は一言を40文字以上で書いてね';
+      if(code==='23505') msg.textContent='この作品にはもう感想を送ってるよ。ありがとう！';
+      else if(m==='banned_word') msg.textContent='使えない言葉が入っているみたい。言い方を変えてみてね';
+      else if(m==='banned') msg.textContent='このアカウントからは感想を送れなくなっています。心当たりがない場合は運営に連絡してね';
+      else if(m==='lazy_dev') msg.textContent='同じ言葉のくり返しになっているみたい。遊んで気づいたことを具体的に書いてね';
+      else if(m.includes('dev_min_length')) msg.textContent='開発者は一言を40文字以上で書いてね';
+      else if(code==='42501'||/jwt|auth/i.test(m)){ closeSheet(); needLogin(g) }
       else msg.textContent='送れなかった…時間をおいてもう一度試してね';
     }
   }catch(err){ msg.className='msg err'; msg.textContent='通信できなかった…電波のいいところでもう一度試してね' }
@@ -357,6 +432,7 @@ $('sheet').addEventListener('submit',async e=>{
 });
 // まとめ・作品ページの「感想を送る」から来たら、その作品を出して感想シートを開く
 const m=location.hash.match(/^#fb-([a-z0-9-]+)$/);
+resumePending();
 if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>openSheet(g),300) } history.replaceState(null,'',location.pathname) }
 })();
 </script>
