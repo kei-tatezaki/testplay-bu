@@ -39,6 +39,8 @@ tr.hidden td{opacity:.45}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
 #msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008}
 button,.btn,header a{white-space:nowrap}
+#subRows,#subRows .card,#subRows .card>*,#subRows a,#mBody{min-width:0;max-width:100%;overflow-wrap:anywhere}
+#subRows{grid-template-columns:minmax(0,1fr)}
 .loaderr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;color:var(--bad)}
 @media (pointer:coarse){button,.btn,select,input,header a,.tabs button{min-height:44px}header a{display:inline-flex;align-items:center}}
 @media (max-width:760px){
@@ -150,7 +152,7 @@ button,.btn,header a{white-space:nowrap}
 </div>
 <div id="msg"></div>
 <div id="modal" hidden style="position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50">
-  <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle" style="width:min(440px,calc(100% - 32px));display:grid;gap:12px">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle" style="width:min(440px,calc(100vw - 32px));max-width:calc(100vw - 32px);display:grid;gap:12px;min-width:0;overflow-wrap:anywhere">
     <b id="mTitle"></b><div id="mBody" class="muted"></div>
     <input id="mInput" placeholder="" aria-label="メモ">
     <div style="display:flex;gap:8px;justify-content:flex-end"><button id="mNo">やめる</button><button id="mYes" class="danger">実行する</button></div>

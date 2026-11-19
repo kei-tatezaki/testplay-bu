@@ -15,12 +15,13 @@
 .mehead h1{margin:0;font-size:20px;line-height:1.3}
 .mehead .acts{display:flex;gap:8px;flex-wrap:wrap}
 .mehead .btn{padding:8px 14px;font-size:14px}
-.pane{display:grid;gap:16px}
+.pane{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);overflow-wrap:anywhere}
 .avrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .count{font-weight:400;color:var(--muted);font-size:12px;justify-self:end}
 .idrow{display:flex;align-items:center;gap:4px}
 .idrow span{color:var(--muted);font-weight:400}
-.subs{display:grid;gap:8px}
+.subs{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
+.sub,.sub>*{min-width:0;overflow-wrap:anywhere}
 .sub{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;gap:2px;background:var(--card)}
 .st{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent)}
 .st.ng{background:#d2553f22;color:#d2553f}
