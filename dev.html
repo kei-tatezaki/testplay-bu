@@ -97,7 +97,7 @@ button,select,input{font:inherit}
     </div>
     <div class="card"><h2>よかったところ</h2><div class="bars" id="good"></div></div>
     <div class="card"><h2>気になったところ</h2><div class="bars" id="bad"></div></div>
-    <div class="card"><h2>あなたの質問への答え</h2><div class="bars" id="answer"></div></div>
+    <div class="card"><h2>あなたの質問への答え <span class="note" id="qText"></span></h2><div class="bars" id="answer"></div></div>
     <div class="card"><h2>遊ばれた時間帯</h2>
       <div class="hours" id="hours"></div><div class="hlab" id="hlab"></div>
       <h2 style="margin-top:16px">PC・スマホ</h2><div class="bars" id="devices"></div>
@@ -135,7 +135,9 @@ function bars(id, pairs, cls){
   $(id).innerHTML = total ? pairs.map(([k,v,c])=>`<div class="brow"><span>${esc(k)}</span><div class="track"><div class="fill ${c||cls||''}" style="width:${v/max*100}%"></div></div><span class="n">${v}${total?'（'+pct(v,total)+'）':''}</span></div>`).join('')
                           : '<span class="muted">まだデータがありません</span>';
 }
-function objBars(id, obj, order, cls){ const keys=order||Object.keys(obj||{}).sort((a,b)=>(obj[b]-obj[a])); bars(id, keys.map(k=>[k,(obj||{})[k]||0]), cls) }
+function objBars(id, obj, order, cls, label){ const keys=order||Object.keys(obj||{}).sort((a,b)=>(obj[b]-obj[a])); bars(id, keys.map(k=>[label?label(k):k,(obj||{})[k]||0]), cls) }
+// 作者の質問の答え：保存する値は◎○△のまま、画面には「はい／まあまあ／いいえ」を出す
+const ANS={'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}; const ansL=v=>ANS[v]||v;
 
 async function start(){
   const {data:{session}}=await sb.auth.getSession();
@@ -171,7 +173,8 @@ async function load(){
   const H=s.hmm||{}; bars('hmm',[['操作がわかりにくい',H.controls||0,'warn'],['重い・うまく動かない',H.heavy||0,'bad'],['おもしろさがわからなかった',H.fun||0,'warn']]);
   $('notForMe').textContent = H.genre ? `「好みのジャンルじゃない」${H.genre}人（作品の評価には入れていません）` : '';
   objBars('again',s.again,['すごく遊びたい','ちょっと遊びたい','もういいかな']);
-  objBars('good',s.good); objBars('bad',s.bad,null,'warn'); objBars('answer',s.answer,['◎ できた','○ だいたい','△ いまいち']);
+  $('qText').textContent=GAMES[slug]&&GAMES[slug].question?'「'+GAMES[slug].question+'」':'';
+  objBars('good',s.good); objBars('bad',s.bad,null,'warn'); objBars('answer',s.answer,['◎ できた','○ だいたい','△ いまいち'],null,ansL);
   const hours=s.hours||{}; const hmax=Math.max(1,...Object.values(hours));
   $('hours').innerHTML=Array.from({length:24},(_,h)=>`<div title="${h}時 ${hours[h]||0}回" style="height:${(hours[h]||0)/hmax*100}%"></div>`).join('');
   $('hlab').innerHTML=Array.from({length:24},(_,h)=>`<span>${h%6===0?h:''}</span>`).join('');
@@ -181,7 +184,7 @@ async function load(){
 function renderFb(){
   $('fbCount').textContent=FB.length+'件';
   $('fbList').innerHTML=FB.map(f=>{
-    const tags=[f.again,f.reach,f.stop_at&&('やめた所：'+f.stop_at),f.answer&&('質問：'+f.answer),...(f.good||[]).map(x=>'👍 '+x),...(f.bad||[]).map(x=>'⚠ '+x)].filter(Boolean);
+    const tags=[f.again,f.reach,f.stop_at&&('やめた所：'+f.stop_at),f.answer&&('質問への答え：'+ansL(f.answer)),...(f.good||[]).map(x=>'👍 '+x),...(f.bad||[]).map(x=>'⚠ '+x)].filter(Boolean);
     return `<div class="fb"><div class="muted">${new Date(f.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}${f.is_dev?' <span class="tag dev">開発者</span>':''}</div>
       <div>${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
       ${f.free?`<div class="free">${esc(f.free)}</div>`:''}

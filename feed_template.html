@@ -549,19 +549,20 @@ const OPTS = {
   reach:['最後まで','途中でやめた'],
   good:['操作が気持ちいい','見た目','音','アイデアが新しい','ちょうどいい難しさ','その他'],
   bad:['何をすればいいかわからない','難しすぎ','簡単すぎ','操作しづらい','バグっぽい','その他'],
-  answer:['◎ できた','○ だいたい','△ いまいち']
+  // 保存する値はデータベースの決まり（◎・○・△）のまま。画面には「はい／まあまあ／いいえ」を出す
+  answer:[['◎ できた','はい'],['○ だいたい','まあまあ'],['△ いまいち','いいえ']]
 };
 const EMO = ['🐛バグ','🤔違和感','😆楽しかった','😴やめたくなった'];
 const picks = {};
 document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
   const k=fs.dataset.k, single=fs.hasAttribute('data-single'), box=fs.querySelector('.opts');
-  OPTS[k].forEach(label=>box.append(el('button',{class:'opt',type:'button','aria-pressed':'false',onclick:e=>{
+  OPTS[k].forEach(o=>{ const val=Array.isArray(o)?o[0]:o, label=Array.isArray(o)?o[1]:o; box.append(el('button',{class:'opt',type:'button','aria-pressed':'false','data-v':val,onclick:e=>{
     const b=e.currentTarget, on=b.getAttribute('aria-pressed')!=='true';
     if(single) box.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed','false'));
     b.setAttribute('aria-pressed',String(on));
-    picks[k]=[...box.querySelectorAll('.opt[aria-pressed="true"]')].map(x=>x.textContent);
+    picks[k]=[...box.querySelectorAll('.opt[aria-pressed="true"]')].map(x=>x.dataset.v);
     if(k==='reach') $('stopAt').hidden = !(picks.reach||[]).includes('途中でやめた');
-  }},label)));
+  }},label)) });
 });
 EMO.forEach(e=>$('emo').append(el('button',{class:'opt',type:'button',onclick:()=>{const t=$('free');t.value=(t.value?t.value+' ':'')+e+'：';t.focus();upd()}},e)));
 const free=$('free'), dev=$('dev');

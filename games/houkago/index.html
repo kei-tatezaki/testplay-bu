@@ -33,7 +33,7 @@
 <div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営のお試し作品</span><span class="chip">プロトタイプ</span><span class="chip">ノベル</span><span class="chip">1〜3分</span><span class="chip check">確かめたい：楽しさ</span></div>
 <div><b>見どころ</b><ul class="hl"><li>えらぶだけで進む</li><li>1回1分くらい、エンドは3つ</li><li>見つけたエンドの数が残る</li></ul></div>
 <div class="by">操作：タップ／1・2・3キー</div>
-<div class="q"><b>作者が確かめたいこと</b>文章の長さと読むテンポはどう？ ほかのエンドも見たくなった？</div>
+<div class="q"><b>作者が確かめたいこと</b>文章の長さと読むテンポは、ちょうどよかった？</div>
 
 </div>
 </article>
@@ -57,7 +57,7 @@
   if(!Array.isArray(rows)||!rows.length){box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
   sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
-  box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
+  box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
  }catch(e){box.textContent='感想を読み込めませんでした'}
 })();
 </script>
