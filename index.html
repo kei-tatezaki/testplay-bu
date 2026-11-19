@@ -347,6 +347,8 @@ $('sheet').addEventListener('submit',async e=>{
       msg.className='msg err';
       if(res.status===409||j.code==='23505') msg.textContent='この作品にはもう感想を送ってるよ。ありがとう！';
       else if(j.message==='banned_word') msg.textContent='使えない言葉が入っているみたい。言い方を変えてみてね';
+      else if(j.message==='banned') msg.textContent='この端末からは感想を送れなくなっています。心当たりがない場合は運営に連絡してね';
+      else if(j.message==='lazy_dev') msg.textContent='同じ言葉のくり返しになっているみたい。遊んで気づいたことを具体的に書いてね';
       else if((j.message||'').includes('dev_min_length')) msg.textContent='開発者は一言を40文字以上で書いてね';
       else msg.textContent='送れなかった…時間をおいてもう一度試してね';
     }
