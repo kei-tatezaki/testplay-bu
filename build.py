@@ -147,12 +147,19 @@ a{color:var(--accent)}
 header h1{margin:0;font-size:30px;letter-spacing:.04em}
 header p{margin:4px 0 0;color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px}
+.wide .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.wide .filters::-webkit-scrollbar{display:none}
+.wide .filters button{white-space:nowrap;flex:none}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
+.brand img{border-radius:50%}
+.bar .btn{padding:7px 14px;font-size:14px}
+.lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:#000;border:0}
 .thumb{position:relative;display:block}
-.thumb-play{position:absolute;right:10px;bottom:10px;background:#000b;color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:999px}
 .yt{position:relative}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body{padding:16px;display:grid;gap:10px}
 .body h2{margin:0;font-size:21px;line-height:1.4}
@@ -171,8 +178,17 @@ header p{margin:4px 0 0;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
 footer{color:var(--muted);font-size:13px;text-align:center}
 .empty{color:var(--muted);text-align:center;padding:24px}
-.wrap.wide{max-width:1180px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-items:start}
+.wrap.wide{max-width:1280px;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px 14px;align-items:start}
+@media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:16px 10px}}
+.tile{display:grid;gap:8px;min-width:0}
+.tile[hidden]{display:none}
+.tile .media{border-radius:12px}
+.dur{position:absolute;right:6px;bottom:6px;background:#000c;color:#fff;font-size:11px;font-weight:700;line-height:1.6;padding:0 6px;border-radius:4px}
+.meta{display:grid;gap:0;min-width:0}
+.meta .t{color:var(--ink);font-weight:700;font-size:15px;line-height:1.4;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
+.meta .by{font-size:12px;line-height:1.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta .by:empty{display:none}
 .grid .card .body{gap:8px;padding:14px}
 .grid .card h2{font-size:17px}
 .grid .q{font-size:13px}
@@ -236,15 +252,16 @@ def discord_link(g, prefix=""):
 
 
 def card(g, prefix):
-    return f"""<article class="card" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
-<a class="thumb" href="{prefix}./?g={e(g['slug'])}" aria-label="{e(g['title'])}をショートで見る">{media_html(g, prefix)}<span class="thumb-play">▶ ショートで見る</span></a>
-<div class="body">
-<h2>{e(g['title'])}</h2>
-<div class="chips">{chips_html(g)}</div>
-<p class="one">{e(g['oneliner'])}</p>
-{f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
-<div class="row"><a class="btn" data-play="{e(g['slug'])}" href="{prefix}{e(g['play'])}">▶ 遊ぶ</a><a class="btn ghost" href="{prefix}games/{e(g['slug'])}/">くわしく見る</a>{discord_link(g)}</div>
-<div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
+    """まとめ用の小さいカード（YouTubeのホームのように、画像・タイトル・作者・数字だけ）"""
+    slug = e(g["slug"])
+    sub = " ・ ".join(x for x in (PLATFORM.get(g.get("platform"), ""), f"確かめたい：{g['check']}" if g.get("check") else "") if x)
+    return f"""<article class="tile" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
+<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"><img class="media" src="{prefix}og/{slug}.png" alt="" loading="lazy">{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
+<div class="meta">
+<a class="t" href="{prefix}games/{slug}/">{e(g['title'])}</a>
+<div class="by">{e(g['author'])}</div>
+<div class="by">{e(sub)}</div>
+<div class="by" data-stats="{slug}"></div>
 </div>
 </article>"""
 
@@ -301,7 +318,8 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header><h1>テストプレイ部 まとめ</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a class="btn" href="./">▶ ショートで見る</a></p></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
 <nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
 <main id="list" class="grid">
@@ -312,7 +330,10 @@ def build():
 </div>
 <script>
 let F='',P='';
-function apply(){{let n=0;document.querySelectorAll('#list .card').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
+// 遊んだ人・感想の数（YouTubeの再生回数のように表示）
+fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
+ .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
+function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();

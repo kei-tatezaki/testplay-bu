@@ -21,41 +21,36 @@
 </head>
 <body>
 <div class="wrap wide">
-<header><h1>テストプレイ部 まとめ</h1><p>学生のゲームを、5分でつまみ食い。気になったら遊んで、一言感想を送ろう。</p><p><a class="btn" href="./">▶ ショートで見る</a></p></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 <nav class="filters" aria-label="絞り込み"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">確かめたい：チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">確かめたい：操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">確かめたい：楽しさ</button></nav>
 <nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
 <main id="list" class="grid">
-<article class="card" data-check="チュートリアル" data-plat="both">
-<a class="thumb" href="./?g=lights" aria-label="ひかりけしをショートで見る"><img class="media" src="og/lights.png" alt="ひかりけし" loading="lazy"><span class="thumb-play">▶ ショートで見る</span></a>
-<div class="body">
-<h2>ひかりけし</h2>
-<div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">パズル</span><span class="chip">3〜5分</span><span class="chip check">確かめたい：チュートリアル</span></div>
-<p class="one">光るマスを全部消すパズル。最初の2面がチュートリアルになっている。</p>
-<div class="q"><b>作者が確かめたいこと</b>説明を読まなくてもルールがわかる？どの面でつまずいた？</div>
-<div class="row"><a class="btn" data-play="lights" href="play/lights/">▶ 遊ぶ</a><a class="btn ghost" href="games/lights/">くわしく見る</a><a class="btn ghost" href="./#fb-lights">💬 感想を送る</a></div>
-<div class="by">by テストプレイ部 運営</div>
+<article class="tile" data-check="チュートリアル" data-plat="both">
+<a class="thumb" href="./?g=lights" aria-label="ひかりけしをショートで見る"><img class="media" src="og/lights.png" alt="" loading="lazy"><span class="dur">3〜5分</span></a>
+<div class="meta">
+<a class="t" href="games/lights/">ひかりけし</a>
+<div class="by">テストプレイ部 運営</div>
+<div class="by">PC・スマホ ・ 確かめたい：チュートリアル</div>
+<div class="by" data-stats="lights"></div>
 </div>
 </article>
-<article class="card" data-check="楽しさ" data-plat="both">
-<a class="thumb" href="./?g=color" aria-label="いろタッチ30をショートで見る"><img class="media" src="og/color.png" alt="いろタッチ30" loading="lazy"><span class="thumb-play">▶ ショートで見る</span></a>
-<div class="body">
-<h2>いろタッチ30</h2>
-<div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">反射神経</span><span class="chip">30秒</span><span class="chip check">確かめたい：楽しさ</span></div>
-<p class="one">文字の意味ではなく「文字の色」のボタンを押す、30秒のスピード勝負。</p>
-<div class="q"><b>作者が確かめたいこと</b>もう一回遊びたくなる？ミスで時間が減るのは理不尽じゃない？</div>
-<div class="row"><a class="btn" data-play="color" href="play/color/">▶ 遊ぶ</a><a class="btn ghost" href="games/color/">くわしく見る</a><a class="btn ghost" href="./#fb-color">💬 感想を送る</a></div>
-<div class="by">by テストプレイ部 運営</div>
+<article class="tile" data-check="楽しさ" data-plat="both">
+<a class="thumb" href="./?g=color" aria-label="いろタッチ30をショートで見る"><img class="media" src="og/color.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
+<div class="meta">
+<a class="t" href="games/color/">いろタッチ30</a>
+<div class="by">テストプレイ部 運営</div>
+<div class="by">PC・スマホ ・ 確かめたい：楽しさ</div>
+<div class="by" data-stats="color"></div>
 </div>
 </article>
-<article class="card" data-check="操作感" data-plat="both">
-<a class="thumb" href="./?g=jump" aria-label="ワンタップ・ジャンプをショートで見る"><img class="media" src="og/jump.png" alt="ワンタップ・ジャンプ" loading="lazy"><span class="thumb-play">▶ ショートで見る</span></a>
-<div class="body">
-<h2>ワンタップ・ジャンプ</h2>
-<div class="chips"><span class="chip plat">PC・スマホ</span><span class="chip sample">運営サンプル</span><span class="chip">プロトタイプ</span><span class="chip">ランゲーム</span><span class="chip">1〜3分</span><span class="chip check">確かめたい：操作感</span></div>
-<p class="one">タップでジャンプして、赤いブロックをよけ続けるランゲーム。</p>
-<div class="q"><b>作者が確かめたいこと</b>ジャンプの手触りは気持ちいい？長押しで高さが変わるのは伝わる？</div>
-<div class="row"><a class="btn" data-play="jump" href="play/jump/">▶ 遊ぶ</a><a class="btn ghost" href="games/jump/">くわしく見る</a><a class="btn ghost" href="./#fb-jump">💬 感想を送る</a></div>
-<div class="by">by テストプレイ部 運営</div>
+<article class="tile" data-check="操作感" data-plat="both">
+<a class="thumb" href="./?g=jump" aria-label="ワンタップ・ジャンプをショートで見る"><img class="media" src="og/jump.png" alt="" loading="lazy"><span class="dur">1〜3分</span></a>
+<div class="meta">
+<a class="t" href="games/jump/">ワンタップ・ジャンプ</a>
+<div class="by">テストプレイ部 運営</div>
+<div class="by">PC・スマホ ・ 確かめたい：操作感</div>
+<div class="by" data-stats="jump"></div>
 </div>
 </article>
 </main>
@@ -64,7 +59,10 @@
 </div>
 <script>
 let F='',P='';
-function apply(){let n=0;document.querySelectorAll('#list .card').forEach(c=>{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;});document.getElementById('empty').hidden=n>0;}
+// 遊んだ人・感想の数（YouTubeの再生回数のように表示）
+fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/rpc/game_stats',{method:'POST',headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json'},body:'{"since_days":3650}'})
+ .then(r=>r.ok?r.json():[]).then(rows=>{(rows||[]).forEach(x=>{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')})}).catch(()=>{});
+function apply(){let n=0;document.querySelectorAll('#list .tile').forEach(c=>{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;});document.getElementById('empty').hidden=n>0;}
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
