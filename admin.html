@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>管理ページ | テストプレイ部</title>
+<link rel="icon" href="assets/icon-32.png">
+<style>
+:root{--bg:#0f1218;--card:#171b23;--line:#2a303c;--ink:#e8ebf0;--muted:#9aa3b2;--accent:#5ce1c6;--accent-ink:#06231d;--warn:#ffcf5a;--bad:#ff6b6b}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:14px}
+header h1{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
+header h1 img{border-radius:50%}
+.muted{color:var(--muted)}
+button,.btn{border:1px solid var(--line);background:#ffffff0d;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.danger{border-color:#ff6b6b66;color:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+input,select{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.login{max-width:420px;margin:60px auto;display:grid;gap:12px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+td.free{max-width:420px;white-space:pre-wrap;word-break:break-word}
+tr.hidden td{opacity:.45}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0;white-space:nowrap}
+.tag.dev{border-color:var(--accent);color:var(--accent)}
+.tag.ban{border-color:var(--bad);color:var(--bad)}
+.tag.warn{border-color:var(--warn);color:var(--warn)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008}
+@media (max-width:760px){
+  thead{display:none} tr{display:grid;border-bottom:1px solid var(--line);padding:8px 0} td{border:0;padding:2px 0} td.free{max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><img src="assets/icon-192.png" alt="" width="28" height="28">テストプレイ部 管理ページ</h1>
+  <div id="who" class="muted"></div>
+</header>
+
+<section id="loginBox" class="card login" hidden>
+  <b>ログイン</b>
+  <p class="muted" style="margin:0">メールアドレスを入れると、ログイン用のリンクが届きます。届いたメールのリンクを、このブラウザで開いてください。</p>
+  <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
+  <button class="primary" id="sendLink">ログイン用のリンクを送る</button>
+  <div id="loginMsg" class="muted"></div>
+</section>
+
+<section id="claimBox" class="card login" hidden>
+  <b>まだ管理者がいません</b>
+  <p class="muted" style="margin:0">下のボタンを押すと、このアカウントが管理者になります。管理者が1人決まると、ほかの人はこのボタンを使えなくなります。</p>
+  <button class="primary" id="claim">このアカウントを管理者にする</button>
+</section>
+
+<section id="denyBox" class="card login" hidden>
+  <b>このアカウントは管理者ではありません</b>
+  <button id="logout2">ログアウト</button>
+</section>
+
+<section id="app" hidden>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="fb" aria-selected="true">感想</button>
+    <button role="tab" data-tab="games">作品の数字</button>
+    <button role="tab" data-tab="bans">BAN一覧</button>
+  </div>
+
+  <div data-panel="fb">
+    <div class="bar">
+      <select id="fGame"><option value="">すべての作品</option></select>
+      <select id="fKind"><option value="">すべて</option><option value="dev">開発者だけ</option><option value="hidden">非表示だけ</option><option value="visible">表示中だけ</option></select>
+      <input id="fText" placeholder="一言で検索">
+      <button id="reload">更新</button>
+      <span id="fbCount" class="muted"></span>
+    </div>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>日時</th><th>作品</th><th>回答</th><th>一言</th><th>書いた人</th><th>操作</th></tr></thead>
+      <tbody id="fbRows"></tbody>
+    </table></div>
+  </div>
+
+  <div data-panel="games" hidden>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>作品</th><th>遊んだ人</th><th>感想</th><th>遊びたい度</th><th>👍</th><th>🤔 操作</th><th>🤔 重い</th><th>🤔 おもしろさ</th><th>興味なし</th></tr></thead>
+      <tbody id="gameRows"></tbody>
+    </table></div>
+  </div>
+
+  <div data-panel="bans" hidden>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>BANした日時</th><th>理由</th><th>端末ID</th><th>感想の数</th><th>操作</th></tr></thead>
+      <tbody id="banRows"></tbody>
+    </table></div>
+  </div>
+
+  <p style="margin-top:16px"><button id="logout">ログアウト</button></p>
+</section>
+</div>
+<div id="msg"></div>
+<div id="modal" hidden style="position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50">
+  <div class="card" style="width:min(440px,calc(100% - 32px));display:grid;gap:12px">
+    <b id="mTitle"></b><div id="mBody" class="muted"></div>
+    <input id="mInput" placeholder="理由（あとで見返す用）">
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="mNo">やめる</button><button id="mYes" class="danger">実行する</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+const SB_URL = 'https://jwrzqaxuvmdbroemenng.supabase.co';
+const SB_KEY = 'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = id => document.getElementById(id);
+let GAMES = {}, FB = [];
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+function toast(t){ const m=$('msg'); m.textContent=t; m.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>m.style.display='none',3000) }
+function show(id){ ['loginBox','claimBox','denyBox','app'].forEach(x => $(x).hidden = (x!==id)) }
+function fmt(d){ const t=new Date(d); return `${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}` }
+
+async function rpc(name, args){
+  const { data, error } = await sb.rpc(name, args || {});
+  if (error) { toast('エラー：' + error.message); throw error; }
+  return data;
+}
+
+async function start(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { $('who').textContent=''; show('loginBox'); return; }
+  $('who').textContent = session.user.email || '';
+  const admin = await rpc('is_admin');
+  if (admin) { show('app'); await loadAll(); return; }
+  show('claimBox');
+}
+
+$('sendLink').onclick = async () => {
+  const email = $('email').value.trim();
+  if (!email) return;
+  $('sendLink').disabled = true;
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  $('sendLink').disabled = false;
+  $('loginMsg').textContent = error ? '送れませんでした：' + error.message : 'メールを送りました。届いたリンクを開いてください（迷惑メールも確認してね）';
+};
+$('claim').onclick = async () => {
+  const r = await rpc('claim_first_admin');
+  if (r === 'ok' || r === 'already_admin') { toast('管理者になりました'); start(); }
+  else { show('denyBox'); }
+};
+// ブラウザの確認ダイアログは使わず、ページの中で確認する
+function ask(title, body, withInput, def){
+  return new Promise(res => {
+    $('mTitle').textContent=title; $('mBody').textContent=body;
+    $('mInput').hidden=!withInput; $('mInput').value=def||'';
+    $('modal').hidden=false; (withInput?$('mInput'):$('mYes')).focus();
+    const done = v => { $('modal').hidden=true; $('mYes').onclick=$('mNo').onclick=null; res(v) };
+    $('mYes').onclick = () => done(withInput ? $('mInput').value.trim() || '理由なし' : true);
+    $('mNo').onclick = () => done(null);
+  });
+}
+$('logout').onclick = $('logout2').onclick = async () => { await sb.auth.signOut(); start(); };
+sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') start(); });
+
+document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', x===b));
+  document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
+});
+
+async function loadAll(){
+  try {
+    const games = await (await fetch('games.json?' + Date.now())).json();
+    GAMES = {}; games.forEach(g => GAMES[g.slug] = g);
+    $('fGame').innerHTML = '<option value="">すべての作品</option>' + games.map(g => `<option value="${esc(g.slug)}">${esc(g.title)}</option>`).join('');
+  } catch (e) {}
+  await Promise.all([loadFb(), loadGames(), loadBans()]);
+}
+
+async function loadFb(){ FB = await rpc('admin_feedback', { lim: 500 }); renderFb(); }
+function renderFb(){
+  const g=$('fGame').value, k=$('fKind').value, q=$('fText').value.trim();
+  const rows = FB.filter(f => (!g || f.game_slug===g)
+    && (!k || (k==='dev'&&f.is_dev) || (k==='hidden'&&f.hidden) || (k==='visible'&&!f.hidden))
+    && (!q || (f.free||'').includes(q)));
+  $('fbCount').textContent = `${rows.length}件`;
+  $('fbRows').innerHTML = rows.map(f => {
+    const title = GAMES[f.game_slug]?.title || f.game_slug;
+    const ans = [f.again, f.reach, f.stop_at && ('止まった所：' + f.stop_at), f.answer && ('質問：' + f.answer),
+                 (f.good||[]).length && ('良い：' + f.good.join('・')), (f.bad||[]).length && ('気になる：' + f.bad.join('・'))].filter(Boolean);
+    return `<tr class="${f.hidden?'hidden':''}">
+      <td class="muted">${fmt(f.created_at)}</td>
+      <td>${esc(title)}${f.is_dev?' <span class="tag dev">開発者</span>':''}${f.hidden?' <span class="tag warn">非表示</span>':''}</td>
+      <td>${ans.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</td>
+      <td class="free">${esc(f.free || '')}</td>
+      <td class="muted">${esc(f.client_id.slice(0,8))}… <br>この人の感想 ${f.by_same_client}件${f.banned?' <span class="tag ban">BAN中</span>':''}</td>
+      <td><div class="acts">
+        ${f.hidden ? `<button data-act="show" data-id="${f.id}">戻す</button>` : `<button data-act="hide" data-id="${f.id}">消す</button>`}
+        ${f.banned ? '' : `<button class="danger" data-act="ban" data-id="${f.id}">BAN</button>`}
+      </div></td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="muted">感想はまだありません</td></tr>';
+}
+['fGame','fKind'].forEach(id => $(id).onchange = renderFb);
+$('fText').oninput = renderFb;
+$('reload').onclick = loadAll;
+
+$('fbRows').onclick = async (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const id = b.dataset.id, f = FB.find(x => x.id === id);
+  if (b.dataset.act === 'hide') { toast(await rpc('admin_set_hidden', { fid: id, hide: true })); }
+  if (b.dataset.act === 'show') { toast(await rpc('admin_set_hidden', { fid: id, hide: false })); }
+  if (b.dataset.act === 'ban') {
+    const why = await ask('この人をBANしますか？', `この人の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想');
+    if (why === null) return;
+    toast(await rpc('admin_ban', { fid: id, why }));
+  }
+  await Promise.all([loadFb(), loadBans()]);
+};
+
+async function loadGames(){
+  const rows = await rpc('game_stats', { since_days: 3650 });
+  const by = {}; rows.forEach(r => by[r.game_slug] = r);
+  const slugs = [...new Set([...Object.keys(GAMES), ...Object.keys(by)])];
+  const rate = s => { const n=s.feedbacks+s.likes+s.hmms; return n ? Math.round((s.again_much+0.5*s.again_some+s.likes+1.5)/(n+3)*100)+'%（'+n+'人）' : '—' };
+  $('gameRows').innerHTML = slugs.map(slug => {
+    const s = by[slug] || {plays:0,likes:0,hmms:0,feedbacks:0,again_much:0,again_some:0,hmm_controls:0,hmm_heavy:0,hmm_fun:0,not_for_me:0};
+    return `<tr><td><a href="games/${esc(slug)}/" style="color:var(--accent)">${esc(GAMES[slug]?.title || slug)}</a></td>
+      <td>${s.plays}</td><td>${s.feedbacks}</td><td>${rate(s)}</td><td>${s.likes}</td>
+      <td>${s.hmm_controls}</td><td>${s.hmm_heavy}</td><td>${s.hmm_fun}</td><td class="muted">${s.not_for_me}</td></tr>`;
+  }).join('');
+}
+
+async function loadBans(){
+  const rows = await rpc('admin_bans');
+  $('banRows').innerHTML = rows.map(b => `<tr><td class="muted">${fmt(b.created_at)}</td><td>${esc(b.reason||'')}</td>
+    <td class="muted">${esc(b.client_id.slice(0,8))}…</td><td>${b.feedbacks}</td>
+    <td><button data-cid="${esc(b.client_id)}">BANを解く</button></td></tr>`).join('')
+    || '<tr><td colspan="5" class="muted">BANしている人はいません</td></tr>';
+}
+$('banRows').onclick = async (e) => {
+  const b = e.target.closest('button[data-cid]'); if (!b) return;
+  if (!(await ask('BANを解きますか？', '解いたあとは、また感想を送れるようになります。非表示にした感想は自動では戻りません。', false))) return;
+  toast(await rpc('admin_unban', { cid: b.dataset.cid }));
+  await Promise.all([loadFb(), loadBans()]);
+};
+
+start();
+</script>
+</body>
+</html>
