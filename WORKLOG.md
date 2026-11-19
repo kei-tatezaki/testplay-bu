@@ -230,3 +230,19 @@
 
 未適用のSQL：なし（010 は前から未適用のまま）。
 オーナーの作業：Supabase の Magic Link メールテンプレートに `{{ .Token }}` を足す（足すまで、番号の入力は「番号が合いませんでした」になる）。
+
+## 独立評価ラウンド5（83/85/76/79）→直したこと
+
+1. **ログインの説明が実際とちがう（重大）**：`TPB.loginText()` / `loginSentText()` / `loginNote()` を tpb.js に作り、`OTP_ENABLED` に合わせて切り替える（false のときは「メールにログイン用のリンクが届きます。このページを開いたのと同じブラウザで開いてね」）。トップのログインの箱・me・submit・admin・dev の直書きの文は消した。UAに Twitter・Instagram・Line・FBAN・FBAV などが入るときは「アプリの中のブラウザだと…『ブラウザで開く』を選んでね」を足す。
+2. **エラーが画面の外に出る**：`TPB.fieldErr(form, input, text)`（欄のすぐ下に赤い文・赤い枠・スクロール・フォーカス・入力で消える）。submit（作品名・URL・一言・画像URL・直し依頼）と me のプロフィール編集（名前・ID・リンク・紹介動画・IDの重複）に使う。CSS（`.ferr`・`[aria-invalid]`）は build.py にある（style.css は build.py の出力）。
+3. **横に伸びる**：me の「応募したもの」、admin の「応募」タブ、確認の箱に `min-width:0; overflow-wrap:anywhere`、グリッドを `minmax(0,1fr)`。箱は `max-width:calc(100vw - 32px)`。100文字のURLと75文字の切れ目のない文字列で、360pxで scrollWidth=360 を確認。
+4. **動画タップですぐ遊ぶ**：タップは止める／再生の切り替え（`.slide.paused`）。止めているとき、動画の真ん中に「▶ 遊ぶ」ボタン（`.pauselay`）。遊ぶのは右の列と、この真ん中のボタンだけ。スライドを離れたら止めた状態は戻す。3秒より短い play_sessions は送らない。
+5. **展示まであと3分の重なり**：`.shade` を、説明の高さ＋90pxで、濃く（#000f まで）。PCは動画の下（`--vb:var(--info)`）に説明を置く。横向きの `.shade` は右の説明のぶんだけ（詳しさの順番が負けていたのを直した）。
+6. **押す場所44px**：プレイヤーの閉じる・感想、感想シートの選択（`.opt`）、🤔の理由（やめる含む）、最初の案内のOK、admin のタブ・ボタン・入力（pointer:coarse に限らない）。11px/10px の小さい文字は12pxに（dev の時間帯の目盛りだけ、24列のため10pxのまま）。
+7. **作る人へ**：最初に「いま、できる約束」（Discordでの紹介・載るまでの目安）。Xでの紹介は約束していない。
+8. **横向きのスマホ**：play/* 全部に `@media (max-height:420px)`（見出し・タグ・説明を隠して詰める）。memo・odd・jump は盤面の大きさを高さに合わせた。740×360で、スタートが画面に入ることを確認。
+9. **小さい直し**：Home/End は遠いときは一気に飛ぶ／一覧が0件のとき「条件をリセット」／説明の最後の行と「上にスワイプ」の間をあけた（info・rail の bottom を 34px）／submit の見本は、うすく・押せない・「見本」の印・スマホでは畳む／作る人への文を「遊んでから書いてね。遊ばずに書いた、ふざけた感想は運営が消します」に／#free に label／games・creators・privacy・dev の本文を `<main>` で囲んだ／動画は最初の2本だけ `preload:auto`、ほかは `none`（画面に入ったら、その作品と次の1本を読み込む）／me の作品カードのジャンルは折り返し（nowrap の語単位）。
+
+確かめ方：Playwright（google-chrome）で 360×740（is_mobile・has_touch）・740×360・1280×800。10ページ（トップ・一覧・creators・privacy・作品ページ・submit・me・dev・admin・profile）で pageerror 0件・横スクロールなし。書き込み（POST）は page.route でモックして止めた。ログイン中の画面は localStorage に偽のセッションを入れ、rpc だけモック。
+
+直せなかったこと：dev.html の時間帯の目盛り（10px）。実機のアプリ内ブラウザ（X・Instagram・LINE）は、UA を差し替えての確認のみ。

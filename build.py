@@ -229,6 +229,7 @@ CSS = """
 body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
 a{color:var(--accent)}
 .wrap{max-width:640px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:20px}
+.wrap>main{display:grid;gap:20px;min-width:0}
 header h1{margin:0;font-size:30px;letter-spacing:.04em}
 header p{margin:4px 0 0;color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px}
@@ -282,6 +283,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;display:flex;flex-wra
 footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .empty{color:var(--muted);text-align:center;padding:24px}
 .wrap.wide{max-width:1280px;gap:14px}
+.wrap.wide>main{gap:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px 14px;align-items:start}
 @media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:16px 10px}.meta .t{font-size:14px;word-break:auto-phrase;text-wrap:balance}.tile .av-link{display:none}}
 .tile{display:grid;gap:8px;min-width:0}
@@ -335,6 +337,8 @@ a.by-chip:hover{text-decoration:underline}
 button.btn{border:0;font:inherit;font-weight:700;cursor:pointer;justify-content:center}
 button.btn.ghost{border:1px solid var(--line);font-weight:500}
 button.btn:disabled{opacity:.6}
+.ferr{color:#c2412c;font-size:13px;font-weight:700;margin:0;line-height:1.5}
+[aria-invalid=true]{border-color:#c2412c!important;outline:2px solid #c2412c88;outline-offset:0}
 .msg{font-size:13px;color:var(--muted);margin:0}.msg:empty{display:none}
 .msg.err{color:#d2553f}
 .muted{color:var(--muted)}
@@ -515,6 +519,7 @@ def build():
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = (AGE_GATE if is_r18(g) else "") + f"""<div class="wrap">
 <header class="bar"><a class="brand" href="../../"><img src="../../assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="../../list.html">ほかの作品を見る</a><span data-me></span></span></header>
+<main>
 <p class="lead site-lead">学生のゲームを5分でつまみ食い。遊ぶのは登録なし</p>
 <article class="card">
 {media_html(g, '../../')}
@@ -532,6 +537,7 @@ def build():
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
+</main>
 <footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
 </div>
 <script>
@@ -628,6 +634,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<main>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ</p>
@@ -752,8 +759,9 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <p><b>運営者：たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）</p>
 <p>連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。応募のこと、直したいところ、消してほしいときなど、なんでもここで声をかけてください。</p>
 <h3>運営の約束</h3>
-<p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
+<p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想は運営が消します。遊んでから書いてね。遊ばずに書いた、ふざけた感想は運営が消します。</p>
 </div></section>
+</main>
 <footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
@@ -798,6 +806,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     # プライバシーの説明
     privacy = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<main>
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
@@ -834,6 +843,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
 <p class="muted">2026年11月19日 作成・プロフィール／応募／報告について追記</p>
 </div></section>
+</main>
 <footer><a href="./list.html">← 作品一覧に戻る</a></footer>
 </div>"""
     (ROOT / "privacy.html").write_text(page("集める情報と使い道｜テストプレイ部",
