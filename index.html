@@ -127,7 +127,7 @@ button{font:inherit;color:inherit}
 .intro a{color:var(--accent)}
 @media (hover:hover) and (pointer:fine) and (min-width:1100px){.intro{left:calc(50% + 300px);top:90px;width:min(300px,calc(50% - 320px))}}
 @media (hover:hover) and (pointer:fine) and (min-width:900px) and (max-width:1099px){.intro{display:none}}
-.intro b{display:block;font-size:13px}
+.intro>span>b:first-child{display:block;font-size:13px}.intro [data-lf]{color:var(--accent);font-weight:700;font-size:12px;display:inline}.side .lfn{display:block;margin-top:4px;color:var(--accent)}
 @media (max-width:400px){.intro{font-size:12px;padding:6px 8px 6px 10px;gap:8px}.intro b{font-size:12px}.intro button{min-height:44px;padding:6px 12px}#introSample{display:none}}
 .intro button{flex:none;border:0;border-radius:999px;min-height:44px;padding:6px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
 [hidden]{display:none!important}
@@ -248,12 +248,12 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 <a href="submit.html"><span class="ic">＋</span>作品を応募する</a>
 <a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener" class="join"><span class="ic">💬</span>Discordに参加する</a>
 <p>学生が作ったゲームを、5分でつまみ食い。<br>遊ぶのは登録なし。感想を書くときだけログイン。</p>
-<p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--accent);text-decoration:underline">最初の作品を募集中</a></p>
+<p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--accent);text-decoration:underline">最初の作品を募集中</a><b class="lfn" data-lf> <span data-lf-t>最初の10作品は投稿無料</span></b></p>
 <p><a href="privacy.html" style="display:inline;padding:0;font-size:12px;color:var(--muted);text-decoration:underline">集める情報と使い道</a></p>
 </nav>
 <main class="feed" id="feed" tabindex="-1" aria-label="作品のショート"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
-<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span></span><button type="button" id="introX">OK</button></div>
+<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span> <b data-lf><span data-lf-t>最初の10作品は投稿無料</span></b></span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
@@ -457,7 +457,7 @@ order.forEach((g,idx)=>{
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。'):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。',el('br'),el('b',{'data-lf':'',style:'color:var(--accent)'},el('span',{'data-lf-t':''},'最初の10作品は投稿無料'))):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
 
 // 動画の大きさ：題名などの高さを測って動画のおき場を決める。縦長に近い動画は画面いっぱい（cover）、そうでなければ真ん中に大きく
 const infoRO = new ResizeObserver(es=>es.forEach(e=>{ const sl=e.target.closest('.slide'); if(sl) sl.style.setProperty('--info',(Math.ceil(e.target.offsetHeight)+Math.max(16,parseFloat(getComputedStyle(e.target).bottom)||0)+10)+'px') }));
@@ -838,6 +838,7 @@ if(startSlug && new URLSearchParams(location.search).get('play')==='1'){
 }
 // 数字と作者の情報は、画面を出したあとで取りにいく。届いたら、ラベルと名前だけ直す（並びは入れ替えない）
 TPB.ptRule().then(()=>GAMES.forEach(g=>refreshChips(g.slug)));
+TPB.lfApply();
 loadStats().then(o=>{ if(!o) return; STATS=o; statsKnown=true; store.set('statsCache',o); GAMES.forEach(g=>refreshChips(g.slug)) });
 TPB.liveCreators().then(live=>{ live=live||{}; if(!Object.keys(live).length&&Object.keys(LIVE).length) return; LIVE=live; store.set('liveCache',live); refreshCreators() });
 })();
