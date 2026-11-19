@@ -258,3 +258,11 @@
 - `assets/tpb.js`：サイトを開いた日を1日1回だけ送る（`T.visit`、localStorage `tpb:visitDay`）。トップのショートも tpb.js を読むのでここで足りる。admin・dev は数えない。privacy に追記。
 - `admin.html`：「概要」タブ（期間・数字カード・日ごとの棒・よく遊ばれる作品・やること）。感想タブに、新しい順／古い順・期間・報告ありの絞り込みと印・まとめて非表示を追加。
 - `dev.html`／`admin.html`：作者のページ／運営だけのページ、の一文。
+
+## ポイント制（012・未適用）
+
+- `supabase/012_points.sql`：settings・points_ledger（RLSあり・方針なし＝外から読めない書けない）。`feedback` の after insert トリガーがポイントを決める（40字以上・くり返しでない・同じ client_id で play がある・自分の作品でない・1日上限。0ptでも感想は受け付け、ledger に note で理由を残す）。`feedback.hidden` の after update トリガーが取り消し／返却（admin_set_hidden・mod_hide・BANの一括非表示のどれでも1か所で効く。正味で見るので二重にならない）。`submission_send`（新しい応募のみ30pt・管理者と直しは無料・足りなければ not_enough_points）と `admin_submission_set`（見送りで返す・二重に返さない）を置きかえ。`my_points`・`points_rule`・`game_point_hint(slug, client?)`・`feedback_points_result(slug)`・管理者用4つ・`admin_overview` に points。
+- 画面：ショートの感想シート（もらえるpt・字数・送信後の結果・スライドのラベル）、me.html の「ポイント」タブ、submit.html の残高帯と送信ボタン、creators.html（build.py）、admin.html の「ポイント」タブと概要。012 が無いあいだは、ポイントの表示は出ない。
+- 確かめ：使い捨てPostgres（`supabase/tests/run_local.sh`＋`012_check.sql`、50以上の確認すべて OK）。Playwright で 360×740・1280×800、pageerror 0・横スクロールなし、書き込みはモック。
+- 未適用のSQL：`supabase/012_points.sql`（010・011 も未適用なら先に）。
+- 決めたこと：上限は「もらった総量」で数える（取り消しで枠は戻らない）／見送りから「載せた」に戻しても再び引かない／残高は取り消しでマイナスになりうる（そのあいだは応募不可）／「遊んだ」は client_id の play だけで見る（偽の play を送れば通る。上限50/日と1感想1作品で被害を抑える）。
