@@ -53,6 +53,7 @@ button{font:inherit;color:inherit}
 .side a.skipin:focus{position:static}
 .side hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
 @media (min-width:1100px){.side{display:grid}.top a.back{display:none}}
+.slide .bgfx{position:absolute;inset:-40px;background:center/cover no-repeat;filter:blur(32px) brightness(.7) saturate(1.4);pointer-events:none}
 .slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%);pointer-events:none}
 .slide .media{cursor:pointer}
 .playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center}
@@ -352,6 +353,7 @@ order.forEach((g,idx)=>{
   const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
+    g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:radial-gradient(circle at 50% 38%,"+(g.color||'#7fe0c9')+"44,transparent 65%),url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
     media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
