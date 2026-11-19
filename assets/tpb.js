@@ -96,9 +96,9 @@
 
   // ---- お知らせ（下に少しだけ出る） ----
   var toastT = 0;
-  T.toast = function (text) {
+  T.toast = function (text, ms) {
     var t = document.getElementById("tpbToast") || document.body.appendChild(el("div", { id: "tpbToast", class: "tpb-toast", role: "status" }));
-    t.textContent = text; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("show") }, 2600);
+    t.textContent = text; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("show") }, ms || 2600);
   };
   T.share = async function (title, url) {
     try {

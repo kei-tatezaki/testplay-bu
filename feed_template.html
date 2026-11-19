@@ -27,8 +27,8 @@ button{font:inherit;color:inherit}
 .skip:focus{top:8px}
 .top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:flex-start;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
 .top *{pointer-events:auto}
-.top a.back{font-size:13px;line-height:1;min-height:40px;display:inline-flex;align-items:center;gap:5px;padding:0 12px;border-radius:999px;white-space:nowrap}
-.top a.tpb-me{padding:3px 10px 3px 3px;min-height:40px}.top a.tpb-me.in{padding:3px;background:none}
+.top a.back{font-size:13px;line-height:1;min-height:44px;display:inline-flex;align-items:center;gap:5px;padding:0 12px;border-radius:999px;white-space:nowrap}
+.top a.tpb-me{padding:3px 10px 3px 3px;min-height:44px}.top a.tpb-me.in{padding:3px;background:none}
 .rail a.who{display:grid;justify-items:center;text-decoration:none;position:relative;margin-bottom:2px}
 .rail a.who .tpb-av{border:2px solid #fff;box-shadow:0 1px 6px #0008}
 .info .by a{color:inherit;text-decoration:none;font-weight:700}
@@ -44,7 +44,7 @@ button{font:inherit;color:inherit}
 .slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
 .slide video.media{object-fit:contain;object-position:center;height:calc(100% - 76px - 44%);top:calc(70px + env(safe-area-inset-top));left:10px;right:auto;width:calc(100% - 88px);border-radius:12px}
 .side{position:fixed;left:0;top:0;bottom:0;width:calc(50% - 300px);max-width:300px;z-index:10;display:none;align-content:start;gap:4px;padding:76px 16px 16px 20px}
-.side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;border-radius:10px}
+.side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;min-height:44px;border-radius:10px}
 .side a:hover{background:#ffffff14}
 .side a[aria-current]{font-weight:800;color:var(--accent)}
 .side .ic{width:24px;text-align:center}
@@ -79,7 +79,9 @@ button{font:inherit;color:inherit}
 .rb{display:grid;justify-items:center;gap:2px;background:none;border:0;cursor:pointer;font-size:11px;color:var(--ink);text-shadow:0 1px 3px #000}
 .rb .ic{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#ffffff1f;backdrop-filter:blur(6px)}
 .rb.play .ic{background:var(--accent);color:var(--accent-ink);font-size:20px}
-.rb[aria-pressed="true"] .ic{background:#ffffff;color:#000}
+.rb[aria-pressed="true"] .ic{background:#ffffff;color:#000;box-shadow:0 0 0 3px var(--accent);animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.rb[aria-pressed="true"] .ic{animation:none}}
 .hint{position:absolute;bottom:calc(6px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:11px;color:#ffffff80;pointer-events:none}
 .end{padding:32px;text-align:center;display:grid;gap:12px;place-items:center}
 .end a{color:var(--accent);display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid #ffffff30;border-radius:999px;text-decoration:none}
@@ -134,6 +136,7 @@ button{font:inherit;color:inherit}
 .toast .go{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .toast .x{background:#ffffff1a}
 .toast .pick{background:#ffffff1a;font-size:20px;width:44px;height:44px;padding:0;border-radius:50%}
+.toast#after{bottom:auto;top:calc(62px + env(safe-area-inset-top))}
 .toast.stack{flex-direction:column;align-items:stretch;gap:10px;width:min(360px,calc(100% - 24px))}
 .toast.stack>span{text-align:center}
 .toast.stack .btns{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
@@ -171,7 +174,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 </head>
 <body>
 <a class="skip" href="#feed" id="skip">作品へ飛ぶ</a>
-<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめ（作品の一覧）を見る"><span aria-hidden="true">▦</span> まとめ</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
+<div class="top"><a class="back" id="back" href="list.html" aria-label="作品一覧を見る"><span aria-hidden="true">▦</span> 作品一覧</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは、作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">🎮 操作がわかりにくい</button>
 <button type="button" data-r="heavy">🐢 重い・うまく動かない</button>
@@ -181,7 +184,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 <nav class="side" aria-label="メニュー">
 <a href="#feed" class="skipin" id="skipIn"><span class="ic">↓</span>作品へ飛ぶ</a>
 <a href="./" aria-current="page"><span class="ic">▶</span>ショート</a>
-<a href="list.html"><span class="ic">▦</span>まとめ（作品の一覧）</a>
+<a href="list.html"><span class="ic">▦</span>作品一覧</a>
 <a href="me.html"><span class="ic">👤</span>マイページ</a>
 <hr>
 <a href="creators.html"><span class="ic">🛠</span>作品を載せたい人へ</a>
@@ -191,7 +194,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 <p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--accent);text-decoration:underline">最初の作品を募集中</a></p>
 <p><a href="privacy.html" style="display:inline;padding:0;font-size:12px;color:var(--muted);text-decoration:underline">集める情報と使い道</a></p>
 </nav>
-<main class="feed" id="feed" tabindex="-1" aria-label="作品フィード"><p class="loading" id="loading">読み込み中…</p></main>
+<main class="feed" id="feed" tabindex="-1" aria-label="作品のショート"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
 <div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span></span><button type="button" id="introX">OK</button></div>
 
@@ -370,7 +373,7 @@ order.forEach((g,idx)=>{
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。'):null,ALL_SAMPLE?el('a',{href:'submit.html'},'作品を応募する'):null,el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'),el('a',{href:'creators.html'},'自分の作品を載せたい'))));
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。'):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
 
 // PC：↑↓キーと右のボタンで前後の作品へ
 function slideStep(d){
@@ -382,20 +385,24 @@ feed.addEventListener('scroll',()=>{ const i=Math.round(feed.scrollTop/feed.clie
 // PC：マウスのホイール・トラックパッドで1枚ずつ進む。deltaがたまったら1枚、そのあと600msは次に進まない（勢いが続いているあいだも待つ）
 let wAcc=0, wUntil=0, wLocked=false, wIdle=0, wReset=0;
 function wUnlock(){ const rest=wUntil-Date.now(); if(rest>0){ wIdle=setTimeout(wUnlock,rest) } else { wLocked=false; wAcc=0 } }
-feed.addEventListener('wheel',e=>{
+function onWheel(e){
   if(e.ctrlKey||e.deltaY===0&&e.deltaX!==0) return;
   e.preventDefault();
   const dy = e.deltaMode===1 ? e.deltaY*16 : e.deltaMode===2 ? e.deltaY*innerHeight : e.deltaY;
   if(wLocked){ clearTimeout(wIdle); wIdle=setTimeout(wUnlock,150); return }
   wAcc+=dy; clearTimeout(wReset); wReset=setTimeout(()=>wAcc=0,250);
   if(Math.abs(wAcc)>=30){ slideStep(wAcc>0?1:-1); wAcc=0; wLocked=true; wUntil=Date.now()+600; clearTimeout(wIdle); wIdle=setTimeout(wUnlock,150) }
-},{passive:false});
+}
+feed.addEventListener('wheel',onWheel,{passive:false});
+// 左のメニューや右のボタンの上でも、ホイールで作品が進む
+document.querySelector('.side').addEventListener('wheel',onWheel,{passive:false}); $('pcnav').addEventListener('wheel',onWheel,{passive:false});
 document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
   if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
   if(document.getElementById('tpbOv')||$('player').classList.contains('open')||$('sheetBg').classList.contains('open')||$('loginBg').classList.contains('open')||whyFor) return;
   if(e.key==='ArrowDown'||e.key==='PageDown'||e.key==='j'){ e.preventDefault(); slideStep(1) }
   if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='k'){ e.preventDefault(); slideStep(-1) }
+  if(e.key==='Home'||e.key==='End'){ const all=[...feed.querySelectorAll('.slide[data-slug]')], n=e.key==='Home'?all[0]:all[all.length-1]; if(n){ e.preventDefault(); n.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}) } }
 });
 // 「作品へ飛ぶ」：キーボードで左メニューを飛ばして作品へ
 ['skip','skipIn'].forEach(id=>{ const a=$(id); if(a) a.addEventListener('click',e=>{ e.preventDefault(); feed.focus({preventScroll:true}); const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)], b=cur&&cur.querySelector('.rail .play'); if(b) b.focus({preventScroll:true}) }) });
@@ -456,6 +463,9 @@ function setReact(g,kind,btn,reason){
   if(cur) track(g,cur,reason);
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
+  if(cur==='like') TPB.toast('👍 作った人に届けたよ',1500);
+  else if(cur==='hmm') TPB.toast(reason==='genre'?'教えてくれてありがとう。好みに合う作品を出しやすくするよ':'作った人に届けたよ（名前は出ません）',1500);
+  else TPB.toast('取り消したよ',1200);
 }
 async function share(g,btn){
   const url = location.origin + location.pathname.replace(/[^/]*$/,'') + 'games/' + g.slug + '/';
@@ -522,7 +532,7 @@ $('after').addEventListener('click',e=>{ const b=e.target.closest('button'); if(
   if(a==='like') react(g,'like',sl.querySelector('.rb[aria-label="いいね"]'));
   if(a==='hmm') react(g,'hmm',sl.querySelector('.rb[aria-label="うーん"]'));
   if(a==='fb') openSheet(g);
-  if(a==='like'){ TPB.toast('👍 を作った人に届けたよ'); setTimeout(maybeInvite,2800) } });
+  if(a==='like'||a==='hmm') setTimeout(maybeInvite,2800) });
 feed.addEventListener('scroll',()=>$('after').classList.remove('show'),{passive:true});
 // ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
 function maybeInvite(){

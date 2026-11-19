@@ -154,6 +154,7 @@ let F='',P='';
 fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/rpc/game_stats',{method:'POST',headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json'},body:'{"since_days":3650}'})
  .then(r=>r.ok?r.json():[]).then(rows=>{(rows||[]).forEach(x=>{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')})}).catch(()=>{});
 function apply(){let n=0;document.querySelectorAll('#list .tile').forEach(c=>{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;});document.getElementById('empty').hidden=n>0;}
+document.querySelectorAll('.filters').forEach(n=>{const f=()=>{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')};n.addEventListener('scroll',f,{passive:true});addEventListener('resize',f);f()});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();

@@ -228,21 +228,21 @@ a{color:var(--accent)}
 header h1{margin:0;font-size:30px;letter-spacing:.04em}
 header p{margin:4px 0 0;color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px}
-.wide .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.wide .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--fl,0px),#000 calc(100% - var(--fr,0px)),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 var(--fl,0px),#000 calc(100% - var(--fr,0px)),transparent 100%)}
 .wide .filters::-webkit-scrollbar{display:none}
 .wide .filters button{white-space:nowrap;flex:none}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
 .brand{min-height:44px;min-width:0;display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
 .brand img{border-radius:50%}
-.bar .btn{padding:7px 14px;font-size:14px}
+.bar .btn{padding:7px 14px;font-size:14px;min-height:44px;align-items:center}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
 .brand,.ghost-link,.bar .btn{white-space:nowrap}
 @media (max-width:480px){.hide-sm{display:none!important}}
 @media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 6px;font-size:13px}}
-.ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;min-height:44px;display:inline-flex;align-items:center}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .site-lead{font-size:13px;margin:-10px 0 0;text-wrap:balance}
-.filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
+.filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:44px}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:#000;border:0}
@@ -269,11 +269,12 @@ video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:44
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
 .by{font-size:13px;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
-footer{color:var(--muted);font-size:13px;text-align:center}
+footer{color:var(--muted);font-size:13px;text-align:center;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:4px}
+footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .empty{color:var(--muted);text-align:center;padding:24px}
 .wrap.wide{max-width:1280px;gap:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px 14px;align-items:start}
-@media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:16px 10px}}
+@media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:16px 10px}.meta .t{font-size:14px;word-break:auto-phrase;text-wrap:balance}.tile .av-link{display:none}}
 .tile{display:grid;gap:8px;min-width:0}
 .tile[hidden]{display:none}
 .tile .media{border-radius:12px}
@@ -363,7 +364,7 @@ AGE_GATE = """<div id="ageGate" style="position:fixed;inset:0;z-index:100;backgr
 <b style="font-size:18px">18歳以上向けの作品です</b>
 <p style="margin:0;color:#c9b8c0;font-size:14px">あなたは18歳以上ですか？</p>
 <button type="button" id="ageYes" style="border:0;border-radius:12px;padding:12px;font-weight:700;background:#f07890;color:#2a0d15;cursor:pointer;font-size:15px">はい（表示する）</button>
-<a href="../../list.html" style="color:#c9b8c0;font-size:14px">いいえ（まとめに戻る）</a>
+<a href="../../list.html" style="color:#c9b8c0;font-size:14px">いいえ（作品一覧に戻る）</a>
 </div></div>
 <script>
 (function(){try{if(JSON.parse(localStorage.getItem('tpb:age18')||'false')){document.getElementById('ageGate').remove();return}}catch(e){}
@@ -466,7 +467,7 @@ def build():
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
-<footer>感想はトップのフィードの「💬感想」から送れます</footer>
+<footer>感想はトップのショートの「💬感想」から送れます</footer>
 </div>
 <script>
 (async function(){{
@@ -516,6 +517,7 @@ let F='',P='';
 fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
  .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
 function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
+document.querySelectorAll('.filters').forEach(n=>{{const f=()=>{{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')}};n.addEventListener('scroll',f,{{passive:true}});addEventListener('resize',f);f()}});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else P=b.dataset.p; apply();
@@ -632,6 +634,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <section class="card"><div class="body">
 <h2>年齢制限のある作品について</h2>
 <p>ホラーや暴力表現のある作品（R15）、18歳以上向けの作品（R18）も載せられます。載せるときに、どちらにあたるかを教えてください。</p>
+<p><b>年齢の確認は自己申告です。</b>高校生も来る場所なので、R18作品は表紙で隠し、作品の中身は外のサイトに置いてもらいます。</p>
 <ul>
 <li><b>R15</b>：作品に「R15」の印がつきます</li>
 <li><b>R18</b>：見る人が18歳以上だと確認するまで、作品は表紙で隠れます。作品の画像や動画はこのサイトには置かず、共通の表紙を使います。ゲーム本体は、年齢制限のある作品を置けるサイトに置いてください</li>
@@ -647,7 +650,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h3>運営の約束</h3>
 <p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
-<footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
+<footer><a href="./list.html">← 作品一覧に戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
 .hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}}
@@ -711,7 +714,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
 <p class="muted">2026年11月19日 作成・プロフィール／応募／報告について追記</p>
 </div></section>
-<footer><a href="./list.html">← まとめに戻る</a></footer>
+<footer><a href="./list.html">← 作品一覧に戻る</a></footer>
 </div>"""
     (ROOT / "privacy.html").write_text(page("集める情報と使い道｜テストプレイ部",
                                             "テストプレイ部が集める情報と、その使い道。",
