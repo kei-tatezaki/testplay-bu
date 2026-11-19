@@ -254,6 +254,7 @@ video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:44
 .q b{display:block;font-size:12px;color:var(--accent)}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:10px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
+.btn.big{padding:12px 26px;font-size:17px}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
 .by{font-size:13px;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
@@ -429,13 +430,13 @@ def build():
 <div class="body">
 <div class="meta2"><h2 style="flex:1">{e(g['title'])}</h2><button class="tpb-kebab" type="button" data-menu="{e(g['slug'])}" data-in-page aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button></div>
 <div class="byrow">{by_html(g, '../../', 32, "by-chip")}{f' <a class="by" href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
-<div class="chips">{chips_html(g)}</div>
 <p class="one">{e(g['oneliner'])}</p>
+<div class="row"><a class="btn big" data-play="{e(g['slug'])}" href="../../{e(g['play'])}">▶ 遊ぶ{f"（{e(g['minutes'])}）" if g.get('minutes') else ''}</a>{discord_link(g, '../../')}<a class="btn ghost" href="../../?g={e(g['slug'])}">ショートで見る</a></div>
+<div class="chips">{chips_html(g)}</div>
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
 {f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
 {''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
-<div class="row"><a class="btn" data-play="{e(g['slug'])}" href="../../{e(g['play'])}">▶ 遊ぶ</a>{discord_link(g, '../../')}</div>
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>

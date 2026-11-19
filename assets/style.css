@@ -42,6 +42,7 @@ video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:44
 .q b{display:block;font-size:12px;color:var(--accent)}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:10px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
+.btn.big{padding:12px 26px;font-size:17px}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
 .by{font-size:13px;color:var(--muted)}
 ul.hl{margin:0;padding-left:1.2em}
