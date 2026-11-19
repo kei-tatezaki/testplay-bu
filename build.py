@@ -731,15 +731,18 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 .shots figcaption{{font-size:12px;color:var(--muted)}}
 .shots .widefig{{grid-column:1/-1}}
 .zoomb{{border:0;padding:0;background:none;cursor:zoom-in;display:block;width:100%}}
-.zoomv{{position:fixed;inset:0;z-index:100;background:#000d;overflow:auto;display:grid;place-items:start center;padding:12px;cursor:zoom-out}}
-.zoomv img{{width:min(1000px,100%);min-width:min(100%,640px);height:auto;border-radius:10px}}
+.zoomv{{position:fixed;inset:0;z-index:100;background:#000e;overflow:auto;display:grid;padding:56px 12px 12px;touch-action:pan-x pan-y pinch-zoom;overscroll-behavior:contain}}
+.zoomv img{{width:auto;max-width:none;height:auto;margin:auto;border-radius:10px;display:block}}
+.zoomv .zx{{position:fixed;right:12px;top:calc(8px + env(safe-area-inset-top));z-index:101;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:#fff;color:#111;font:inherit;font-weight:700;cursor:pointer}}
 </style>
 <script>
 (function(){{var v=null,last=null;
  function close(){{if(v){{v.remove();v=null;if(last)last.focus()}}}}
  document.addEventListener('click',function(e){{var b=e.target.closest&&e.target.closest('.zoomb');if(!b)return;last=b;
-  v=document.createElement('div');v.className='zoomv';v.setAttribute('role','dialog');v.setAttribute('aria-label','見本を大きく見る（タップで閉じる）');v.tabIndex=-1;
-  var im=b.querySelector('img').cloneNode();im.removeAttribute('loading');v.append(im);v.onclick=close;document.body.append(v);v.focus()}});
+  v=document.createElement('div');v.className='zoomv';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label','見本を大きく見る（等倍。ドラッグやピンチで動かせます）');v.tabIndex=-1;
+  var im=b.querySelector('img').cloneNode();im.removeAttribute('loading');im.removeAttribute('width');im.removeAttribute('height');
+  var x=document.createElement('button');x.type='button';x.className='zx';x.textContent='✕ 閉じる';x.onclick=close;
+  v.append(im,x);v.onclick=function(ev){{if(ev.target===v)close()}};document.body.append(v);x.focus()}});
  document.addEventListener('keydown',function(e){{if(e.key==='Escape')close()}});
 }})();
 </script>
