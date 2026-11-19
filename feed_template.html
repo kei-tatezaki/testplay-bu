@@ -43,7 +43,7 @@ button{font:inherit;color:inherit}
 .slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
 /* 動画のおき場：上のバーから、題名などの上まで。幅いっぱいに置き、縦長に近いときは画面いっぱい（cover）、そうでなければ真ん中に大きく置く。あいたところは、ぼかした背景 */
 .slide{--vt:calc(60px + env(safe-area-inset-top));--vb:var(--info,200px)}
-.slide video.media{object-fit:contain;object-position:center;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
+.slide video.media{object-fit:contain;object-position:center top;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
 .slide video.media.cover{object-fit:cover}
 .side{position:fixed;left:0;top:0;bottom:0;width:calc(50% - 300px);max-width:300px;z-index:10;display:none;align-content:start;gap:4px;padding:76px 16px 16px 20px}
 .side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;min-height:44px;border-radius:10px}
@@ -75,7 +75,6 @@ button{font:inherit;color:inherit}
 /* タブレット（タッチで幅600px以上）：動画は、題名などの上の空きいっぱいに、真ん中に置く（上で切れない） */
 @media (min-width:600px) and (pointer:coarse){ .slide{--vt:calc(70px + env(safe-area-inset-top));--vb:250px} }
 /* PC：説明は動画の下に置く（動画の文字と重ならない） */
-@media (hover:hover) and (pointer:fine) and (min-width:900px){ .slide{--vt:66px;--vb:var(--info,200px)} }
 .info{position:absolute;z-index:2;left:16px;right:84px;bottom:calc(34px + env(safe-area-inset-bottom));display:grid;gap:8px}
 .info .by .sample{color:var(--accent)}
 .info h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
@@ -125,7 +124,6 @@ button{font:inherit;color:inherit}
 @media (hover:hover) and (pointer:fine) and (min-width:900px){.pcnav{display:grid}}
 .intro{position:fixed;left:max(12px,calc(50% - 268px));top:calc(64px + env(safe-area-inset-top));z-index:18;width:min(464px,calc(100% - 96px));background:#151a22f2;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.5;box-shadow:0 8px 30px #0008}
 .intro a{color:var(--accent)}
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){.intro{left:calc(50% + 300px);top:90px;width:min(300px,calc(50% - 320px))}}
 @media (hover:hover) and (pointer:fine) and (min-width:900px) and (max-width:1099px){.intro{display:none}}
 .intro>span>b:first-child{display:block;font-size:13px}.intro [data-lf]{color:var(--accent);font-weight:700;font-size:12px;display:inline}.side .lfn{display:block;margin-top:4px;color:var(--accent)}
 @media (max-width:400px){.intro{font-size:12px;padding:6px 8px 6px 10px;gap:8px}.intro b{font-size:12px}.intro button{min-height:44px;padding:6px 12px}#introSample{display:none}}
@@ -215,6 +213,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
  .info p{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
  .rail{left:calc(100% - 318px);right:calc(12px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:row;gap:10px;justify-content:flex-start;align-items:center}
  .rail a.who{display:none}
+ .rail::before{display:none}
  .hint{right:auto;width:calc(100% - 330px)}
  .intro{left:12px;right:auto;top:auto;bottom:12px;width:calc(100% - 354px)}
  .toast,.toast.stack,#tpbToast{left:12px;right:auto;transform:none;width:calc(100% - 354px);max-width:none}
@@ -224,6 +223,42 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
  body[data-note=top] #tpbToast{top:calc(150px + env(safe-area-inset-top))}
  .logo-t{display:none}
  .info .by a{display:inline-flex;align-items:center;gap:6px}.info .by a .byav{display:inline-flex}
+}
+/* スマホ：右の列（遊ぶ・👍など）の下にうすい暗い帯を敷いて、動画の中のボタンと分けて見せる（動画は小さくしない） */
+@media (max-width:560px){ .rail::before{content:"";position:absolute;z-index:-1;top:-18px;bottom:-14px;left:-14px;right:-10px;background:linear-gradient(90deg,#0000,#000a 38%);pointer-events:none} }
+/* 最初の案内が出ているあいだは「プレイ動画」の印を隠す（重ならないように） */
+body:has(#intro:not([hidden])) .vtag{visibility:hidden}
+/* PC：動画の帯を、左のメニューと右の欄のあいだいっぱいに広げる。縦長は高さいっぱい、横長は横いっぱい（切らない）。右の列は動画の外に置く */
+@media (hover:hover) and (pointer:fine) and (min-width:900px){
+ :root{--ml:0px;--mr:0px}
+ .slide{max-width:none;--vt:66px;--vb:var(--info,200px)}
+ .slide video.media,.slide video.media.cover,.slide img.media{left:var(--ml);right:auto;width:calc(100% - var(--ml) - var(--mr) - 84px);object-fit:contain;object-position:center}
+ .slide video.media+.playhint,.slide video.media+.playhint+.pauselay{left:var(--ml);right:calc(var(--mr) + 84px);top:var(--vt);bottom:var(--vb)}
+ .slide img.media+.playhint,.slide img.media+.playhint+.pauselay{left:var(--ml);right:calc(var(--mr) + 84px)}
+ .slide .info{left:calc(var(--ml) + 24px);right:calc(var(--mr) + 96px)}
+ .slide .rail{right:calc(var(--mr) + 14px)}
+ .slide .hint{left:var(--ml);right:calc(var(--mr) + 84px)}
+ .vtag{left:calc(var(--ml) + 8px)}
+ .pcnav{right:calc(var(--mr) + 14px);top:84px;transform:none}
+}
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){ :root{--ml:min(300px,calc(50vw - 300px))} }
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){ .intro{left:calc(min(300px,calc(50vw - 300px)) + 16px);top:76px;width:min(420px,calc(100vw - 340px - 380px))} }
+/* PC（1280px以上）：右に、作品の説明・遊ぶボタン・作者が確かめたいこと・感想の数をまとめた欄を出す。題名などは動画の下ではなくここに出す */
+.vpanel{display:none}
+@media (hover:hover) and (pointer:fine) and (min-width:1280px){
+ :root{--mr:360px}
+ .slide{--vb:64px}
+ .slide .info,.slide .shade{display:none}
+ .vpanel{display:grid;position:absolute;z-index:2;right:16px;top:76px;width:332px;max-height:calc(100% - 100px);overflow:auto;gap:12px;align-content:start;padding:18px;border-radius:16px;background:#151a22cc;border:1px solid var(--line)}
+ .vpanel h2{margin:0;font-size:24px;line-height:1.35;text-wrap:balance}
+ .vpanel .by{font-size:13px;color:var(--muted)}.vpanel .by a{color:inherit;font-weight:700;text-decoration:none}.vpanel .by .sample{color:var(--accent)}
+ .vpanel p{margin:0;font-size:15px;line-height:1.65}
+ .vpanel .bigplay{border:0;border-radius:14px;min-height:56px;font-size:18px;font-weight:800;background:var(--accent);color:var(--accent-ink);cursor:pointer;padding:12px}
+ .vpanel .bigplay:hover{filter:brightness(1.08)}
+ .vpanel .fbw{border:1px solid #ffffff30;background:#ffffff10;border-radius:12px;min-height:44px;cursor:pointer;font-size:14px}
+ .vpanel .q{font-size:14px;line-height:1.6}.vpanel .q b{display:block;font-size:12px;color:var(--accent);margin-bottom:2px}
+ .vpanel .fbn{font-size:13px;color:var(--muted)}
+ .vpanel .keys{font-size:12px;color:var(--muted)}
 }
 @media (prefers-reduced-motion:reduce){.feed{scroll-behavior:auto}}
 </style>
@@ -421,12 +456,13 @@ function chipsFor(g){
 function refreshChips(slug){
   const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]'), old=sl&&sl.querySelector('.chips');
   if(g&&old) old.replaceWith(chipsFor(g));
+  const fn=sl&&sl.querySelector('.vpanel .fbn'); if(fn){ const n=statsKnown?((STATS[slug]||{}).feedbacks||0):null; fn.textContent=n===null?'':'感想：'+n+'件'+(n===0?'（最初の1人になれます）':'') }
 }
 function refreshCreators(){
   document.querySelectorAll('.slide[data-slug]').forEach(sl=>{
     const g=GAMES.find(x=>x.slug===sl.dataset.slug); if(!g) return;
-    const w=sl.querySelector('.rail .who'), b=sl.querySelector('.info .by');
-    if(w) w.replaceWith(whoBtn(g)); if(b) b.replaceWith(byLine(g));
+    const w=sl.querySelector('.rail .who'), b=sl.querySelector('.info .by'), b2=sl.querySelector('.vpanel .by');
+    if(w) w.replaceWith(whoBtn(g)); if(b) b.replaceWith(byLine(g)); if(b2) b2.replaceWith(byLine(g));
   });
 }
 order.forEach((g,idx)=>{
@@ -447,13 +483,21 @@ order.forEach((g,idx)=>{
       byLine(g),
       chips,
       el('p',null,g.oneliner)),
+    el('div',{class:'vpanel'},
+      el('h2',null,g.title), byLine(g),
+      el('p',null,g.oneliner),
+      el('button',{class:'bigplay',type:'button','aria-label':g.title+' を遊ぶ',onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
+      g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
+      el('div',{class:'fbn'}),
+      el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'💬 感想を書く'),
+      el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
     el('div',{class:'rail'},
       whoBtn(g),
       el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),el('span',{class:'lb'},'遊ぶ')),
       likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
-    idx===0?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
+    (idx===0||!matchMedia('(pointer:coarse)').matches)?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓で次へ・Spaceで遊ぶ'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
@@ -838,7 +882,7 @@ if(startSlug && new URLSearchParams(location.search).get('play')==='1'){
 }
 // 数字と作者の情報は、画面を出したあとで取りにいく。届いたら、ラベルと名前だけ直す（並びは入れ替えない）
 TPB.ptRule().then(()=>GAMES.forEach(g=>refreshChips(g.slug)));
-TPB.lfApply();
+TPB.lfApply(); GAMES.forEach(g=>refreshChips(g.slug));
 loadStats().then(o=>{ if(!o) return; STATS=o; statsKnown=true; store.set('statsCache',o); GAMES.forEach(g=>refreshChips(g.slug)) });
 TPB.liveCreators().then(live=>{ live=live||{}; if(!Object.keys(live).length&&Object.keys(LIVE).length) return; LIVE=live; store.set('liveCache',live); refreshCreators() });
 })();
