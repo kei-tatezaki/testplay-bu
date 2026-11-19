@@ -6,34 +6,32 @@
 <meta name="robots" content="noindex,nofollow">
 <title>開発者ページ | テストプレイ部</title>
 <link rel="icon" href="assets/icon-32.png">
+<link rel="stylesheet" href="assets/style.css">
 <style>
-:root{--bg:#0f1218;--card:#171b23;--line:#2a303c;--ink:#e8ebf0;--muted:#9aa3b2;--accent:#5ce1c6;--accent-ink:#06231d;--warn:#ffcf5a;--bad:#ff8a8a}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px;line-height:1.6}
-a{color:var(--accent)}
-.wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:14px}
-header{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
-header h1{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
-header h1 img{border-radius:50%}
+:root{--warn:#b8860b;--bad:#d2553f}
+@media (prefers-color-scheme:dark){:root{--warn:#ffcf5a;--bad:#ff8a8a}}
+.wrap{max-width:1100px}
 .muted{color:var(--muted)}
 button,select,input{font:inherit}
-button{border:1px solid var(--line);background:#ffffff0d;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
-button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
-select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-.card h2{font-size:15px;margin:0 0 10px}
-.login{max-width:420px;margin:50px auto;display:grid;gap:12px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.wrap button,.wrap select{min-height:40px}
+.wrap button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 14px;cursor:pointer;font-size:14px}
+.wrap button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.wrap button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.wrap select,.wrap input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--ink);font-size:16px;min-height:44px}
+.card{padding:16px;display:block}
+.card h2{font-size:15px;margin:0 0 10px;line-height:1.5}
+.login{max-width:420px;width:100%;min-width:0;margin:30px auto;display:grid;gap:12px}
+.login input{width:100%;min-width:0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .kpi b{display:block;font-size:24px;line-height:1.3}
-.kpi span{font-size:12px;color:var(--muted)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.kpi span{font-size:12px;color:var(--muted);display:block}
+.kpi small{display:block;font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px}
 .bars{display:grid;gap:6px}
 .brow{display:grid;grid-template-columns:120px 1fr 84px;gap:8px;align-items:center;font-size:13px}
-.track{background:#ffffff0f;border-radius:6px;height:14px;overflow:hidden}
+.track{background:var(--soft);border-radius:6px;height:14px;overflow:hidden}
 .fill{height:100%;background:var(--accent);border-radius:6px}
 .fill.warn{background:var(--warn)}.fill.bad{background:var(--bad)}
 .brow .n{text-align:right;color:var(--muted)}
@@ -43,19 +41,18 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 .list{margin:0;padding-left:18px}
 .fb{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:4px}
 .fb:first-child{border-top:0}
-.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0}
+.tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0}
 .tag.dev{border-color:var(--accent);color:var(--accent)}
 .free{white-space:pre-wrap;word-break:break-word}
 .note{font-size:12px;color:var(--muted)}
 #msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008;z-index:10}
+@media (max-width:420px){.brow{grid-template-columns:96px 1fr 70px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <h1><a href="list.html" style="line-height:0"><img src="assets/icon-192.png" alt="テストプレイ部" width="28" height="28"></a>開発者ページ</h1>
-  <div class="bar"><a href="me.html">マイページ</a><span id="who" class="muted"></span><button id="logout" hidden>ログアウト</button></div>
-</header>
+<div class="wrap wide">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./me.html">マイページ</a><span data-me></span></span></header>
+<div class="tools"><h1 style="font-size:20px;margin:0">開発者ページ</h1><span id="who" class="muted"></span><a class="ghost-link" id="adminLink" href="./admin.html" hidden style="display:inline-flex;align-items:center;min-height:40px">管理ページ</a><button id="logout" hidden>ログアウト</button></div>
 
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
@@ -74,12 +71,12 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 </section>
 
 <section id="app" hidden>
-  <div class="bar" style="margin-bottom:12px">
+  <div class="tools" style="margin-bottom:12px">
     <select id="game"></select>
-    <span class="bar" id="period">
+    <span class="tools" id="period">
       <button data-d="7">7日</button><button data-d="30" aria-pressed="true">30日</button><button data-d="3650">ぜんぶ</button>
     </span>
-    <a id="gameLink" href="#" target="_blank" rel="noopener">作品ページを見る</a>
+    <a id="gameLink" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;min-height:44px">作品ページを見る</a>
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -108,7 +105,7 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
   </div>
 
   <div class="card" style="margin-top:14px"><h2>届いた感想 <span class="muted" id="fbCount"></span></h2>
-    <p class="note" style="margin-top:-6px">だれが書いたかは表示されません。よかった感想には「いいね」を押すと、書いた人にも伝わるようになります（準備中）。</p>
+    <p class="note" style="margin-top:-6px">だれが書いたかは表示されません。よかった感想に「いいね」を押すと、書いた人のマイページの「送った感想」に「作者のいいね」と出ます。</p>
     <div id="fbList"></div>
   </div>
   <p class="note">ゲームの中のどこ（ステージごと）で離れたかは、もうすぐ測れるようになります。</p>
@@ -117,10 +114,12 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 <div id="msg"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/tpb.js"></script>
 <script>
 "use strict";
 const SB_URL='https://jwrzqaxuvmdbroemenng.supabase.co', SB_KEY='sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
-const sb=supabase.createClient(SB_URL,SB_KEY);
+const sb=TPB.sb();  // tpb.js が作った1つを使い回す（2つ作ると警告が出る）
 const $=id=>document.getElementById(id);
 let GAMES={}, days=30, FB=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -141,11 +140,12 @@ function objBars(id, obj, order, cls){ const keys=order||Object.keys(obj||{}).so
 async function start(){
   const {data:{session}}=await sb.auth.getSession();
   $('logout').hidden=!session;
-  if(!session){ $('who').textContent=''; show('loginBox'); return }
+  if(!session){ $('who').textContent=''; $('adminLink').hidden=true; show('loginBox'); return }
   const m=session.user.user_metadata||{}; $('who').textContent=(m.full_name||m.name||session.user.email||'')+' でログイン中';
   try{ const g=await (await fetch('games.json?'+Date.now())).json(); GAMES={}; g.forEach(x=>GAMES[x.slug]=x) }catch(e){}
   const mine=(await rpc('dev_games')).map(r=>r.game_slug);
   const admin=await rpc('is_admin').catch(()=>false);
+  $('adminLink').hidden=admin!==true;
   const slugs = admin ? Object.keys(GAMES) : mine;
   if(!slugs.length){ show('noneBox'); return }
   $('game').innerHTML=slugs.map(s=>`<option value="${esc(s)}">${esc(GAMES[s]?.title||s)}${admin&&!mine.includes(s)?'（運営として表示）':''}</option>`).join('');
@@ -161,9 +161,9 @@ async function load(){
     const again=s.again||{}; const pts=(again['すごく遊びたい']||0)+0.5*(again['ちょっと遊びたい']||0)+(s.likes||0);
     return n? Math.round((pts+1.5)/(n+3)*100)+'%' : '—' })();
   $('kpis').innerHTML=[
-    ['遊んだ人',s.plays+'人'],['遊んだ回数',s.sessions+'回'],['遊んだ時間（真ん中）',fmtSec(s.median_seconds)],
-    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate],['👍',s.likes],['感想',s.feedbacks+'件']
-  ].map(([k,v])=>`<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('');
+    ['遊んだ人',s.plays+'人'],['遊んだ回数',s.sessions+'回'],['遊んだ時間（真ん中）',fmtSec(s.median_seconds),'半分の人はこれより長く遊んだ'],
+    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate,'もう一回遊びたいと答えた割合のめやす'],['👍',s.likes],['感想',s.feedbacks+'件']
+  ].map(([k,v,n])=>`<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span>${n?`<small>${esc(n)}</small>`:''}</div>`).join('');
   const B=s.buckets||[0,0,0,0,0];
   bars('buckets',[['30秒未満',B[0],'bad'],['30秒〜1分',B[1],'warn'],['1〜3分',B[2]],['3〜5分',B[3]],['5分以上',B[4]]]);
   objBars('reach',s.reach,['最後まで','途中でやめた']);

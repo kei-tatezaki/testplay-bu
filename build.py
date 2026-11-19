@@ -209,7 +209,7 @@ def chips_html(g):
     if g.get("platform") in PLATFORM:
         out.append(f'<span class="chip plat">{PLATFORM[g["platform"]]}</span>')
     if g.get("sample"):
-        out.append('<span class="chip sample">運営サンプル</span>')
+        out.append('<span class="chip sample">運営のお試し作品</span>')
     for k in ("stage", "genre", "minutes"):
         if g.get(k):
             out.append(f'<span class="chip">{e(g[k])}</span>')
@@ -238,7 +238,7 @@ header p{margin:4px 0 0;color:var(--muted)}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
 .brand,.ghost-link,.bar .btn{white-space:nowrap}
 @media (max-width:480px){.hide-sm{display:none!important}}
-@media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 8px;font-size:13px}}
+@media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 6px;font-size:13px}}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}

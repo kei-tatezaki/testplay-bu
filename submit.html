@@ -32,7 +32,7 @@
 "use strict";
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
-const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名と一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
+const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
   banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
 let SES=null;
 function sel(opts,val){ const s=el('select',null,opts.map(o=>el('option',{value:Array.isArray(o)?o[0]:o},Array.isArray(o)?o[1]:o))); if(val) s.value=val; return s }
@@ -111,7 +111,7 @@ function newForm(){
   form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
   form.addEventListener('submit',async e=>{ e.preventDefault();
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
-    if(!d.title||!d.oneliner){ msg.className='msg err'; msg.textContent=ERR.need_title; (d.title?f.oneliner:f.title).focus(); return }
+    if(!d.title||!d.play_url||!d.oneliner){ msg.className='msg err'; msg.textContent=ERR.need_title; (!d.title?f.title:!d.play_url?f.play_url:f.oneliner).focus(); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ msg.className='msg err'; msg.textContent='遊べるURLは https:// から始まるものを入れてね'; f.play_url.focus(); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ msg.className='msg err'; msg.textContent=ERR.bad_url; f.image_url.focus(); return }
     if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });

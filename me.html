@@ -30,7 +30,7 @@
 </head>
 <body>
 <div class="wrap wide">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./list.html">まとめ</a><a class="btn" href="./">▶ ショート</a></span></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./list.html">まとめ</a><a class="btn" href="./">▶ ショート</a></span></header>
 <main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
 <footer><a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
@@ -41,7 +41,7 @@
 (function(){
 "use strict";
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
-let SES=null, PROFILE=null, TAB='games', MINE=[], STATS={};
+let SES=null, ISADMIN=false, PROFILE=null, TAB='games', MINE=[], STATS={};
 const ERR={bad_handle:'IDは、半角の英小文字・数字・_ で3〜20文字にしてね',handle_taken:'そのIDはもう使われています。別のIDにしてね',bad_name:'その名前は使えません（1〜30文字。「運営」「公式」は使えません）',
   bad_bio:'ひとことは160文字までにしてね',banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',bad_links:'リンクは https:// から始まるURLにしてね（6つまで）',
   bad_video:'紹介動画はYouTubeのURLにしてね',bad_avatar:'アイコンの画像を保存できませんでした。もう一度選んでね',banned:'このアカウントでは変更できなくなっています。心当たりがない場合は運営に連絡してね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
@@ -56,6 +56,7 @@ async function start(){
   }
   const [p, mine, stats] = await Promise.all([
     sb.rpc('my_profile').then(r=>r.data||null,()=>null), T.myGames(), T.pub('game_stats',{since_days:3650})]);
+  try{ ISADMIN=(await sb.rpc('is_admin')).data===true }catch(e){ ISADMIN=false }
   PROFILE=p; MINE=mine||[]; STATS={}; (stats||[]).forEach(r=>STATS[r.game_slug]=r);
   if(p) T.store.set('me',{name:p.name,avatar_url:p.avatar_url||'',handle:p.handle});
   if(location.hash==='#edit'||!PROFILE) TAB='edit';
@@ -77,6 +78,7 @@ function render(){
       PROFILE&&PROFILE.hidden?el('div',{class:'msg err'},'このプロフィールは運営が非表示にしています'):null),
     el('div',{class:'acts'},
       PROFILE?el('a',{class:'btn ghost',href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,
+      ISADMIN?el('a',{class:'btn ghost',href:'./admin.html'},'管理ページ'):null,
       el('button',{class:'btn ghost',type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); location.reload() }},'ログアウト'))));
   const bar=el('div',{class:'tabs',role:'tablist','aria-label':'マイページ'},tabs.map(([k,l])=>el('button',{type:'button',role:'tab','aria-selected':String(k===TAB),onclick:()=>{ TAB=k; history.replaceState(null,'','#'+k); render() }},l)));
   main.replaceChildren(head,bar,pane);
