@@ -113,6 +113,8 @@ button{font:inherit;color:inherit}
 .toast button{border:0;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
 .toast .go{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .toast .x{background:#ffffff1a}
+.toast .pick{background:#ffffff1a;font-size:20px;width:44px;height:44px;padding:0;border-radius:50%}
+.loading{height:100dvh;display:grid;place-items:center;color:var(--muted);font-size:14px}
 /* feedback sheet */
 .sheet-bg{position:fixed;inset:0;z-index:50;background:#0009;display:none}
 .sheet-bg.open{display:block}
@@ -144,7 +146,7 @@ textarea{min-height:72px;resize:vertical}
 <button type="button" data-r="fun">😐 おもしろさがわからなかった</button>
 <button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
 <button type="button" class="x" data-r="">やめる</button></div>
-<main class="feed" id="feed" aria-label="作品フィード"></main>
+<main class="feed" id="feed" aria-label="作品フィード"><p class="loading" id="loading">読み込み中…</p></main>
 <nav class="side" aria-label="メニュー">
 <a href="./" aria-current="page"><span class="ic">▶</span>ショート</a>
 <a href="list.html"><span class="ic">▦</span>まとめ（作品の一覧）</a>
@@ -165,6 +167,8 @@ textarea{min-height:72px;resize:vertical}
 </div>
 
 <div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
+
+<div class="toast" id="after" role="status"><span id="afterText">どうだった？</span><button type="button" class="pick" data-a="like" aria-label="よかった">👍</button><button type="button" class="pick" data-a="hmm" aria-label="うーん">🤔</button><button type="button" class="go" data-a="fb">💬 感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div>
 
 <div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="__DISCORD__" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
 
@@ -252,7 +256,7 @@ document.getElementById('back').addEventListener('click',e=>{
   try{ const r=new URL(document.referrer); if(r.origin===location.origin && /list\.html$/.test(r.pathname) && history.length>1){ e.preventDefault(); history.back() } }catch(_){}
 });
 
-const feed = $('feed');
+const feed = $('feed'); feed.replaceChildren();
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
 function isLocal(url){return !/^https?:/i.test(url)}
 
@@ -386,7 +390,7 @@ async function share(g,btn){
 
 // ---- 遊ぶ ----
 let current=null, timer=0;
-function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
+function markPlayed(g){played.add(g.slug);store.set('played',[...played]);const c=document.querySelector('.slide[data-slug="'+g.slug+'"] .chip.new');if(c)c.remove()}
 function play(g){
   if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
@@ -414,7 +418,18 @@ function confirmWrongDevice(g){
   $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
   return false;
 }
-function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; endPlay(); maybeInvite() }
+function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; endPlay();
+  // 遊んだ直後に、ひとこと聞く（まだ👍も🤔も感想もない作品だけ）。それ以外のときはDiscordに誘う
+  if(current && !reacts[current.slug] && !sent.has(current.slug)) askAfter(current); else maybeInvite() }
+let afterT=0, afterG=null;
+function askAfter(g){ afterG=g; $('afterText').textContent='「'+g.title+'」どうだった？'; $('after').classList.add('show'); clearTimeout(afterT); afterT=setTimeout(()=>$('after').classList.remove('show'),12000) }
+$('after').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!afterG) return; const g=afterG, a=b.dataset.a; $('after').classList.remove('show'); clearTimeout(afterT);
+  const sl=document.querySelector('.slide[data-slug="'+g.slug+'"]'); if(!sl) return;
+  if(a==='like') react(g,'like',sl.querySelector('.rb[aria-label="いいね"]'));
+  if(a==='hmm') react(g,'hmm',sl.querySelector('.rb[aria-label="うーん"]'));
+  if(a==='fb') openSheet(g);
+  if(a==='like'){ TPB.toast('👍 を作った人に届けたよ'); setTimeout(maybeInvite,2800) } });
+feed.addEventListener('scroll',()=>$('after').classList.remove('show'),{passive:true});
 // ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
 function maybeInvite(){
   if(store.get('joined',false)) return;

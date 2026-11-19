@@ -135,6 +135,15 @@
   document.addEventListener("keydown", function (e) {
     var ov = document.getElementById("tpbOv"); if (!ov) return;
     if (e.key === "Escape") { e.stopPropagation(); closeOverlay(); return }
+    if (e.key === "Tab") {
+      // 開いている箱の中だけでフォーカスが回るようにする
+      var f = [].slice.call(ov.querySelectorAll("a[href],button:not([disabled]),textarea,input,select")).filter(function (x) { return x.offsetParent && !x.hidden });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      else if (!ov.contains(document.activeElement)) { e.preventDefault(); first.focus() }
+    }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       var items = [].slice.call(ov.querySelectorAll(".tpb-mi")); if (!items.length) return;
       var i = items.indexOf(document.activeElement); e.preventDefault();
