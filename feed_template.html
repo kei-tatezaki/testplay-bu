@@ -32,7 +32,6 @@ button{font:inherit;color:inherit}
 .rail a.who{display:grid;justify-items:center;text-decoration:none;position:relative;margin-bottom:2px}
 .rail a.who .tpb-av{border:2px solid #fff;box-shadow:0 1px 6px #0008}
 .info .by a{color:inherit;text-decoration:none;font-weight:700}
-@media (max-height:640px){.rail{gap:10px}.rb .ic{width:44px;height:44px;font-size:19px}}
 .logo{font-weight:800;letter-spacing:.06em;font-size:17px;white-space:nowrap}
 @media (max-width:400px){.logo{font-size:14px;letter-spacing:0}}
 @media (max-width:340px){.logo-t{display:none}}
@@ -42,7 +41,10 @@ button{font:inherit;color:inherit}
 .slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;overflow:clip;max-width:560px;margin:0 auto;background:#000}
 .slide{background:var(--bgc,#000)}
 .slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
-.slide video.media{object-fit:contain;object-position:center;height:calc(100% - 76px - 44%);top:calc(70px + env(safe-area-inset-top));left:10px;right:auto;width:calc(100% - 88px);border-radius:12px}
+/* 動画のおき場：上のバーから、題名などの上まで。幅いっぱいに置き、縦長に近いときは画面いっぱい（cover）、そうでなければ真ん中に大きく置く。あいたところは、ぼかした背景 */
+.slide{--vt:calc(60px + env(safe-area-inset-top));--vb:var(--info,200px)}
+.slide video.media{object-fit:contain;object-position:center;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
+.slide video.media.cover{object-fit:cover}
 .side{position:fixed;left:0;top:0;bottom:0;width:calc(50% - 300px);max-width:300px;z-index:10;display:none;align-content:start;gap:4px;padding:76px 16px 16px 20px}
 .side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;min-height:44px;border-radius:10px}
 .side a:hover{background:#ffffff14}
@@ -56,22 +58,18 @@ button{font:inherit;color:inherit}
 .slide .bgfx{position:absolute;inset:0;transform:scale(1.2);background:center/cover no-repeat;filter:blur(32px) brightness(.7) saturate(1.4);pointer-events:none}
 .slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%);pointer-events:none}
 .slide .media{cursor:pointer}
-.vtag{position:absolute;z-index:1;left:18px;top:calc(78px + env(safe-area-inset-top));pointer-events:none;font-size:11px;font-weight:700;line-height:1.5;padding:1px 8px;border-radius:6px;background:#000a;color:#fff;border:1px solid #ffffff40}
-@media (hover:hover) and (pointer:fine) and (min-width:900px){.vtag{top:74px}}
-@media (min-width:600px) and (pointer:coarse){.vtag{top:calc(78px + env(safe-area-inset-top))}}
-.playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center}
+.vtag{position:absolute;z-index:1;left:8px;top:calc(var(--vt) + 6px);pointer-events:none;font-size:10px;font-weight:700;line-height:1.4;padding:0 6px;border-radius:5px;background:#0008;color:#ffffffd9;border:1px solid #ffffff30}
+/* 真ん中の「▶ 遊ぶ」は、その作品が最初に画面に入ってから1.5秒だけ出す */
+.playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center;opacity:0}
 .playhint span{background:#0006;color:#ffffffcc;border:1px solid #ffffff55;border-radius:999px;padding:8px 18px;font-size:15px;font-weight:700;backdrop-filter:blur(3px)}
-.slide video.media+.playhint{left:10px;width:calc(100% - 88px);top:calc(70px + env(safe-area-inset-top));height:calc(100% - 76px - 44%)}
+.slide.hinting .playhint{animation:hintOnce 1.5s ease-out forwards}
+@keyframes hintOnce{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.slide.hinting .playhint{animation:hintOnce 1.5s steps(1,end) forwards}}
+.slide video.media+.playhint{left:0;right:0;top:var(--vt);bottom:var(--vb)}
 .slide img.media+.playhint{left:0;right:0;top:calc(64px + env(safe-area-inset-top));height:calc(100% - 64px - 46%)}
 /* タブレット（タッチで幅600px以上）：動画は、題名などの上の空きいっぱいに、真ん中に置く（上で切れない） */
-@media (min-width:600px) and (pointer:coarse){
- .slide video.media{top:calc(70px + env(safe-area-inset-top));height:calc(100dvh - 70px - 250px - env(safe-area-inset-top));object-fit:contain;object-position:center}
- .slide video.media+.playhint{top:calc(70px + env(safe-area-inset-top));height:calc(100dvh - 70px - 250px - env(safe-area-inset-top))}
-}
-@media (hover:hover) and (pointer:fine) and (min-width:900px){
- .slide video.media{top:66px;height:calc(100dvh - 84px)}
- .slide video.media+.playhint{top:66px;height:calc(100dvh - 84px)}
-}
+@media (min-width:600px) and (pointer:coarse){ .slide{--vt:calc(70px + env(safe-area-inset-top));--vb:250px} }
+@media (hover:hover) and (pointer:fine) and (min-width:900px){ .slide{--vt:66px;--vb:18px} }
 .info{position:absolute;z-index:2;left:16px;right:84px;bottom:calc(24px + env(safe-area-inset-bottom));display:grid;gap:8px}
 .info .by .sample{color:var(--accent)}
 .info h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
@@ -84,7 +82,7 @@ button{font:inherit;color:inherit}
 .chip.new{background:var(--warn);color:#2a2000;border-color:transparent;font-weight:700}
 .q{font-size:13px;background:#ffffff14;border-left:3px solid var(--accent);padding:6px 10px;border-radius:6px}
 .rail{position:absolute;z-index:2;right:10px;bottom:calc(28px + env(safe-area-inset-bottom));display:grid;gap:16px;justify-items:center}
-.rb{display:grid;justify-items:center;gap:2px;background:none;border:0;cursor:pointer;font-size:11px;color:var(--ink);text-shadow:0 1px 3px #000}
+.rb{display:grid;justify-items:center;gap:2px;background:none;border:0;padding:0;cursor:pointer;font-size:11px;color:var(--ink);text-shadow:0 1px 3px #000}
 .rb .ic{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#ffffff1f;backdrop-filter:blur(6px)}
 .rb.play .ic{background:var(--accent);color:var(--accent-ink);font-size:20px}
 .rb[aria-pressed="true"] .ic{background:#ffffff;color:#000;box-shadow:0 0 0 3px var(--accent);animation:pop .35s ease-out}
@@ -188,6 +186,31 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 #providers{display:grid;gap:8px}#providers:empty{display:none}
 #loginBg .sheet{gap:12px}.lform{display:grid;gap:8px}.lnote{margin:0;font-size:12px;color:var(--muted);line-height:1.5}.lnote b{color:var(--ink)}
 .msg.err{color:#ff8f7a}
+/* 背の低い画面：右の列の隙間を詰め、ラベルを隠す。580px以下は作者アイコンを情報欄の作者名の横へ */
+.info .by a .byav{display:none}
+@media (max-height:640px){.rail{gap:8px;bottom:calc(20px + env(safe-area-inset-bottom))}.rb .ic{width:44px;height:44px;font-size:19px}.rb{padding:0}.rb .lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.info{bottom:calc(16px + env(safe-area-inset-bottom));gap:6px}.info h2{font-size:20px}}
+@media (max-height:580px){.rail a.who,.rail span.who{display:none}.info .by a{display:inline-flex;align-items:center;gap:6px}.info .by a .byav{display:inline-flex}.info .by a .byav .tpb-av{border:1px solid #fff}}
+/* スマホを横向きにしたとき：動画を左、題名などと右の列（遊ぶ・👍・🤔・感想・⋮）を右に置く。右の列は横に1列 */
+@media (orientation:landscape) and (max-height:500px){
+ .slide{max-width:none;--vt:0px;--vb:0px}
+ .slide .media,.slide video.media,.slide img.media{top:0;bottom:0;left:0;right:auto;width:calc(100% - 330px);height:100%;max-width:none}
+ .slide video.media+.playhint,.slide img.media+.playhint{left:0;right:auto;width:calc(100% - 330px);top:0;bottom:0;height:auto}
+ .slide img.media{object-fit:contain;object-position:center}
+ .vtag{top:58px}
+ .shade{inset:0 0 0 auto;width:340px;height:auto;background:linear-gradient(90deg,transparent,#000c 35%)}
+ .info{left:calc(100% - 318px);right:calc(12px + env(safe-area-inset-right));top:calc(54px + env(safe-area-inset-top));bottom:auto;gap:5px;max-height:calc(100% - 54px - 70px - env(safe-area-inset-top));overflow:hidden}
+ .info h2{font-size:18px}
+ .info p{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+ .rail{left:calc(100% - 318px);right:calc(12px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:row;gap:10px;justify-content:flex-start;align-items:center}
+ .rail a.who{display:none}
+ .hint{right:auto;width:calc(100% - 330px)}
+ .intro{left:12px;right:auto;top:auto;bottom:12px;width:calc(100% - 354px)}
+ .toast,.toast.stack,#tpbToast{left:12px;right:auto;transform:none;width:calc(100% - 354px);max-width:none;bottom:calc(12px + env(safe-area-inset-bottom))}
+ .toast#after{top:calc(56px + env(safe-area-inset-top));bottom:auto}
+ body[data-note=bottom] #tpbToast{top:auto}
+ .logo-t{display:none}
+ .info .by a{display:inline-flex;align-items:center;gap:6px}.info .by a .byav{display:inline-flex}
+}
 @media (prefers-reduced-motion:reduce){.feed{scroll-behavior:auto}}
 </style>
 </head>
@@ -366,7 +389,7 @@ function whoBtn(g){
 }
 function byLine(g){
   const c=TPB.creatorOf(g,LIVE);
-  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},c.name):c.name, g.sample?el('span',{class:'sample'},' ・ 運営のお試し作品'):(c.official&&!/運営|公式/.test(c.name)?' ・ 運営':''), g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
+  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},el('span',{class:'byav','aria-hidden':'true'},TPB.avatar(c,22)),c.name):c.name, g.sample?el('span',{class:'sample'},' ・ 運営のお試し作品'):(c.official&&!/運営|公式/.test(c.name)?' ・ 運営':''), g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
 }
 // スライドのラベル：大事なものだけ2つまで（年齢制限・遊べない端末・まだ遊んでない・感想まだ0件）＋時間。
 // 「確かめたいこと」と「作者が確かめたいこと」は、感想シートと作品ページにまかせる
@@ -396,8 +419,8 @@ order.forEach((g,idx)=>{
   media.addEventListener('click',()=>{ play(g) });
   const chips = chipsFor(g);
   const r = reacts[g.slug]||'';
-  const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
-  const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
+  const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),el('span',{class:'lb'},'いいね'));
+  const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:radial-gradient(circle at 50% 38%,"+(g.color||'#7fe0c9')+"44,transparent 65%),url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
     media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
@@ -408,16 +431,24 @@ order.forEach((g,idx)=>{
       el('p',null,g.oneliner)),
     el('div',{class:'rail'},
       whoBtn(g),
-      el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),'遊ぶ'),
+      el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),el('span',{class:'lb'},'遊ぶ')),
       likeB, hmmB,
-      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
-      el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
+      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
+      el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
     idx===0?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
 feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。'):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
 
+// 動画の大きさ：題名などの高さを測って動画のおき場を決める。縦長に近い動画は画面いっぱい（cover）、そうでなければ真ん中に大きく
+const infoRO = new ResizeObserver(es=>es.forEach(e=>{ const sl=e.target.closest('.slide'); if(sl) sl.style.setProperty('--info',(Math.ceil(e.target.offsetHeight)+Math.max(16,parseFloat(getComputedStyle(e.target).bottom)||0)+10)+'px') }));
+document.querySelectorAll('.slide .info').forEach(n=>infoRO.observe(n));
+function fitVideo(v){ if(!v.videoWidth||!v.clientWidth) return; const a=v.clientWidth/v.clientHeight, r=v.videoWidth/v.videoHeight; v.classList.toggle('cover',Math.max(a,r)/Math.min(a,r)<1.2) }
+document.querySelectorAll('.slide video.media').forEach(v=>{ v.addEventListener('loadedmetadata',()=>fitVideo(v)); if(v.readyState>=1) fitVideo(v) });
+addEventListener('resize',()=>document.querySelectorAll('.slide video.media').forEach(fitVideo));
+const hintIO = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('hinting'); hintIO.unobserve(e.target) } }),{threshold:.6});
+document.querySelectorAll('.slide[data-slug]').forEach(sl=>hintIO.observe(sl));
 // PC：↑↓キーと右のボタンで前後の作品へ
 function slideStep(d){
   const all=[...feed.querySelectorAll('.slide')], i=Math.round(feed.scrollTop/feed.clientHeight), n=all[Math.max(0,Math.min(all.length-1,i+d))];
