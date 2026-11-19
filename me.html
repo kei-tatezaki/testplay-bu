@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>マイページ｜テストプレイ部</title>
+<meta name="theme-color" content="#1f6f6a">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.mehead{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mehead .who{flex:1;min-width:160px}
+.mehead h1{margin:0;font-size:20px;line-height:1.3}
+.mehead .acts{display:flex;gap:8px;flex-wrap:wrap}
+.mehead .btn{padding:8px 14px;font-size:14px}
+.pane{display:grid;gap:16px}
+.avrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.count{font-weight:400;color:var(--muted);font-size:12px;justify-self:end}
+.idrow{display:flex;align-items:center;gap:4px}
+.idrow span{color:var(--muted);font-weight:400}
+.subs{display:grid;gap:8px}
+.sub{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;gap:2px;background:var(--card)}
+.st{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent)}
+.st.ng{background:#d2553f22;color:#d2553f}
+.note{font-size:13px;color:var(--muted);margin:0}
+.callout{border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;display:grid;gap:8px;justify-items:center}
+</style>
+</head>
+<body>
+<div class="wrap wide">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./list.html">まとめ</a><a class="btn" href="./">▶ ショート</a></span></header>
+<main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
+<footer><a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/tpb.js"></script>
+<script>
+(function(){
+"use strict";
+const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
+let SES=null, PROFILE=null, TAB='games', MINE=[], STATS={};
+const ERR={bad_handle:'IDは、半角の英小文字・数字・_ で3〜20文字にしてね',handle_taken:'そのIDはもう使われています。別のIDにしてね',bad_name:'その名前は使えません（1〜30文字。「運営」「公式」は使えません）',
+  bad_bio:'ひとことは160文字までにしてね',banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',bad_links:'リンクは https:// から始まるURLにしてね（6つまで）',
+  bad_video:'紹介動画はYouTubeのURLにしてね',bad_avatar:'アイコンの画像を保存できませんでした。もう一度選んでね',banned:'このアカウントでは変更できなくなっています。心当たりがない場合は運営に連絡してね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
+function nameOf(){ const m=(SES.user.user_metadata)||{}; return (PROFILE&&PROFILE.name)||m.full_name||m.name||(SES.user.email||'').split('@')[0]||'あなた' }
+
+async function start(){
+  SES=sb?await T.session():null;
+  if(!SES){
+    main.replaceChildren(T.loginBox('ログイン','ログインすると、プロフィールを作ったり、送った感想を見返したり、自分の作品を応募したりできます。遊ぶだけならログインはいりません。'),
+      playedOnly());
+    return;
+  }
+  const [p, mine, stats] = await Promise.all([
+    sb.rpc('my_profile').then(r=>r.data||null,()=>null), T.myGames(), T.pub('game_stats',{since_days:3650})]);
+  PROFILE=p; MINE=mine||[]; STATS={}; (stats||[]).forEach(r=>STATS[r.game_slug]=r);
+  if(p) T.store.set('me',{name:p.name,avatar_url:p.avatar_url||'',handle:p.handle});
+  if(location.hash==='#edit'||!PROFILE) TAB='edit';
+  if(location.hash==='#fb') TAB='fb'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
+  render();
+}
+// ログインしていない人にも、この端末で遊んだ作品は見せる
+function playedOnly(){
+  const slugs=T.store.get('played',[]); const games=slugs.map(T.game).filter(Boolean).reverse();
+  if(!games.length) return null;
+  return el('section',{style:'display:grid;gap:12px'},el('h2',{style:'margin:8px 0 0;font-size:16px'},'この端末で遊んだ作品'),el('div',{class:'grid'},games.map(g=>T.tile(g,null))));
+}
+function render(){
+  const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['edit','プロフィール']];
+  const pane=el('div',{class:'pane',id:'pane',role:'tabpanel'});
+  const head=el('section',{class:'card'},el('div',{class:'body mehead'},
+    T.avatar({name:nameOf(),avatar:PROFILE&&PROFILE.avatar_url},64),
+    el('div',{class:'who'},el('h1',null,nameOf()),el('div',{class:'by'},PROFILE?'@'+PROFILE.handle:'プロフィールはまだありません'),
+      PROFILE&&PROFILE.hidden?el('div',{class:'msg err'},'このプロフィールは運営が非表示にしています'):null),
+    el('div',{class:'acts'},
+      PROFILE?el('a',{class:'btn ghost',href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,
+      el('button',{class:'btn ghost',type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); location.reload() }},'ログアウト'))));
+  const bar=el('div',{class:'tabs',role:'tablist','aria-label':'マイページ'},tabs.map(([k,l])=>el('button',{type:'button',role:'tab','aria-selected':String(k===TAB),onclick:()=>{ TAB=k; history.replaceState(null,'','#'+k); render() }},l)));
+  main.replaceChildren(head,bar,pane);
+  ({games:paneGames,played:panePlayed,fb:paneFb,edit:paneEdit})[TAB](pane);
+}
+
+// ---- 自分の作品 ----
+async function paneGames(pane){
+  const games=MINE.map(T.game).filter(Boolean);
+  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:el('a',{class:'by',href:'./dev.html?g='+g.slug,style:'color:var(--accent)'},'📊 数字と感想を見る')})))
+    :el('div',{class:'callout'},el('b',null,'まだあなたの作品はありません'),
+      el('p',{class:'note'},'ブラウザで遊べるURLがあれば、ここから応募できます。運営が確かめてから載せます。'),
+      el('a',{class:'btn',href:'./submit.html'},'作品を応募する'),
+      el('a',{class:'by',href:'./creators.html#url'},'遊べるURLの作り方を見る')));
+  if(games.length) pane.append(el('p',{style:'margin:0'},el('a',{class:'btn',href:'./submit.html'},'＋ 作品を応募する')));
+  const box=el('div',{class:'subs'}); pane.append(box);
+  try{
+    const {data}=await sb.rpc('my_submissions'); if(!data||!data.length) return;
+    const ST={new:['確認中',''],ok:['載せました',''],ng:['見送り','ng']};
+    box.append(el('h2',{style:'margin:8px 0 0;font-size:16px'},'応募したもの'));
+    data.forEach(s=>{ const g=s.game_slug&&T.game(s.game_slug);
+      box.append(el('div',{class:'sub'},
+        el('div',null,el('span',{class:'st '+ST[s.status][1]},ST[s.status][0]),' ',el('b',null,s.kind==='edit'?'直しの依頼：'+(g?g.title:s.game_slug):(s.data.title||'（タイトルなし）'))),
+        el('div',{class:'by'},new Date(s.created_at).toLocaleDateString('ja-JP')+(s.kind==='new'&&s.data.play_url?' ・ '+s.data.play_url:'')),
+        s.kind==='edit'&&s.data.note?el('div',null,s.data.note):null,
+        s.admin_note?el('div',null,'運営から：'+s.admin_note):null)) });
+  }catch(e){}
+}
+// ---- 遊んだ作品（この端末の記録） ----
+function panePlayed(pane){
+  const sent=new Set(T.store.get('sent',[]));
+  const games=T.store.get('played',[]).map(T.game).filter(Boolean).reverse();
+  pane.append(el('p',{class:'note'},'この端末で「遊ぶ」を押した作品です。ほかの端末で遊んだ作品は出ません。'));
+  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:sent.has(g.slug)?el('span',{class:'by'},'✅ 感想を送った'):el('a',{class:'by',href:'./#fb-'+g.slug,style:'color:var(--accent)'},'💬 感想を送る')})))
+    :el('div',{class:'callout'},el('b',null,'まだ遊んだ作品はありません'),el('a',{class:'btn',href:'./'},'▶ ショートで探す')));
+}
+// ---- 送った感想 ----
+async function paneFb(pane){
+  pane.append(el('p',{class:'empty'},'読み込み中…'));
+  let rows=[]; try{ rows=(await sb.rpc('my_feedback')).data||[] }catch(e){}
+  pane.replaceChildren();
+  if(!rows.length){ pane.append(el('div',{class:'callout'},el('b',null,'まだ感想を送っていません'),el('p',{class:'note'},'遊んだあとに💬を押すと、選ぶだけで1分で送れます。'),el('a',{class:'btn',href:'./'},'▶ ショートで探す'))); return }
+  pane.append(el('p',{class:'note'},rows.length+'件の感想を送りました。作った人には、だれが書いたかは見えません。'));
+  const list=el('section',{class:'card'},el('div',{class:'body fblist'}));
+  rows.forEach(f=>{ const g=T.game(f.game_slug);
+    list.firstChild.append(el('div',{class:'fbitem'},
+      el('div',null,el('a',{href:'./games/'+f.game_slug+'/',style:'font-weight:700'},g?g.title:f.game_slug),' ',
+        f.liked_by_dev?el('span',{class:'chip check'},'作者のいいね'):null, f.hidden?el('span',{class:'chip rate-r18'},'運営が非表示にしました'):null),
+      el('div',null,el('b',null,f.again),' ・ '+f.reach),
+      (f.good||[]).length?el('div',null,'よかった：'+f.good.join('、')):null,
+      (f.bad||[]).length?el('div',null,'気になった：'+f.bad.join('、')):null,
+      f.free?el('p',null,f.free):null,
+      el('div',{class:'by'},new Date(f.created_at).toLocaleDateString('ja-JP')))) });
+  pane.append(list);
+}
+// ---- プロフィール編集 ----
+// 画像は、送る前にブラウザの中で 256×256 に小さくする（撮った場所などの情報もここで消える）
+function shrink(file){
+  return new Promise((ok,ng)=>{ const im=new Image(), url=URL.createObjectURL(file);
+    im.onload=()=>{ const s=Math.min(im.naturalWidth,im.naturalHeight), c=document.createElement('canvas'); c.width=c.height=256;
+      c.getContext('2d').drawImage(im,(im.naturalWidth-s)/2,(im.naturalHeight-s)/2,s,s,0,0,256,256); URL.revokeObjectURL(url);
+      c.toBlob(b=>b?ok(b):ng(new Error('blob')),'image/jpeg',.86) };
+    im.onerror=()=>{ URL.revokeObjectURL(url); ng(new Error('image')) }; im.src=url });
+}
+function paneEdit(pane){
+  const p=PROFILE||{handle:'',name:nameOf(),bio:'',avatar_url:'',links:[],video:''};
+  let avatarUrl=p.avatar_url||'', newBlob=null;
+  const msg=el('p',{class:'msg','aria-live':'polite'});
+  const avBox=el('span',null,T.avatar({name:p.name,avatar:avatarUrl},72));
+  const file=el('input',{type:'file',accept:'image/png,image/jpeg,image/webp',hidden:true});
+  file.addEventListener('change',async()=>{ const f=file.files[0]; if(!f) return;
+    try{ newBlob=await shrink(f); avBox.replaceChildren(T.avatar({name:'',avatar:URL.createObjectURL(newBlob)},72)); msg.className='msg'; msg.textContent='画像を選びました。「保存する」を押すと変わります' }
+    catch(e){ msg.className='msg err'; msg.textContent='この画像は使えませんでした。PNGかJPEGの画像を選んでね' } });
+  const name=el('input',{type:'text',maxlength:30,value:p.name,required:true,autocomplete:'nickname'});
+  const handle=el('input',{type:'text',maxlength:20,value:p.handle,placeholder:'例：taro_games',autocapitalize:'none',autocomplete:'off',spellcheck:'false',pattern:'[a-z0-9_]{3,20}'});
+  const bio=el('textarea',{maxlength:160,placeholder:'例：大学2年。Unityで2Dアクションを作っています。'}); bio.value=p.bio||'';
+  const cnt=el('span',{class:'count'}); const upd=()=>cnt.textContent=[...bio.value].length+' / 160'; bio.addEventListener('input',upd); upd();
+  const links=[0,1,2,3].map(i=>el('input',{type:'url',inputmode:'url',maxlength:200,value:(p.links||[])[i]||'',placeholder:['https://x.com/あなたのID','https://あなたのID.itch.io','https://unityroom.com/users/…','自分のサイトなど'][i],'aria-label':'リンク'+(i+1)}));
+  const video=el('input',{type:'url',inputmode:'url',maxlength:200,value:p.video||'',placeholder:'https://www.youtube.com/watch?v=…'});
+  const save=el('button',{class:'btn',type:'submit'},'保存する');
+  const form=el('form',{class:'form card',novalidate:true,style:'padding:16px;max-width:640px;width:100%;margin:0 auto'},
+    PROFILE?null:el('p',{class:'q',style:'margin:0'},el('b',null,'プロフィールを作ろう'),'名前とIDを決めるだけでOK。あとから変えられます。'),
+    el('div',{class:'avrow'},avBox,el('div',{style:'display:grid;gap:4px'},el('button',{class:'btn ghost',type:'button',onclick:()=>file.click()},'アイコンの画像を選ぶ'),
+      avatarUrl?el('button',{type:'button',class:'by',style:'border:0;background:none;text-decoration:underline;cursor:pointer;text-align:left;padding:4px 0',onclick:()=>{ avatarUrl=''; newBlob=null; avBox.replaceChildren(T.avatar({name:name.value},72)) }},'画像をはずす'):null,
+      el('span',{class:'hint'},'自分で用意した画像を使ってね。写真は顔がわからないものがおすすめ')),file),
+    el('label',null,'名前',name),
+    el('label',null,el('span',null,'ID ',el('small',null,'プロフィールのURLになります。半角の英小文字・数字・_ で3〜20文字')),el('span',{class:'idrow'},el('span',null,'@'),handle)),
+    el('label',null,el('span',null,'ひとこと ',el('small',null,'書かなくてもOK')),bio,cnt),
+    el('div',{style:'display:grid;gap:6px'},el('b',{style:'font-size:14px'},'リンク ',el('small',{class:'hint'},'X・YouTube・itch.io・unityroom・自分のサイトなど')),links),
+    el('label',null,el('span',null,'紹介動画 ',el('small',null,'YouTubeのURL。プロフィールで再生できます')),video),
+    el('p',{class:'note'},'ここに書いたものは、だれでも見られます。本名・学校名・住所などは書かないでね。'),
+    msg, save);
+  form.addEventListener('submit',async e=>{
+    e.preventDefault(); msg.className='msg'; msg.textContent='';
+    const h=handle.value.trim().toLowerCase().replace(/^@/,'');
+    if(!name.value.trim()){ msg.className='msg err'; msg.textContent='名前を入れてね'; name.focus(); return }
+    if(!/^[a-z0-9_]{3,20}$/.test(h)){ msg.className='msg err'; msg.textContent=ERR.bad_handle; handle.focus(); return }
+    const ls=links.map(i=>i.value.trim()).filter(Boolean);
+    if(ls.some(l=>!/^https:\/\/\S+$/.test(l))){ msg.className='msg err'; msg.textContent=ERR.bad_links; return }
+    save.disabled=true; msg.textContent='保存中…';
+    try{
+      if(newBlob){
+        const path=SES.user.id+'/a-'+Date.now()+'.jpg';
+        const up=await sb.storage.from('avatars').upload(path,newBlob,{contentType:'image/jpeg',cacheControl:'31536000'});
+        if(up.error) throw {message:'bad_avatar'};
+        // 前の画像は消す（自分のフォルダの中だけ）
+        try{ const old=(await sb.storage.from('avatars').list(SES.user.id)).data||[]; const rm=old.map(o=>SES.user.id+'/'+o.name).filter(n=>n!==path); if(rm.length) await sb.storage.from('avatars').remove(rm) }catch(_){}
+        avatarUrl=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl; newBlob=null;
+      }
+      const {data,error}=await sb.rpc('profile_save',{p_handle:h,p_name:name.value.trim(),p_bio:bio.value.trim(),p_avatar_url:avatarUrl||null,p_links:ls,p_video:video.value.trim()||null});
+      if(error) throw error;
+      PROFILE=data; T.store.set('me',{name:data.name,avatar_url:data.avatar_url||'',handle:data.handle});
+      TAB='edit'; render(); T.toast('保存したよ');
+    }catch(err){ msg.className='msg err'; msg.textContent=ERR[(err&&err.message)||'']||'保存できなかった…時間をおいてもう一度試してね'; save.disabled=false }
+  });
+  pane.append(form);
+}
+if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN'&&!SES) start() });
+start();
+})();
+</script>
+</body>
+</html>

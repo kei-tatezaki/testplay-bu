@@ -31,6 +31,9 @@
 <li><b>遊んだ記録</b>：「遊ぶ」「👍」「🤔」を押したこと（🤔は選んだ理由も）、遊んだ時間、PCかスマホか、時間帯</li>
 <li><b>感想</b>：送った内容と、送ったアカウント（ログインした人のみ）</li>
 <li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>
+<li><b>プロフィール</b>：自分で書いた名前・ID・ひとこと・リンク・アイコンの画像（作った人だけ。だれでも見られます）</li>
+<li><b>作品の応募</b>：応募フォームに書いた内容と、送ったアカウント</li>
+<li><b>報告</b>：「報告する」で送った内容と、端末ごとのID（ログインしていればアカウントも）</li>
 </ul>
 <h2>使い道</h2>
 <ul>
@@ -42,13 +45,15 @@
 <ul>
 <li><b>作った人</b>：自分の作品の合計の数字と、感想の本文。だれが書いたかは見えません</li>
 <li><b>運営</b>：上のすべて。感想を書いたアカウントの名前は、荒らし対策のためにだけ使います</li>
-<li><b>みんな</b>：作品ページの感想の本文と、遊んだ人の数などの合計</li>
+<li><b>みんな</b>：作品ページの感想の本文と、遊んだ人の数などの合計。プロフィールに自分で書いたもの</li>
+<li>感想を書いた人のプロフィールが、感想の横に出ることはありません。報告は運営だけが見ます</li>
 </ul>
 <h2>保存する場所</h2>
 <p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
 <h2>消してほしいとき</h2>
 <p>自分の感想やアカウントの情報を消してほしいときは、<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
-<p class="muted">2026年11月19日 作成</p>
+<p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
+<p class="muted">2026年11月19日 作成・プロフィール／応募／報告について追記</p>
 </div></section>
 <footer><a href="./list.html">← まとめに戻る</a></footer>
 </div>
@@ -63,5 +68,8 @@ document.addEventListener('click',function(ev){
  }catch(e){}
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="assets/data.js" defer></script>
+<script src="assets/tpb.js" defer></script>
 </body>
 </html>

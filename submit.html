@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作品を応募する｜テストプレイ部</title>
+<meta name="description" content="ブラウザで遊べるURLがあれば、ここから作品を応募できます。">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="作品を応募する｜テストプレイ部">
+<meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
+<meta name="theme-color" content="#1f6f6a">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.req{color:#d2553f;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><span data-me></span></span></header>
+<main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
+<footer><a href="./creators.html#url">遊べるURLの作り方</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/tpb.js"></script>
+<script>
+(function(){
+"use strict";
+const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
+const editSlug=new URLSearchParams(location.search).get('edit')||'';
+const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名と一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
+  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
+let SES=null;
+function sel(opts,val){ const s=el('select',null,opts.map(o=>el('option',{value:Array.isArray(o)?o[0]:o},Array.isArray(o)?o[1]:o))); if(val) s.value=val; return s }
+function done(text){
+  main.replaceChildren(el('section',{class:'card'},el('div',{class:'body',style:'text-align:center'},
+    el('h1',{style:'font-size:22px;margin:0'},'送ったよ！ありがとう'),
+    el('p',{style:'margin:0'},text),
+    el('p',{class:'muted',style:'margin:0;font-size:14px'},'進みぐあいは、マイページの「自分の作品」で見られます。急ぎのときや、やりとりしたいときはDiscordで運営に声をかけてね。'),
+    el('div',{class:'row',style:'justify-content:center'},el('a',{class:'btn',href:'./me.html#games'},'マイページで見る'),el('a',{class:'btn ghost',href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discordを開く')))));
+  scrollTo(0,0);
+}
+async function send(kind,slug,data,btn,msg){
+  btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
+  const {error}=await sb.rpc('submission_send',{p_kind:kind,p_slug:slug||null,p_data:data});
+  btn.disabled=false;
+  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; return false }
+  return true;
+}
+function editForm(){
+  const g=T.game(editSlug);
+  if(!g){ main.replaceChildren(el('p',{class:'empty'},'その作品は見つかりませんでした。')); return }
+  const note=el('textarea',{maxlength:400,placeholder:'例：遊べるURLが変わりました → https://…　／　一言を「…」に変えたい　／　感想をもとに◯◯を直したので「感想でアップデート」に載せてほしい',style:'min-height:140px'});
+  const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit'},'運営に送る');
+  const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
+    el('h1',{style:'font-size:20px;margin:0'},'直したいところを送る'),
+    el('p',{class:'muted',style:'margin:0;font-size:14px'},'「'+g.title+'」の作品ページで直したいところを書いてください。運営が確かめて直します。'),
+    el('label',null,el('span',null,'直したいところ ',el('span',{class:'req'},'必須')),note), msg, btn);
+  form.addEventListener('submit',async e=>{ e.preventDefault();
+    if(!note.value.trim()){ msg.className='msg err'; msg.textContent=ERR.need_note; note.focus(); return }
+    if(await send('edit',editSlug,{note:note.value.trim()},btn,msg)) done('運営が確かめて、作品ページを直します。') });
+  main.replaceChildren(form);
+}
+function newForm(){
+  const f={
+    title:el('input',{type:'text',maxlength:40,required:true,placeholder:'例：ねこの大脱走'}),
+    play_url:el('input',{type:'url',inputmode:'url',maxlength:300,required:true,placeholder:'https://unityroom.com/games/…'}),
+    oneliner:el('input',{type:'text',maxlength:80,required:true,placeholder:'例：ねこを転がして、部屋から脱出する物理パズル。'}),
+    platform:sel([['both','PC・スマホ'],['pc','PCのみ'],['sp','スマホのみ']]),
+    minutes:sel(['30秒','1〜3分','3〜5分','5〜10分','10分以上'],'1〜3分'),
+    check:sel(['楽しさ','操作感','チュートリアル','難しさ','見た目','そのほか']),
+    question:el('input',{type:'text',maxlength:100,placeholder:'例：2面のギミックは、説明なしでもわかった？'}),
+    genre:el('input',{type:'text',maxlength:20,placeholder:'例：パズル／アクション／ノベル'}),
+    stage:sel(['プロトタイプ','体験版','リリース済み']),
+    controls:el('input',{type:'text',maxlength:60,placeholder:'例：WASDで移動、クリックで攻撃'}),
+    rating:sel([['','なし（だれでも遊べる）'],['r15','R15（ホラー・暴力表現など）'],['r18','R18（18歳以上向け）']]),
+    image_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://…（なければ空でOK）'}),
+    note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと（なければ空でOK）'})
+  };
+  const L=(t,req,hint,input)=>el('label',null,el('span',null,t+' ',req?el('span',{class:'req'},'必須'):null,hint?el('small',null,hint):null),input);
+  const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit'},'応募する');
+  const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
+    el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
+    el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営が遊んで確かめてから、作品ページを作ります。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
+    L('作品名',true,'',f.title),
+    L('遊べるURL',true,'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）',f.play_url),
+    L('一言',true,'何をするゲーム？',f.oneliner),
+    el('div',{class:'two'},L('対応端末',false,'',f.platform),L('遊ぶ時間の目安',false,'',f.minutes)),
+    el('div',{class:'two'},L('確かめたいこと',false,'',f.check),L('どこまでできてる？',false,'',f.stage)),
+    L('遊んだ人への質問',false,'感想シートに出ます',f.question),
+    el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
+    L('年齢制限',false,'',f.rating),
+    L('画像のURL',false,'ゲーム画面の画像。運営が画面を撮ることもできます',f.image_url),
+    L('メモ',false,'',f.note),
+    el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
+    msg, btn);
+  form.addEventListener('submit',async e=>{ e.preventDefault();
+    const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
+    if(!d.title||!d.oneliner){ msg.className='msg err'; msg.textContent=ERR.need_title; (d.title?f.oneliner:f.title).focus(); return }
+    if(!/^https:\/\/\S+$/.test(d.play_url||'')){ msg.className='msg err'; msg.textContent='遊べるURLは https:// から始まるものを入れてね'; f.play_url.focus(); return }
+    if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ msg.className='msg err'; msg.textContent=ERR.bad_url; f.image_url.focus(); return }
+    if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });
+  main.replaceChildren(form);
+}
+async function start(){
+  SES=sb?await T.session():null;
+  if(!SES){ main.replaceChildren(T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
+    el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
+  editSlug?editForm():newForm();
+}
+if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN'&&!SES) start() });
+start();
+})();
+</script>
+</body>
+</html>

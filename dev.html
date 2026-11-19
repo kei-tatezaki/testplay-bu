@@ -53,8 +53,8 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 <body>
 <div class="wrap">
 <header>
-  <h1><img src="assets/icon-192.png" alt="" width="28" height="28">開発者ページ</h1>
-  <div class="bar"><span id="who" class="muted"></span><button id="logout" hidden>ログアウト</button></div>
+  <h1><a href="list.html" style="line-height:0"><img src="assets/icon-192.png" alt="テストプレイ部" width="28" height="28"></a>開発者ページ</h1>
+  <div class="bar"><a href="me.html">マイページ</a><span id="who" class="muted"></span><button id="logout" hidden>ログアウト</button></div>
 </header>
 
 <section id="loginBox" class="card login" hidden>
@@ -70,7 +70,7 @@ select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 <section id="noneBox" class="card login" hidden>
   <b>まだあなたの作品が登録されていません</b>
   <p class="muted" style="margin:0">作品を載せたら、運営があなたのアカウントを作者として登録します。登録されると、ここに数字が出ます。</p>
-  <p style="margin:0"><a href="creators.html">作品を載せたい人へ</a></p>
+  <p style="margin:0"><a href="submit.html">作品を応募する</a> ・ <a href="creators.html">作品を載せたい人へ</a></p>
 </section>
 
 <section id="app" hidden>
@@ -149,6 +149,7 @@ async function start(){
   const slugs = admin ? Object.keys(GAMES) : mine;
   if(!slugs.length){ show('noneBox'); return }
   $('game').innerHTML=slugs.map(s=>`<option value="${esc(s)}">${esc(GAMES[s]?.title||s)}${admin&&!mine.includes(s)?'（運営として表示）':''}</option>`).join('');
+  const want=new URLSearchParams(location.search).get('g'); if(want&&slugs.includes(want)) $('game').value=want;
   show('app'); load();
 }
 async function load(){

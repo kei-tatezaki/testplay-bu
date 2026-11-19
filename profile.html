@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プロフィール｜テストプレイ部</title>
+<meta name="description" content="テストプレイ部で作品を出している人のプロフィールと、作品の一覧。">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="プロフィール｜テストプレイ部">
+<meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
+<meta name="theme-color" content="#1f6f6a">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.phead .tpb-av{box-shadow:0 0 0 3px var(--card),0 0 0 4px var(--line)}
+.video{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;max-width:640px;width:100%;margin:0 auto}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 -4px}
+.sec h2{margin:0;font-size:16px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.acts .btn{padding:8px 16px;font-size:14px}
+.skel{height:220px;display:grid;place-items:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap wide">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<main id="main"><p class="skel">読み込み中…</p></main>
+<footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/tpb.js"></script>
+<script>
+(async function(){
+"use strict";
+const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false));
+const u=(new URLSearchParams(location.search).get('u')||'').toLowerCase().replace(/^@/,'');
+function linkLabel(url){
+  let h=''; try{ h=new URL(url).hostname.replace(/^www\./,'') }catch(e){ return null }
+  const map=[[/(^|\.)x\.com$|twitter\.com$/,'X'],[/youtube\.com$|youtu\.be$/,'YouTube'],[/itch\.io$/,'itch.io'],[/unityroom\.com$/,'unityroom'],[/github\.(com|io)$/,'GitHub'],[/discord\.(gg|com)$/,'Discord'],[/booth\.pm$/,'BOOTH'],[/note\.com$/,'note'],[/freem\.ne\.jp$/,'ふりーむ！'],[/plicy\.net$/,'PLiCy'],[/steampowered\.com$/,'Steam']];
+  for(const [re,l] of map) if(re.test(h)) return l;
+  return h;
+}
+function ytId(url){ const m=String(url||'').match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/); return m?m[1]:'' }
+function notFound(){
+  main.replaceChildren(el('section',{class:'card'},el('div',{class:'body',style:'text-align:center'},
+    el('h1',{style:'font-size:20px;margin:0'},'このプロフィールは見つかりませんでした'),
+    el('p',{class:'muted',style:'margin:0'},'IDがまちがっているか、非表示になっています。'),
+    el('p',{style:'margin:0'},el('a',{class:'btn',href:'./list.html'},'作品の一覧を見る')))));
+}
+if(!/^[a-z0-9_]{3,20}$/.test(u)){ notFound(); return }
+const st=T.creators[u]||null;
+const [live, statsRows] = await Promise.all([T.pub('profile_get',{h:u}), T.pub('game_stats',{since_days:3650})]);
+if(!st && !live){ notFound(); return }
+const p={
+  handle:u, name:(live&&live.name)||(st&&st.name)||u, bio:(live&&live.bio)||(st&&st.bio)||'',
+  avatar:(live&&live.avatar_url)||(st&&st.avatar?T.base+st.avatar:''), official:!!(st&&st.official),
+  links:(live&&live.links&&live.links.length?live.links:(st&&st.links)||[]), video:(live&&live.video)||(st&&st.video)||''
+};
+const slugs=new Set(); T.games.forEach(g=>{ if(g.creator===u) slugs.add(g.slug) }); ((live&&live.games)||[]).forEach(s=>slugs.add(s));
+const games=T.games.filter(g=>slugs.has(g.slug)).reverse();
+const stats={}; (statsRows||[]).forEach(r=>stats[r.game_slug]=r);
+let plays=0, fbs=0; games.forEach(g=>{ const s=stats[g.slug]; if(s){ plays+=s.plays||0; fbs+=s.feedbacks||0 } });
+
+document.title=p.name+'｜テストプレイ部';
+const url=(window.TPB_DATA.base||T.base.replace(/\/$/,''))+'/profile.html?u='+u;
+const acts=el('div',{class:'acts'},
+  el('button',{class:'btn ghost',type:'button',onclick:()=>T.share(p.name+'｜テストプレイ部',url)},'🔗 共有'),
+  p.official?null:el('button',{class:'tpb-kebab',type:'button','aria-label':'このプロフィールを報告する',title:'報告する',onclick:e=>T.report('profile',u,p.name,e.currentTarget)},'🚩'));
+const links=p.links.map(l=>{ const lab=linkLabel(l); return lab&&/^https:\/\//.test(l)?el('a',{href:l,target:'_blank',rel:'noopener nofollow ugc'},lab,el('span',{'aria-hidden':'true',class:'muted'},'↗')):null }).filter(Boolean);
+const vid=ytId(p.video);
+const grid=el('div',{class:'grid'}, games.map(g=>T.tile(g,stats[g.slug],{inProfile:true})));
+main.replaceChildren(
+  el('section',{class:'phead'},
+    T.avatar({name:p.name,avatar:p.avatar},96),
+    el('h1',null,p.name,p.official?[' ',el('span',{class:'badge'},'運営')]:null),
+    el('div',{class:'handle'},'@'+p.handle),
+    el('div',{class:'pstats'},
+      el('span',null,el('b',null,String(games.length)),'作品'),
+      el('span',null,el('b',null,String(plays)),'遊んだ人'),
+      el('span',null,el('b',null,String(fbs)),'もらった感想')),
+    p.bio?el('p',{class:'bio'},p.bio):null,
+    links.length?el('nav',{class:'links','aria-label':'リンク'},links):null,
+    acts),
+  vid?el('div',{class:'sec'},el('h2',null,'紹介動画')):null,
+  vid?el('div',{class:'video'},el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+vid,title:p.name+' の紹介動画',loading:'lazy',allow:'encrypted-media; picture-in-picture',allowfullscreen:true})):null,
+  el('div',{class:'sec'},el('h2',null,'作品'),el('span',{class:'by'},games.length?'画像をタップするとショートで見られます':'')),
+  games.length?grid:el('p',{class:'empty'},'まだ作品がありません。'));
+main.style.display='grid'; main.style.gap='16px';
+// 自分のプロフィールなら「編集」を出す
+if(T.maybeLoggedIn()){
+  const s=await T.session(); if(!s) return;
+  try{ const mine=(await T.sb().rpc('my_profile')).data; if(mine&&mine.handle===u) acts.prepend(el('a',{class:'btn',href:'./me.html#edit'},'✏️ プロフィールを編集')) }catch(e){}
+}
+})();
+</script>
+</body>
+</html>

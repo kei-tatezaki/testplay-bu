@@ -24,7 +24,8 @@
     "bg": "#10141c",
     "platform": "both",
     "controls": "タップ／スペースキー",
-    "added": "2026-11-19"
+    "added": "2026-11-19",
+    "creator": "unei"
   },
   {
     "slug": "color",
@@ -57,7 +58,8 @@
     ],
     "platform": "both",
     "controls": "タップ／クリック",
-    "added": "2026-11-19"
+    "added": "2026-11-19",
+    "creator": "unei"
   },
   {
     "slug": "lights",
@@ -84,6 +86,7 @@
     "bg": "#0f1622",
     "platform": "both",
     "controls": "タップ／クリック",
-    "added": "2026-11-19"
+    "added": "2026-11-19",
+    "creator": "unei"
   }
 ]

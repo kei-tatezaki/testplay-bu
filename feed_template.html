@@ -26,7 +26,14 @@ button{font:inherit;color:inherit}
 .top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:flex-start;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
 .top *{pointer-events:auto}
 .top a.back{font-size:22px;line-height:1;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:50%}
-.logo{font-weight:800;letter-spacing:.06em;font-size:17px}
+.top a.tpb-me{padding:3px 10px 3px 3px;min-height:40px}.top a.tpb-me.in{padding:3px;background:none}
+.rail a.who{display:grid;justify-items:center;text-decoration:none;position:relative;margin-bottom:2px}
+.rail a.who .tpb-av{border:2px solid #fff;box-shadow:0 1px 6px #0008}
+.info .by a{color:inherit;text-decoration:none;font-weight:700}
+@media (max-height:640px){.rail{gap:10px}.rb .ic{width:44px;height:44px;font-size:19px}}
+.logo{font-weight:800;letter-spacing:.06em;font-size:17px;white-space:nowrap}
+@media (max-width:400px){.logo{font-size:15px;letter-spacing:.02em}}
+.top a.tpb-me{padding:3px!important}
 .top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
 .slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;max-width:560px;margin:0 auto;background:#000}
@@ -110,7 +117,7 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめに戻る">←</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><span class="sp"></span></div>
+<div class="top"><a class="back" id="back" href="list.html" aria-label="まとめに戻る">←</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><span class="sp" style="flex:1"></span><span data-me></span></div>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">🎮 操作がわかりにくい</button>
 <button type="button" data-r="heavy">🐢 重い・うまく動かない</button>
@@ -169,6 +176,8 @@ textarea{min-height:72px;resize:vertical}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/rank.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/tpb.js"></script>
 <script>
 const GAMES = __GAMES__;
 const DISCORD_DEFAULT = "__DISCORD__";
@@ -197,7 +206,7 @@ async function loadStats(){
   }catch(e){ return {} }
 }
 const seen = store.get('seen',{});
-const STATS = await loadStats();
+const [STATS, LIVE] = await Promise.all([loadStats(), Promise.race([TPB.liveCreators(), new Promise(r=>setTimeout(()=>r({}),1500))])]);
 const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
                               : GAMES.slice().reverse().map(g=>({g,s:{feedbacks:-1}}));
 const order = ranked.map(o=>o.g);
@@ -224,9 +233,19 @@ function ageCover(){
       el('button',{type:'button',class:'no',onclick:()=>{ const s=box.closest('.slide'); const n=s&&s.nextElementSibling; if(n) n.scrollIntoView({behavior:'smooth'}) }},'いいえ（次の作品へ）')) }},'見る'));
   return el('div',{class:'agecover'},box);
 }
+// 作った人：アイコン（右の列のいちばん上）と名前。タップでプロフィールへ
+function whoBtn(g){
+  const c=TPB.creatorOf(g,LIVE);
+  if(!c.handle) return el('span',{class:'who','aria-hidden':'true'},TPB.avatar(c,46));
+  return el('a',{class:'who',href:TPB.profileUrl(c.handle),'aria-label':c.name+' のプロフィールを見る'},TPB.avatar(c,46));
+}
+function byLine(g){
+  const c=TPB.creatorOf(g,LIVE);
+  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},c.name):c.name, c.official?' ・ 運営':'', g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
+}
 order.forEach((g,idx)=>{
-  const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:'og/'+g.slug+'.png'})
-                       : el('img',{class:'media',src:'og/'+g.slug+'.png',alt:g.title,loading:idx<2?'eager':'lazy'});
+  const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:g.cover||('og/'+g.slug+'.png')})
+                       : el('img',{class:'media'+(g.cover?' shot':''),src:g.cover||('og/'+g.slug+'.png'),alt:g.title,loading:idx<2?'eager':'lazy'});
   if(g.clip){media.muted=true}
   const chips = el('div',{class:'chips'},
     g.rating==='r15'||g.rating==='r18'?el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()):null,
@@ -245,15 +264,16 @@ order.forEach((g,idx)=>{
     media, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
-      el('div',{class:'by'},'by '+(g.author||'ななし'), g.x? ' ・ @'+g.x.replace(/^@/,'') : ''),
+      byLine(g),
       chips,
       el('p',null,g.oneliner),
       g.question?el('div',{class:'q'},'作者が確かめたいこと：'+g.question):null),
     el('div',{class:'rail'},
+      whoBtn(g),
       el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),'遊ぶ'),
       likeB, hmmB,
-      el('button',{class:'rb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
-      el('button',{class:'rb',type:'button','aria-label':'共有',onclick:e=>share(g,e.currentTarget)},el('span',{class:'ic'},'↗'),'共有')),
+      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
+      el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>TPB.openMenu(e.currentTarget,g.slug,{inFeed:true})},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
     idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
@@ -446,7 +466,7 @@ $('sheet').addEventListener('submit',async e=>{
     const {error}=await sb.from('feedback').insert(payload);
     if(!error){
       sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
-      const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb:nth-child(4)'); if(lab) lab.lastChild.textContent='送った';
+      const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb.fbb'); if(lab) lab.lastChild.textContent='送った';
       $('sheet').classList.add('done'); $('sheet').scrollTop=0;
     } else {
       const code=error.code||'', m=error.message||'';

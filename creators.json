@@ -1,0 +1,10 @@
+{
+  "unei": {
+    "name": "テストプレイ部 運営",
+    "bio": "テストプレイ部を動かしている運営です。ここにあるのは、サイトのお試し用に作った小さなゲーム。どれも1〜3分で遊べます。感想をもらったら直して、直した記録も残します。",
+    "avatar": "assets/icon-192.png",
+    "official": true,
+    "links": ["https://discord.gg/NXYSmu4rAY", "https://github.com/kei-tatezaki/testplay-bu"],
+    "video": ""
+  }
+}

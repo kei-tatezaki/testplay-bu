@@ -21,12 +21,22 @@
 </head>
 <body>
 <div class="wrap">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
 <p>小さく遊べる版を出すだけで、作品ページができます。遊んだ人の数も、もらった感想も、それを受けて直した記録も、ぜんぶ1ページに残ります。</p>
-<p><a class="btn" href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discordで運営に声をかける</a></p>
+<div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="#url">遊べるURLの作り方</a></div>
+</div></section>
+
+<section class="card"><div class="body">
+<h2>載せるまでの流れ</h2>
+<ol class="steps">
+<li><b>遊べるURLを作る</b><br>ブラウザで開いてすぐ遊べるURLを用意します。作り方は<a href="#url">下の「遊べるURLの作り方」</a>へ。</li>
+<li><b>URLを運営にわたす</b><br><a href="./submit.html">応募フォーム</a>に、作品名・URL・一言の3つを書いて送るだけ。Discordで運営に声をかけてもOK。</li>
+<li><b>運営が遊んで、作品ページを作る</b><br>運営がかならず遊んでから載せます。載ったらDiscordの「新作とおすすめ」に流れます。</li>
+<li><b>数字と感想を見る</b><br>ログインすると、<a href="./dev.html">開発者ページ</a>で遊んだ人の数・遊んだ時間・感想が見られます。<a href="./me.html">マイページ</a>でプロフィールも作れます。</li>
+</ol>
 </div></section>
 
 <section class="card"><div class="body">
@@ -61,8 +71,33 @@
 <li>対応端末（PCのみ／スマホのみ／PC・スマホ）</li>
 <li>あなたが確かめたいこと（操作感・楽しさ・チュートリアルなど）</li>
 </ul>
-<p>いまは運営に声をかけてもらえれば、こちらで載せます。そのうちサイトから自分で投稿できるようになります。</p>
-<p><a class="btn" href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discordで運営に声をかける</a></p>
+<div class="row"><a class="btn" href="./submit.html">作品を応募する</a><a class="btn ghost" href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discordで運営に声をかける</a></div>
+</div></section>
+
+<section class="card" id="url"><div class="body">
+<h2>遊べるURLの作り方</h2>
+<p>「ダウンロードして遊ぶ」ではなく、<b>ブラウザで開いてすぐ遊べるURL</b>がおすすめです。遊ぶ人の数がまるで変わります。どれも無料です。</p>
+<div class="ways">
+<div class="way"><b>unityroom</b><span class="muted">Unityで作った人に。日本語でかんたん</span>
+<ol><li>Unityで「WebGL」向けにビルドする（圧縮は Gzip にする）</li><li><a href="https://unityroom.com/" target="_blank" rel="noopener">unityroom</a>に登録して「ゲームを登録」</li><li>ビルドでできた4つのファイルをアップロード</li><li>公開して、ゲームのページのURLをコピー</li></ol></div>
+<div class="way"><b>itch.io</b><span class="muted">Unity・Godot・GameMaker・ティラノなど何でも</span>
+<ol><li>Web（HTML5）向けに書き出す</li><li>書き出したフォルダをZIPにする（index.html がいちばん上に来るように）</li><li><a href="https://itch.io/" target="_blank" rel="noopener">itch.io</a>で「Upload new project」→ 種類を「HTML」にしてZIPをアップロード</li><li>「This file will be played in the browser」にチェック</li><li>公開（Public）にして、ページのURLをコピー</li></ol></div>
+<div class="way"><b>GitHub Pages</b><span class="muted">JavaScriptで作った人、GitHubを使っている人に</span>
+<ol><li>index.html が入ったフォルダを、公開リポジトリにプッシュ</li><li>リポジトリの Settings → Pages を開く</li><li>「Deploy from a branch」で main を選んで保存</li><li>1〜2分待つと https://ユーザー名.github.io/リポジトリ名/ で遊べる</li></ol></div>
+<div class="way"><b>そのほか</b><span class="muted">すでに置いてある人はそのURLでOK</span>
+<ol><li>ふりーむ！・PLiCy・ゲームアツマール系・自分のサイトなど、ブラウザで遊べればどこでもOK</li><li>RPGツクールやティラノは「ブラウザ向け」に書き出す</li><li>Scratchは作品ページのURLをそのまま</li></ol></div>
+</div>
+<h3>うまくいかないとき</h3>
+<ul>
+<li><b>開いても真っ白</b>：ZIPのいちばん上に index.html があるか確かめる（フォルダの中にフォルダが入っていないか）</li>
+<li><b>Unityで読み込みが止まる</b>：Player Settings の「Compression Format」を Gzip か Disabled にしてビルドし直す</li>
+<li><b>重い・長い</b>：最初の1面だけ、テスト部屋だけの「小さい版」にする。200MB以下、読み込み30秒以内がめやす</li>
+<li><b>スマホで動くかわからない</b>：わからなければ「PCのみ」で出してOK。あとから変えられます</li>
+<li><b>URLがまだない</b>：Discordで聞いてくれれば、運営がいっしょに見ます</li>
+</ul>
+<h3>URLの渡し方</h3>
+<p>URLができたら、<a href="./submit.html">応募フォーム</a>に貼って送ってください。Discordの人は、運営にURLを送るだけでも大丈夫です。</p>
+<div class="row"><a class="btn" href="./submit.html">作品を応募する</a></div>
 </div></section>
 
 <section class="card"><div class="body">
@@ -80,7 +115,7 @@
 <h2>運営の約束</h2>
 <p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
-<footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
+<footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
 .hero-c h1{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}
@@ -101,5 +136,8 @@ document.addEventListener('click',function(ev){
  }catch(e){}
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="assets/data.js" defer></script>
+<script src="assets/tpb.js" defer></script>
 </body>
 </html>
