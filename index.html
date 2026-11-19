@@ -296,7 +296,7 @@ order.forEach((g,idx)=>{
   const r = reacts[g.slug]||'';
   const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
-  const slide = el('section',{class:'slide',style:'--bgc:'+(g.bg||'#000'),'data-slug':g.slug,'aria-label':g.title},
+  const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     media, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
