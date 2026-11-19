@@ -40,7 +40,7 @@
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
-<footer><a href="../../list.html">← 作品一覧に戻る</a> ・ <a href="../../privacy.html">集める情報と使い道</a></footer>
+<footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
 </div>
 <script>
 (function(){
@@ -64,7 +64,7 @@
  fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/rpc/game_stats',{method:'POST',headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json'},body:'{"since_days":3650}'})
   .then(r=>r.ok?r.json():[]).then(rows=>{const x=(rows||[]).find(r=>r.game_slug==='stack'); if(!x||(x.plays||0)+(x.feedbacks||0)<10) return;
    const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
-   const nn=(x.feedbacks||0)+(x.likes||0)+(x.hmms||0); if(nn) t.push('遊びたい度（めやす） '+Math.round(((x.again_much||0)+0.5*(x.again_some||0)+(x.likes||0)+1.5)/(nn+3)*100)+'%');
+   const nn=(x.feedbacks||0)+(x.likes||0)+(x.hmms||0); if(nn>=5) t.push('遊びたい度（めやす） '+Math.round(((x.again_much||0)+0.5*(x.again_some||0)+(x.likes||0)+1.5)/(nn+3)*100)+'%');
    const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
    if(why.length) t.push('🤔 '+why.join('、'));
    document.getElementById('react').textContent=t.join(' ・ ');}).catch(()=>{});
@@ -74,7 +74,7 @@
   const rows=await r.json();
   if(!Array.isArray(rows)||!rows.length){box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
-  sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
+  sum.textContent=rows.length<5?rows.length+'件（5件たまると、割合も出します）':rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
   box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
  }catch(e){box.textContent='感想を読み込めませんでした'}
 })();

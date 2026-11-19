@@ -359,6 +359,27 @@ dialog.np[open]{display:grid}
 dialog.np::backdrop{background:#0009}
 dialog.np h2{margin:0;font-size:18px}dialog.np p{margin:0;font-size:14px}
 dialog.np .btn{min-height:44px;font-size:15px}
+/* タブ：スマホ（360px）でも4つとも収める */
+@media (max-width:420px){.tabs{gap:0}.tabs button{flex:1 1 auto;padding:10px 4px;font-size:13px}}
+@media (max-width:380px){.tabs button{padding:10px 2px;font-size:12.5px;letter-spacing:-.02em}}
+/* 作品一覧：スマホでは絞り込みを「絞り込む」の1行に畳む。いま絞り込んでいる内容は1行で出す */
+.fbar{display:none}
+@media (max-width:560px){
+ .fbar{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
+ .ftoggle{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+ .fsum{font-size:12px;color:var(--accent);min-width:0;flex:1 1 12em}.fsum:empty{display:none}
+ .fwrap:not(.open){display:none}
+ .fwrap{display:grid;gap:6px}
+}
+@media (min-width:561px){.fwrap{display:contents}}
+/* フッター：「・」を置かず、すき間で区切る（行の頭や終わりに「・」が残らない） */
+footer{column-gap:10px}
+footer>span{padding:0 6px;min-height:44px;display:inline-flex;align-items:center}
+/* 押す場所は高さ44px以上（見た目の高さは変えず、ぶんだけ広げる） */
+.meta .by.byl{overflow:visible}
+.meta .by a.by-link{display:inline-flex;align-items:center;min-height:44px;margin:-13px 0;position:relative}
+.notice a.btn{min-height:44px;display:inline-flex;align-items:center}
+.pl a,.links a{display:inline-flex;align-items:center;min-height:44px}
 """
 
 
@@ -469,7 +490,7 @@ def card(g, prefix):
 {by_html(g, prefix, 36, "av-link", True)}
 <div class="meta">
 <a class="t" href="{prefix}games/{slug}/">{e(g['title'])}</a>
-<div class="by">{by_html(g, prefix)}</div>
+<div class="by byl">{by_html(g, prefix)}</div>
 <div class="by sub">{subhtml}</div>
 <div class="by" data-stats="{slug}"></div>
 </div>
@@ -511,7 +532,7 @@ def build():
 </div>
 </article>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
-<footer><a href="../../list.html">← 作品一覧に戻る</a> ・ <a href="../../privacy.html">集める情報と使い道</a></footer>
+<footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
 </div>
 <script>
 (function(){{
@@ -535,7 +556,7 @@ def build():
  fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
   .then(r=>r.ok?r.json():[]).then(rows=>{{const x=(rows||[]).find(r=>r.game_slug==='{g['slug']}'); if(!x||(x.plays||0)+(x.feedbacks||0)<10) return;
    const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
-   const nn=(x.feedbacks||0)+(x.likes||0)+(x.hmms||0); if(nn) t.push('遊びたい度（めやす） '+Math.round(((x.again_much||0)+0.5*(x.again_some||0)+(x.likes||0)+1.5)/(nn+3)*100)+'%');
+   const nn=(x.feedbacks||0)+(x.likes||0)+(x.hmms||0); if(nn>=5) t.push('遊びたい度（めやす） '+Math.round(((x.again_much||0)+0.5*(x.again_some||0)+(x.likes||0)+1.5)/(nn+3)*100)+'%');
    const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
    if(why.length) t.push('🤔 '+why.join('、'));
    document.getElementById('react').textContent=t.join(' ・ ');}}).catch(()=>{{}});
@@ -545,7 +566,7 @@ def build():
   const rows=await r.json();
   if(!Array.isArray(rows)||!rows.length){{box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
-  sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
+  sum.textContent=rows.length<5?rows.length+'件（5件たまると、割合も出します）':rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
   box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({{'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
  }}catch(e){{box.textContent='感想を読み込めませんでした'}}
 }})();
@@ -569,15 +590,18 @@ def build():
 <h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
+<div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
+<div class="fwrap" id="fwrap">
 <div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
 <div class="fgroup"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
 <div class="fgroup"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
 <div class="fgroup"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC">{cfilters}</nav></div>
+</div>
 <main id="list" class="grid">
 {cards}
 </main>
 <p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
-<footer>遊ぶのは登録なし。感想を書くときだけログイン ・ {len(games)}作品 ・ <a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
+<footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
 let F='',P='',G='',M='';
@@ -586,9 +610,12 @@ fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KE
  .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
 function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&(!G||c.dataset.genre===G)&&(!M||c.dataset.min===M)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters').forEach(n=>{{const f=()=>{{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')}};n.addEventListener('scroll',f,{{passive:true}});addEventListener('resize',f);f()}});
+const fT=document.getElementById('fToggle'),fW=document.getElementById('fwrap');
+fT.addEventListener('click',()=>{{const o=fW.classList.toggle('open');fT.setAttribute('aria-expanded',String(o));fT.lastElementChild.textContent=o?'▴':'▾'}});
+function sumF(){{const t=[];document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)}});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):''}}
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
- if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply();
+ if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply(); sumF();
 }}));
 </script>"""
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
@@ -718,7 +745,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h3>運営の約束</h3>
 <p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
-<footer><a href="./list.html">← 作品一覧に戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
+<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
 .hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}}

@@ -134,3 +134,24 @@ dialog.np[open]{display:grid}
 dialog.np::backdrop{background:#0009}
 dialog.np h2{margin:0;font-size:18px}dialog.np p{margin:0;font-size:14px}
 dialog.np .btn{min-height:44px;font-size:15px}
+/* タブ：スマホ（360px）でも4つとも収める */
+@media (max-width:420px){.tabs{gap:0}.tabs button{flex:1 1 auto;padding:10px 4px;font-size:13px}}
+@media (max-width:380px){.tabs button{padding:10px 2px;font-size:12.5px;letter-spacing:-.02em}}
+/* 作品一覧：スマホでは絞り込みを「絞り込む」の1行に畳む。いま絞り込んでいる内容は1行で出す */
+.fbar{display:none}
+@media (max-width:560px){
+ .fbar{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
+ .ftoggle{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+ .fsum{font-size:12px;color:var(--accent);min-width:0;flex:1 1 12em}.fsum:empty{display:none}
+ .fwrap:not(.open){display:none}
+ .fwrap{display:grid;gap:6px}
+}
+@media (min-width:561px){.fwrap{display:contents}}
+/* フッター：「・」を置かず、すき間で区切る（行の頭や終わりに「・」が残らない） */
+footer{column-gap:10px}
+footer>span{padding:0 6px;min-height:44px;display:inline-flex;align-items:center}
+/* 押す場所は高さ44px以上（見た目の高さは変えず、ぶんだけ広げる） */
+.meta .by.byl{overflow:visible}
+.meta .by a.by-link{display:inline-flex;align-items:center;min-height:44px;margin:-13px 0;position:relative}
+.notice a.btn{min-height:44px;display:inline-flex;align-items:center}
+.pl a,.links a{display:inline-flex;align-items:center;min-height:44px}
