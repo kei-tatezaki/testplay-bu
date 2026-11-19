@@ -279,7 +279,8 @@
   var PLAT = { pc: "PCのみ", sp: "スマホのみ", both: "PC・スマホ" };
   T.tile = function (g, stat, o) {
     o = o || {};
-    var sub = [PLAT[g.platform] || "", g.genre || ""].filter(Boolean).join(" ・ ");
+    var subParts = [PLAT[g.platform] || "", g.genre || ""].filter(Boolean), sub = [];
+    subParts.forEach(function (x, i) { if (i) sub.push(" ・ "); sub.push(el("span", { style: "white-space:nowrap" }, x)) });  // ジャンルは途中で切らず、折り返す
     var st = []; if (stat && (stat.plays || 0) + (stat.feedbacks || 0) >= 10) { if (stat.plays) st.push("遊んだ人 " + stat.plays + "人"); if (stat.feedbacks) st.push("感想 " + stat.feedbacks + "件") }
     var r18 = g.rating === "r18";
     var thumb = el("a", { class: "thumb", href: BASE + "?g=" + g.slug, "aria-label": g.title + "をショートで見る", "data-clip": g.clip && !r18 ? BASE + g.clip : null },
@@ -290,7 +291,7 @@
       el("div", { class: "meta2" },
         el("div", { class: "meta" },
           el("a", { class: "t", href: BASE + "games/" + g.slug + "/" }, g.title),
-          el("div", { class: "by" }, sub), el("div", { class: "by" }, st.join(" ・ ")), o.extra || null),
+          el("div", { class: "by sub" }, sub), el("div", { class: "by" }, st.join(" ・ ")), o.extra || null),
         T.menuBtn(g.slug, g.title, o.inProfile ? "data-in-profile" : null)));
   };
 
