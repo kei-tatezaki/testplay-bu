@@ -47,12 +47,13 @@ tr.hidden td{opacity:.45}
 <div class="wrap">
 <header>
   <h1><img src="assets/icon-192.png" alt="" width="28" height="28">テストプレイ部 管理ページ</h1>
-  <div id="who" class="muted"></div>
+  <div style="display:flex;gap:12px;align-items:center"><a href="./">トップへ</a><span id="who" class="muted"></span></div>
 </header>
 
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
   <p class="muted" style="margin:0">メールアドレスを入れると、ログイン用のリンクが届きます。届いたメールのリンクを、このブラウザで開いてください。</p>
+  <label for="email">メールアドレス</label>
   <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
   <button class="primary" id="sendLink">ログイン用のリンクを送る</button>
   <div id="loginMsg" class="muted"></div>
@@ -118,7 +119,7 @@ tr.hidden td{opacity:.45}
   </div>
 
   <div data-panel="subs" hidden>
-    <p class="muted" style="margin-top:0">サイトのフォームから届いた応募です。①URLを開いて遊ぶ → ②「games.json用」をコピーして games.json に足す（slug・色は直す）→ ③ビルドしてプッシュ → ④「作者」タブでこの人を作者にする → ⑤「載せた」を押す。</p>
+    <p class="muted" style="margin-top:0">サイトのフォームから届いた応募です。①URLを開いて遊ぶ → ②「games.json用」をコピーして games.json に足す（slug・色は直す）→ ③ビルドしてプッシュ → ④「作者」タブでこの人を作者にする → ⑤「載せた」を押す（直しの依頼は、直したら「直した」を押す）。</p>
     <div id="subRows" style="display:grid;gap:10px"></div>
   </div>
 
@@ -143,9 +144,9 @@ tr.hidden td{opacity:.45}
 </div>
 <div id="msg"></div>
 <div id="modal" hidden style="position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50">
-  <div class="card" style="width:min(440px,calc(100% - 32px));display:grid;gap:12px">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle" style="width:min(440px,calc(100% - 32px));display:grid;gap:12px">
     <b id="mTitle"></b><div id="mBody" class="muted"></div>
-    <input id="mInput" placeholder="理由（あとで見返す用）">
+    <input id="mInput" placeholder="理由（あとで見返す用）" aria-label="理由">
     <div style="display:flex;gap:8px;justify-content:flex-end"><button id="mNo">やめる</button><button id="mYes" class="danger">実行する</button></div>
   </div>
 </div>
@@ -199,13 +200,24 @@ function ask(title, body, withInput, def){
   return new Promise(res => {
     $('mTitle').textContent=title; $('mBody').textContent=body;
     $('mInput').hidden=!withInput; $('mInput').value=def||'';
+    const opener = document.activeElement; document.querySelector('.wrap').inert = true;
     $('modal').hidden=false; (withInput?$('mInput'):$('mYes')).focus();
-    const done = v => { $('modal').hidden=true; $('mYes').onclick=$('mNo').onclick=null; res(v) };
+    const done = v => { $('modal').hidden=true; document.querySelector('.wrap').inert = false; if (opener && opener.isConnected) try { opener.focus() } catch (e) {} $('mYes').onclick=$('mNo').onclick=null; res(v) };
     $('mYes').onclick = () => done(withInput ? $('mInput').value.trim() || '理由なし' : true);
     $('mNo').onclick = () => done(null);
   });
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) { e.preventDefault(); $('mNo').click() } });
+document.addEventListener('keydown', e => {
+  if ($('modal').hidden) return;
+  if (e.key === 'Escape') { e.preventDefault(); $('mNo').click(); return }
+  if (e.key === 'Tab') { // 確認の箱の中だけでTabを回す
+    const f = [...$('modal').querySelectorAll('input,button')].filter(x => !x.hidden && !x.disabled), a = document.activeElement;
+    if (!f.length) return;
+    if (e.shiftKey && a === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+    else if (!e.shiftKey && a === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+    else if (!$('modal').contains(a)) { e.preventDefault(); f[0].focus() }
+  }
+});
 $('logout').onclick = $('logout2').onclick = async () => { await sb.auth.signOut(); start(); };
 sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') start(); });
 
@@ -229,10 +241,17 @@ async function loadAll(){
 
 // ---- 応募 ----
 const SUB_ST = { new: '確認中', ok: '載せた', ng: '見送り' };
+// 直しの依頼（kind==='edit'）は「載せた」ではなく「直した」
+const stLabel = (s, st) => (s.kind === 'edit' && (st || s.status) === 'ok') ? '直した' : SUB_ST[st || s.status];
 let SUBS = [], REPS = [];
 function subJson(s){
   const d = s.data || {};
-  const slug = (d.title || 'game').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'new-game';
+  // 日本語の作品名だと slug が空になるので、日付と連番を付けて new-game どうしがかぶらないようにする
+  let slug = (d.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (!slug) { const day = String(s.created_at || new Date().toISOString()).slice(0, 10).replace(/-/g, '');
+    const n = SUBS.filter(x => x.kind !== 'edit' && !(((x.data || {}).title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))).findIndex(x => x.id === s.id);
+    slug = 'new-game-' + day + '-' + (Math.max(n, 0) + 1); }
+  if (GAMES[slug]) slug += '-' + Date.now().toString(36).slice(-3);
   return JSON.stringify({ slug, title: d.title || '', author: s.by_name || '', creator: s.handle || undefined, x: '', stage: d.stage || '', check: d.check || '', genre: d.genre || '',
     minutes: d.minutes || '', oneliner: d.oneliner || '', question: d.question || '', highlights: [], play: d.play_url || '', youtube: '', clip: '',
     rating: d.rating || undefined, color: '#7fe0c9', bg: '#10141c', platform: d.platform || 'both', controls: d.controls || '', added: new Date().toISOString().slice(0, 10) }, null, 2);
@@ -249,18 +268,18 @@ async function loadSubs(){
          ${d.question ? `<div>質問：${esc(d.question)}</div>` : ''}${d.image_url ? `<div>画像：${esc(d.image_url)}</div>` : ''}${d.note ? `<div class="free">メモ：${esc(d.note)}</div>` : ''}`;
     return `<div class="card" style="padding:12px;display:grid;gap:4px">
       <div class="muted">${fmt(s.created_at)} ・ ${esc(s.by_name || '')}（${esc(s.by_email || '')}）${s.handle ? ' ・ <a href="profile.html?u=' + esc(s.handle) + '" target="_blank">@' + esc(s.handle) + '</a>' : ' ・ プロフィールなし'}
-        <span class="tag ${s.status === 'new' ? 'warn' : s.status === 'ng' ? 'ban' : 'dev'}">${SUB_ST[s.status]}</span></div>
+        <span class="tag ${s.status === 'new' ? 'warn' : s.status === 'ng' ? 'ban' : 'dev'}">${stLabel(s)}</span></div>
       ${rows}
       ${s.admin_note ? `<div class="muted">運営メモ（本人に見えます）：${esc(s.admin_note)}</div>` : ''}
       <div class="acts">${s.kind === 'new' ? `<button data-copy="${s.id}">games.json用をコピー</button>` : ''}
-        <button data-sub="${s.id}" data-st="ok">載せた</button><button data-sub="${s.id}" data-st="ng" class="danger">見送り</button>${s.status !== 'new' ? `<button data-sub="${s.id}" data-st="new">確認中に戻す</button>` : ''}</div></div>`;
+        <button data-sub="${s.id}" data-st="ok">${s.kind === 'edit' ? '直した' : '載せた'}</button><button data-sub="${s.id}" data-st="ng" class="danger">見送り</button>${s.status !== 'new' ? `<button data-sub="${s.id}" data-st="new">確認中に戻す</button>` : ''}</div></div>`;
   }).join('') || '<span class="muted">まだ応募はありません</span>';
 }
 $('subRows').onclick = async (e) => {
   const c = e.target.closest('button[data-copy]'), b = e.target.closest('button[data-sub]');
   if (c) { const s = SUBS.find(x => x.id === c.dataset.copy); try { await navigator.clipboard.writeText(subJson(s)); toast('コピーしました。games.json に貼って、slug と色を直してください') } catch (err) { toast('コピーできませんでした') } }
-  if (b) { const st = b.dataset.st;
-    const note = st === 'new' ? '' : await ask(st === 'ok' ? '「載せた」にしますか？' : '「見送り」にしますか？', '下のメモは応募した本人のマイページに出ます（空でもOK）。', true, '');
+  if (b) { const st = b.dataset.st, s0 = SUBS.find(x => x.id === b.dataset.sub);
+    const note = st === 'new' ? '' : await ask(st === 'ok' ? (s0 && s0.kind === 'edit' ? '「直した」にしますか？' : '「載せた」にしますか？') : '「見送り」にしますか？', '下のメモは応募した本人のマイページに出ます（空でもOK）。', true, '');
     if (note === false || note === null) return;
     toast(await rpc('admin_submission_set', { sid: b.dataset.sub, st, note: typeof note === 'string' && note !== '理由なし' ? note : '' })); await loadSubs(); }
 };
@@ -355,7 +374,7 @@ async function loadGames(){
 
 async function loadBans(){
   const rows = await rpc('admin_bans');
-  $('banRows').innerHTML = rows.map(b => `<tr><td class="muted">${fmt(b.created_at)}</td><td>${esc(b.kind)}</td>
+  $('banRows').innerHTML = rows.map(b => `<tr><td class="muted">${fmt(b.created_at)}</td><td>${esc(({client:'端末',user:'アカウント'})[b.kind] || b.kind)}</td>
     <td>${esc(b.label||'')}</td><td>${esc(b.reason||'')}</td>
     <td><button data-cid="${esc(b.ident)}">BANを解く</button></td></tr>`).join('')
     || '<tr><td colspan="5" class="muted">BANしている人はいません</td></tr>';
