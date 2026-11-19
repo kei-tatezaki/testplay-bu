@@ -41,7 +41,7 @@ function done(text){
   main.replaceChildren(el('section',{class:'card'},el('div',{class:'body',style:'text-align:center'},
     el('h1',{style:'font-size:22px;margin:0'},'送ったよ！ありがとう'),
     el('p',{style:'margin:0'},text),
-    el('p',{class:'muted',style:'margin:0;font-size:14px'},'進みぐあいは、マイページの「自分の作品」で見られます。急ぎのときや、やりとりしたいときはDiscordで運営に声をかけてね。'),
+    el('p',{class:'muted',style:'margin:0;font-size:14px'},'運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。進みぐあいは、マイページの「自分の作品」で見られます。'),
     el('div',{class:'row',style:'justify-content:center'},el('a',{class:'btn',href:'./me.html#games'},'マイページで見る'),el('a',{class:'btn ghost',href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discordを開く')))));
   scrollTo(0,0);
 }
@@ -86,7 +86,7 @@ function newForm(){
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit'},'応募する');
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
-    el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営が遊んで確かめてから、作品ページを作ります。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
+    el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
     L('作品名',true,'',f.title),
     L('遊べるURL',true,'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）',f.play_url),
     L('一言',true,'何をするゲーム？',f.oneliner),
