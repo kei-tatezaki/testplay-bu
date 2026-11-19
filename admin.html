@@ -65,7 +65,7 @@ tr.hidden td{opacity:.45}
 </section>
 
 <section id="denyBox" class="card login" hidden>
-  <b>このアカウントは管理者ではありません</b>
+  <b>このページは運営だけが使えます</b>
   <button id="logout2">ログアウト</button>
 </section>
 
@@ -176,7 +176,9 @@ async function start(){
   $('who').textContent = session.user.email || '';
   const admin = await rpc('is_admin');
   if (admin) { show('app'); await loadAll(); return; }
-  show('claimBox');
+  // 管理者がもういるなら「管理者にする」は出さない（admin_exists は supabase/010。まだ無いときも、いるものとして扱う）
+  const { data: exists, error } = await sb.rpc('admin_exists');
+  show(!error && exists === false ? 'claimBox' : 'denyBox');
 }
 
 $('sendLink').onclick = async () => {
