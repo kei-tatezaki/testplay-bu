@@ -58,6 +58,7 @@ button,select,input{font:inherit}
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
   <p class="muted" style="margin:0">自分の作品の数字と、届いた感想が見られます。作品を載せたときと同じアカウントでログインしてください。</p>
+  <div id="loginNote"></div>
   <div id="providers" style="display:grid;gap:8px"></div>
   <label for="email">メールアドレス</label>
   <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
@@ -207,10 +208,11 @@ $('fbList').onclick=async e=>{
 $('game').onchange=load;
 document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#period button').forEach(x=>x.setAttribute('aria-pressed',x===b)); days=+b.dataset.d; load() });
 
+$('loginNote').replaceWith(TPB.loginNote('muted','margin:0'));
 const otp=TPB.otpBlock({btnClass:'primary'}); $('otpHere').append(otp);
 $('sendLink').onclick=async()=>{ const email=$('email').value.trim(); if(!email) return; $('sendLink').disabled=true;
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}}); $('sendLink').disabled=false;
-  $('loginMsg').textContent=error?'送れませんでした：'+error.message:'メールを送りました。メールのリンクを開くか、届いた6けたの番号を下に入れてください（迷惑メールも確認してね）'; if(!error) otp.open(email) };
+  $('loginMsg').textContent=error?'送れませんでした：'+error.message:TPB.loginSentText(); if(!error) otp.open(email) };
 fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{const ext=(st&&st.external)||{};
   [['discord','Discordでログイン'],['google','Googleでログイン']].forEach(([id,l])=>{ if(ext[id]){ const b=document.createElement('button'); b.textContent=l; b.onclick=()=>sb.auth.signInWithOAuth({provider:id,options:{redirectTo:location.origin+location.pathname}}); $('providers').append(b) } }) }).catch(()=>{});
 $('logout').onclick=async()=>{ await sb.auth.signOut(); start() };

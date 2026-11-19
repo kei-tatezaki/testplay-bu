@@ -265,7 +265,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
     <h3 id="lTitle">感想を送るにはログインしてね</h3>
     <p class="sub">遊ぶ・👍・🤔は、ログインなしでOK。感想を書くときだけ、ログインしてね（名前は運営にだけ見えます）。</p>
     <div id="providers"></div>
-    <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス" aria-label="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button><p class="lnote">メールに、リンクと<b>6けたの番号</b>が届きます。リンクを開くか、番号を入れてね（リンクは、このページを開いたのと同じブラウザで開いてね）。</p></div>
+    <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス" aria-label="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button></div><div id="lNote"></div>
     <p class="msg" id="lMsg" aria-live="polite"></p>
     <div id="lOtp"></div>
     <button class="btn ghost" type="button" id="lClose">あとで</button>
@@ -701,6 +701,7 @@ function closeLogin(){ const was=$('loginBg').classList.contains('open'); $('log
 function needLogin(g){ loginOpener=openerFor(g); store.set('pendingFb',g.slug); store.set('pendingFbT',Date.now()); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); syncInert(); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }); setTimeout(()=>$('lEmail').focus(),30) }
 $('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); closeLogin() });
 $('loginBg').addEventListener('click',e=>{ if(e.target===$('loginBg')) $('lClose').click() });
+$('lNote').replaceWith(TPB.loginNote('lnote'));
 const lOtp=TPB.otpBlock({btnClass:'btn ghost'}); $('lOtp').append(lOtp);
 $('lSend').addEventListener('click',async()=>{
   const email=$('lEmail').value.trim(); const msg=$('lMsg');
@@ -710,7 +711,7 @@ $('lSend').addEventListener('click',async()=>{
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
   $('lSend').disabled=false;
   if(error){ msg.className='msg err'; msg.textContent='送れなかった…時間をおいてもう一度試してね' }
-  else{ msg.textContent='メールを送ったよ。メールのリンクを開くか、届いた6けたの番号を下に入れてね。そのあと、この作品の感想を書けます（迷惑メールも確認してね）'; lOtp.open(email) }
+  else{ msg.textContent=TPB.loginSentText()+' そのあと、この作品の感想を書けます。'; lOtp.open(email) }
 });
 // 使えるログイン方法（DiscordやGoogleはSupabaseで有効にしたものだけ出す）
 fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{

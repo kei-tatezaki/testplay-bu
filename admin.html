@@ -56,7 +56,7 @@ button,.btn,header a{white-space:nowrap}
 
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
-  <p class="muted" style="margin:0">メールアドレスを入れると、ログイン用のリンクと6けたの番号が届きます。リンクを開くか、番号を入れてください。</p>
+  <div id="loginNote"></div>
   <label for="email">メールアドレス</label>
   <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
   <button class="primary" id="sendLink">ログイン用のメールを送る</button>
@@ -189,6 +189,7 @@ async function start(){
   show(!error && exists === false ? 'claimBox' : 'denyBox');
 }
 
+$('loginNote').replaceWith(TPB.loginNote('muted','margin:0'));
 const otp = TPB.otpBlock({ btnClass: 'primary' }); $('otpHere').append(otp);
 $('sendLink').onclick = async () => {
   const email = $('email').value.trim();
@@ -196,7 +197,7 @@ $('sendLink').onclick = async () => {
   $('sendLink').disabled = true;
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
   $('sendLink').disabled = false;
-  $('loginMsg').textContent = error ? '送れませんでした：' + error.message : 'メールを送りました。メールのリンクを開くか、届いた6けたの番号を下に入れてください（迷惑メールも確認してね）';
+  $('loginMsg').textContent = error ? '送れませんでした：' + error.message : TPB.loginSentText();
   if (!error) otp.open(email);
 };
 $('claim').onclick = async () => {
