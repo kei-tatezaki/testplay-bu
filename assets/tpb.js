@@ -478,6 +478,48 @@
       prov, form, msg, otp, el("a", { class: "by", href: T.base + "privacy.html" }, "集める情報と使い道")));
   };
 
+  // ---- ポイント（計算はぜんぶデータベースの中。ここは見せるだけ） ----
+  // 決まりの数字は points_rule（だれでも）から。取れなかったときは、初期値で見せる
+  var PT_DEFAULT = { min_chars: 40, daily_cap: 50, tier1_max: 2, tier1_pt: 10, tier2_max: 9, tier2_pt: 5, tier3_pt: 2, submit_cost: 30 };
+  var _rule = null;
+  T.ptRule = function () {
+    if (!_rule) _rule = T.pub("points_rule").then(function (r) { var o = {}; for (var k in PT_DEFAULT) o[k] = (r && typeof r[k] === "number") ? r[k] : PT_DEFAULT[k]; _ruleNow = o; _ptOk = !!(r && typeof r === "object"); return o });
+    return _rule;
+  };
+  T.ptRuleNow = function () { return _ruleNow || PT_DEFAULT };
+  var _ruleNow = null, _ptOk = null;
+  T.ptOk = function () { return _ptOk === true };   // ポイントの仕組み（012）がデータベースにあるか。まだ無いときは、ポイントの表示を出さない
+  // 感想が n 件ある作品でもらえるポイント（めやす）
+  T.ptFor = function (n, r) { r = r || T.ptRuleNow(); return n <= r.tier1_max ? r.tier1_pt : n <= r.tier2_max ? r.tier2_pt : r.tier3_pt };
+  // 0pt だったときの理由（データベースが note に入れた短い名前 → 一言）
+  T.ptWhy = function (note) {
+    return { short: "一言が" + T.ptRuleNow().min_chars + "字に届かなかった", lazy: "同じ言葉のくり返しに見えた", own: "自分の作品", not_played: "遊んでいない", cap: "今日の上限に届いている" }[note] || "";
+  };
+  // 記録1行の説明
+  T.ptReasonText = function (x) {
+    var g = x.label ? (T.game(x.label) ? T.game(x.label).title : x.label) : "";
+    switch (x.reason) {
+      case "feedback": return "「" + g + "」に感想を書いた";
+      case "feedback_revoked": return "「" + g + "」の感想が非表示になったので取り消し";
+      case "feedback_restored": return "「" + g + "」の感想が表示に戻ったので返った";
+      case "submission": return "作品を応募した" + (x.label ? "（" + x.label + "）" : "");
+      case "submission_refund": return "応募が見送りになったので返った" + (x.label ? "（" + x.label + "）" : "");
+      case "admin_adjust": return "運営から" + (x.note ? "：" + x.note : "");
+    }
+    return "";
+  };
+  // 「ポイントのしくみ」の説明（マイページ・応募フォームなどで使う）
+  T.ptHowTo = function () {
+    var r = T.ptRuleNow();
+    return el("div", { class: "tpb-pthow" },
+      el("p", { style: "margin:0" }, "感想の少ない作品に、ていねいな感想を書くとポイントがたまります。ためたポイントで、作品を応募できます。"),
+      el("ul", { style: "margin:8px 0 0;padding-left:1.2em;display:grid;gap:4px;font-size:14px" },
+        el("li", null, el("b", null, "ためる："), "一言を" + r.min_chars + "字以上（空白は数えません）で書いた感想に、ポイントがつきます。感想が" + (r.tier1_max + 1) + "件より少ない作品は +" + r.tier1_pt + "pt、" + (r.tier2_max + 1) + "件より少ない作品は +" + r.tier2_pt + "pt、それより多い作品は +" + r.tier3_pt + "pt です。"),
+        el("li", null, "遊んだ作品だけ・自分の作品はなし・同じ言葉のくり返しはなし。もらえるのは、1日 " + r.daily_cap + "pt までです。"),
+        el("li", null, el("b", null, "つかう："), "作品を応募するとき " + r.submit_cost + "pt。直しの依頼はいりません。運営が見送りにしたら、返します。"),
+        el("li", null, "運営が感想を非表示にしたら、その感想でもらった分は取り消されます（表示に戻れば返ります）。")));
+  };
+
   // ---- 訪問の記録（1つの端末につき1日1回） ----
   // サイトのどこかを開いたら、その日のうち最初の1回だけ site_visits に書く（端末のIDと日付だけ。日付はDBが日本時間で入れる）。
   // 同じ日にもう送ったかは localStorage（tpb:visitDay）に覚えて、2回目からは送らない。

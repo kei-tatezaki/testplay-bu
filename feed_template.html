@@ -186,6 +186,8 @@ textarea{min-height:72px;resize:vertical}
 em.req{font-style:normal;font-size:12px;font-weight:700;color:#06211b;background:var(--warn);border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:1px}
 fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 .ferr{margin:0;font-size:13px;color:#ff8f7a;font-weight:700}
+.ptinfo{margin:-6px 0 0;font-size:13px;font-weight:700;color:var(--accent);background:#5ce1c61a;border-radius:10px;padding:8px 12px;line-height:1.5}.ptinfo[hidden]{display:none}.ptinfo.off{color:var(--muted);background:#ffffff0f;font-weight:400}
+.ptdone{margin:0;font-size:18px;font-weight:700;color:var(--accent)}.ptdone.off{font-size:14px;font-weight:400;color:var(--muted)}.ptdone:empty{display:none}
 .pubnote{margin:0;font-size:12px;color:var(--muted);text-align:center}
 .actions{display:grid;gap:8px}
 .btn{border:0;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:15px;background:var(--accent);color:var(--accent-ink);text-align:center;text-decoration:none}
@@ -283,6 +285,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
   <form class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <h3 id="sTitle">感想を送る</h3>
     <p class="sub" id="sSub">選ぶだけで8割できあがり。1分で送れます。</p>
+    <p class="ptinfo" id="ptInfo" hidden></p>
     <fieldset data-k="again" data-single><legend>もう一回遊びたい？ <em class="req">必須</em></legend><div class="opts"></div></fieldset>
     <fieldset data-k="reach" data-single><legend>どこまで遊んだ？ <em class="req">必須</em></legend><div class="opts"></div><input type="text" id="stopAt" placeholder="途中でやめた場合、どのあたり？（任意）" maxlength="60" hidden></fieldset>
     <fieldset data-k="good"><legend>よかったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
@@ -300,6 +303,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
     <p class="who" id="sWho"></p>
     <div id="sDone">
       <h3>送ったよ！ありがとう</h3>
+      <p class="ptdone" id="ptDone" role="status"></p>
       <p class="sub">作者が感想を読んで直したら、Discordでお知らせが届きます。新作や毎日17時のおすすめも流れるよ。</p>
       <a class="btn discord join" href="__DISCORD__" target="_blank" rel="noopener">Discordで進捗を見る（参加する）</a>
       <button class="btn ghost" type="button" id="sDoneClose">閉じる</button>
@@ -411,7 +415,7 @@ function chipsFor(g){
   if(g.rating==='r15'||g.rating==='r18') imp.push(el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()));
   if(g.platform&&!canPlay(g)) imp.push(el('span',{class:'chip warn'},g.platform==='pc'?'PCで遊べます':'スマホで遊べます'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
-  if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},'感想まだ0件・最初の1人に'));
+  if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
   return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null);
 }
 function refreshChips(slug){
@@ -700,7 +704,12 @@ document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
 EMO.forEach(e=>$('emo').append(el('button',{class:'opt',type:'button',onclick:()=>{const t=$('free');t.value=(t.value?t.value+' ':'')+e+'：';t.focus();upd()}},e)));
 const free=$('free'), dev=$('dev');
 dev.checked = !!store.get('dev',false);
-function upd(){ const n=[...free.value.trim()].length; $('count').textContent=n+'文字'+(dev.checked&&n<40?'（あと'+(40-n)+'文字）':''); $('minNote').textContent=dev.checked?'開発者は40文字以上':'任意' }
+// ポイントの対象になるかは、空白を除いた字数で見る（データベースと同じ数え方）。もらえない作品（自分の作品など）では、ポイントの案内を出さない
+let ptHint=null;
+const ptLen=()=>[...free.value.replace(/[\s\u3000]/g,'')].length;
+function upd(){ const n=[...free.value.trim()].length, pn=ptLen(), min=TPB.ptRuleNow().min_chars, on=ptHint&&!ptHint.blocked&&ptHint.points>0;
+  let t=n+'文字'; if(dev.checked&&n<40) t+='（あと'+(40-n)+'文字）'; else if(on) t+=pn>=min?'（+'+ptHint.points+'pt の対象）':'（あと'+(min-pn)+'字でポイント）';
+  $('count').textContent=t; $('minNote').textContent=dev.checked?'開発者は40文字以上':'任意' }
 free.addEventListener('input',upd); dev.addEventListener('change',()=>{store.set('dev',dev.checked);upd()});
 // ---- ログイン（感想を送るときだけ必要） ----
 // Supabaseのクライアントは、tpb.js が作った1つを使い回す（2つ作ると警告が出る）。CDNの読み込みは画面を止めないよう、使うときに取り出す
@@ -752,9 +761,29 @@ async function openSheet(g){
   sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
-  free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; upd();
+  free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; ptHint=null; $('ptInfo').hidden=true; upd(); loadHint(g);
   if(!$('sheetBg').classList.contains('open')) sheetOpener=openerFor(g);
   $('sheetBg').classList.add('open'); syncInert(); TPB.layer.open('sheet',closeSheet); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
+}
+// この作品に感想を書くと何ポイントか（game_point_hint）。取れなかったら（まだ012が無いなど）案内を出さない
+async function loadHint(g){
+  let h=null; try{ const r=await sbc().rpc('game_point_hint',{p_slug:g.slug,p_client:CLIENT}); h=r.error?null:r.data }catch(e){}
+  if(sheetGame!==g||!$('sheetBg').classList.contains('open')) return;
+  ptHint=h; const box=$('ptInfo'); box.classList.remove('off');
+  if(!h||h.blocked==='already'){ box.hidden=true; upd(); return }
+  const r=TPB.ptRuleNow(), min=r.min_chars;
+  if(h.blocked){ box.classList.add('off'); box.textContent={own:'自分の作品に書いても、ポイントはつきません',not_played:'まだ遊んでいないので、ポイントはつきません。遊んでから書くと +'+h.base+'pt です',cap:'今日のポイントの上限に届いたので、この感想にポイントはつきません'}[h.blocked]||''; box.hidden=!box.textContent }
+  else{ const kind=h.feedbacks<=r.tier1_max?'感想がまだ少ない作品':h.feedbacks<=r.tier2_max?'感想がふつうの数の作品':'感想が多い作品なので、少なめ';
+    box.textContent='この作品に'+min+'字以上書くと +'+h.points+'pt（'+kind+'）'+(h.points<h.base?'。今日の上限が近いので、もらえるのは '+h.points+'pt までです':''); box.hidden=false }
+  upd();
+}
+// 送ったあと：もらったポイントを出す（0pt のときは理由を一言）
+async function showPtResult(g){
+  const box=$('ptDone'); box.textContent=''; box.classList.remove('off');
+  let d=null; try{ const r=await sbc().rpc('feedback_points_result',{p_slug:g.slug}); d=r.error?null:r.data }catch(e){}
+  if(!d||typeof d.delta!=='number') return;
+  if(d.delta>0) box.textContent='+'+d.delta+'pt もらったよ（残り '+d.balance+'pt）';
+  else{ box.classList.add('off'); box.textContent='今回はポイントがつきませんでした'+(TPB.ptWhy(d.note)?'：'+TPB.ptWhy(d.note):'')+'（いま '+d.balance+'pt）' }
 }
 function closeSheet(){ const was=$('sheetBg').classList.contains('open'); $('sheetBg').classList.remove('open'); syncInert(); TPB.layer.close('sheet'); if(was&&!$('loginBg').classList.contains('open')) restoreFocus(sheetOpener) }
 $('sClose').addEventListener('click',closeSheet);
@@ -779,7 +808,7 @@ $('sheet').addEventListener('submit',async e=>{
     if(!error){
       sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
       const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb.fbb'); if(lab) lab.lastChild.textContent='送った';
-      $('sheet').classList.add('done'); $('sheet').scrollTop=0;
+      $('ptDone').textContent=''; $('sheet').classList.add('done'); $('sheet').scrollTop=0; showPtResult(g);
     } else {
       const code=error.code||'', m=error.message||'';
       msg.className='msg err';
@@ -808,6 +837,7 @@ if(startSlug && new URLSearchParams(location.search).get('play')==='1'){
   if(g) setTimeout(()=>play(g),0);
 }
 // 数字と作者の情報は、画面を出したあとで取りにいく。届いたら、ラベルと名前だけ直す（並びは入れ替えない）
+TPB.ptRule().then(()=>GAMES.forEach(g=>refreshChips(g.slug)));
 loadStats().then(o=>{ if(!o) return; STATS=o; statsKnown=true; store.set('statsCache',o); GAMES.forEach(g=>refreshChips(g.slug)) });
 TPB.liveCreators().then(live=>{ live=live||{}; if(!Object.keys(live).length&&Object.keys(LIVE).length) return; LIVE=live; store.set('liveCache',live); refreshCreators() });
 })();
