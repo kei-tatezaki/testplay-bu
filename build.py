@@ -292,12 +292,19 @@ def build():
 <div class="by">by {e(g['author'])}{f' ・ <a href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 </div>
 </article>
-<section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
+<section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
 <footer>感想はトップのフィードの「💬感想」から送れます</footer>
 </div>
 <script>
 (async function(){{
  const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
+ // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
+ fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
+  .then(r=>r.ok?r.json():[]).then(rows=>{{const x=(rows||[]).find(r=>r.game_slug==='{g['slug']}'); if(!x) return;
+   const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
+   const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
+   if(why.length) t.push('🤔 '+why.join('、'));
+   document.getElementById('react').textContent=t.join(' ・ ');}}).catch(()=>{{}});
  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);
  try{{
   const r=await fetch('{SB_URL}/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.{g['slug']}&order=created_at.desc&limit=100',{{headers:{{apikey:'{SB_KEY}'}}}});

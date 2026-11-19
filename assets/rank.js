@@ -7,7 +7,9 @@
  *    + 感想が少ない作品（0件がいちばん強い）… 作る人に反応を届けるため
  *    + 遊ばれた数が少ない作品
  *    + 遊びたい度（感想の「また遊びたい」と👍🤔。件数が少ないうちは50%に寄せる）
- *    + その人の好み（👍・感想を送った作品と同じジャンル／確かめたいことは上、🤔・すぐスワイプした作品の仲間は下）
+ *    + その人の好み（👍・感想を送った作品と同じジャンル／確かめたいことは上。
+ *      🤔「好みのジャンルじゃない」は仲間を大きく下げ、「おもしろさがわからなかった」は少し下げる。
+ *      「操作がわかりにくい」「重い」はその作品だけの問題なので仲間は下げない。すぐスワイプした作品の仲間も少し下げる）
  *    − その作品自体をすぐスワイプした回数、🤔を押した作品
  *    + 少しのランダム（人と日によって変わる。同じ日に開き直しても順番は変わらない）
  * 3. 10本ごとに最低3本は「感想が3件未満」の作品を入れる
@@ -39,7 +41,13 @@
     function add(slug, v) { var g = by[slug]; if (g) tagsOf(g).forEach(function (t) { a[t] = (a[t] || 0) + v; }); }
     Object.keys(hist.reacts || {}).forEach(function (slug) {
       if (hist.reacts[slug] === "like") add(slug, 1);
-      if (hist.reacts[slug] === "hmm") add(slug, -1);
+      if (hist.reacts[slug] === "hmm") {
+        // 🤔の理由で、似た作品をどれくらい下げるかを変える
+        var why = (hist.hmmWhy || {})[slug];
+        if (why === "genre") add(slug, -1.5);      // 好みのジャンルじゃない → 似た作品も出にくく
+        else if (why === "fun") add(slug, -0.5);   // おもしろさがわからなかった → 少しだけ
+        // 操作・重さはその作品の問題なので、似た作品は下げない
+      }
     });
     (hist.sent || []).forEach(function (slug) { add(slug, 0.5); });
     Object.keys(hist.seen || {}).forEach(function (slug) {

@@ -60,6 +60,12 @@ button{font:inherit;color:inherit}
 .player header button{background:#ffffff1a;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px}
 .player header button.fb{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .player iframe{flex:1;border:0;width:100%;background:#fff}
+.why{position:fixed;z-index:45;right:84px;width:min(260px,calc(100vw - 100px));background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px;display:none;gap:8px;box-shadow:0 8px 30px #0009}
+.why.open{display:grid}
+.why b{font-size:14px}
+.why small{color:var(--muted);font-size:11px;line-height:1.5}
+.why button{text-align:left;border:1px solid var(--line);background:#ffffff0d;border-radius:10px;padding:9px 12px;cursor:pointer;font-size:14px;color:var(--ink)}
+.why button.x{border:0;background:none;text-align:center;color:var(--muted);font-size:12px;padding:4px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
 .toast.show{display:flex}
 .toast button{border:0;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
@@ -90,6 +96,12 @@ textarea{min-height:72px;resize:vertical}
 </head>
 <body>
 <div class="top"><a class="back" id="back" href="list.html" aria-label="まとめに戻る">←</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px">テストプレイ部</span><span class="sp"></span></div>
+<div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは作った人に届きます（名前は出ません）</small>
+<button type="button" data-r="controls">🎮 操作がわかりにくい</button>
+<button type="button" data-r="heavy">🐢 重い・うまく動かない</button>
+<button type="button" data-r="fun">😐 おもしろさがわからなかった</button>
+<button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
+<button type="button" class="x" data-r="">やめる</button></div>
 <main class="feed" id="feed" aria-label="作品フィード"></main>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
@@ -149,7 +161,7 @@ async function loadStats(){
 }
 const seen = store.get('seen',{});
 const STATS = await loadStats();
-const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
+const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
                               : GAMES.slice().reverse().map(g=>({g,s:{feedbacks:-1}}));
 const order = ranked.map(o=>o.g);
 const META = {}; ranked.forEach(o=>META[o.g.slug]=o);
@@ -217,12 +229,35 @@ document.querySelectorAll('.slide[data-slug]').forEach(s=>vio.observe(s));
 addEventListener('pagehide',leaveView);
 
 // 遊ぶ・👍・🤔 をデータベースに記録（同じ日に何回押しても1回。失敗しても画面は止めない）
-function track(g,kind){
-  try{ fetch(SB_URL+'/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:g.slug,kind,client_id:CLIENT})}).catch(()=>{}) }catch(e){}
+function track(g,kind,reason){
+  const body={game_slug:g.slug,kind,client_id:CLIENT}; if(reason) body.reason=reason;
+  try{ fetch(SB_URL+'/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(body)}).catch(()=>{}) }catch(e){}
 }
+let whyFor=null;
+function askWhy(g,btn){
+  whyFor={g,btn}; const box=$('why'), r=btn.getBoundingClientRect();
+  box.classList.add('open'); box.style.top=Math.max(60,Math.min(r.top-40, innerHeight-box.offsetHeight-16))+'px';
+  box.querySelector('button').focus();
+}
+$('why').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||!whyFor) return;
+  const r=b.dataset.r, {g,btn}=whyFor; whyFor=null; $('why').classList.remove('open');
+  if(!r) return;
+  hmmWhy[g.slug]=r; store.set('hmmWhy',hmmWhy);
+  setReact(g,'hmm',btn,r);
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&whyFor){ whyFor=null; $('why').classList.remove('open') } });
+feed.addEventListener('scroll',()=>{ if(whyFor){ whyFor=null; $('why').classList.remove('open') } },{passive:true});
+const hmmWhy = store.get('hmmWhy',{});
 function react(g,kind,btn){
+  // 🤔は理由を選んでから記録する（押し直すと取り消し）
+  if(kind==='hmm' && reacts[g.slug]!=='hmm'){ askWhy(g,btn); return }
+  if(kind==='hmm'){ delete hmmWhy[g.slug]; store.set('hmmWhy',hmmWhy) }
+  setReact(g,kind,btn,'');
+}
+function setReact(g,kind,btn,reason){
   const cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
-  if(cur) track(g,cur);
+  if(cur) track(g,cur,reason);
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
 }
