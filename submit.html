@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="テストプレイ部">
 <meta property="og:title" content="作品を応募する｜テストプレイ部">
 <meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
-<meta name="theme-color" content="#1f6f6a">
+<meta name="theme-color" content="#F6F1E7">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="assets/style.css">
@@ -16,14 +16,17 @@
 .two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
 .pvbody{pointer-events:none;opacity:.6;user-select:none;-webkit-user-select:none}.pvbody .btn{cursor:default;filter:grayscale(.6)}
-.lfbox{border:2px solid var(--accent);background:var(--soft)}.lfbox h2{margin:0;font-size:22px;color:var(--accent)}.lfbox .big{font-size:18px;font-weight:700;margin:0}
+.lfbox{}.lfbox h2{margin:0;font-size:22px;color:var(--shu-ink)}.lfbox .big{font-size:18px;font-weight:700;margin:0}
 .req{color:#d2553f;font-size:12px;font-weight:700;margin-left:2px}
 .form label>span>small{display:block;margin-top:2px;line-height:1.5}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="wrap">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><span data-me></span></span></header>
 <main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
 <footer><a href="./creators.html#url">遊べるURLの作り方</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
@@ -60,8 +63,8 @@ function drawPts(){
   const short=lacking();
   ptBox.append(el('div',{class:'body',style:'display:grid;gap:8px'},
     PTS.is_admin?el('p',{style:'margin:0'},el('b',null,'運営はポイントなしで応募できます。'))
-      :PTS.first_free?el('p',{style:'margin:0;font-size:14px'},'いまのポイント ',el('b',{style:'color:var(--accent)'},PTS.balance+'pt'),'。1本目は無料なので、ポイントはつかいません。')
-      :el('p',{style:'margin:0;font-size:16px'},el('b',null,(PTS.first_free===false?'2本目からは ':'投稿には ')+PTS.submit_cost+'pt 要ります。'),' いま ',el('b',{style:'color:var(--accent)'},PTS.balance+'pt'),'。'),
+      :PTS.first_free?el('p',{style:'margin:0;font-size:14px'},'いまのポイント ',el('b',{style:'color:var(--shu-ink)'},PTS.balance+'pt'),'。1本目は無料なので、ポイントはつかいません。')
+      :el('p',{style:'margin:0;font-size:16px'},el('b',null,(PTS.first_free===false?'2本目からは ':'投稿には ')+PTS.submit_cost+'pt 要ります。'),' いま ',el('b',{style:'color:var(--shu-ink)'},PTS.balance+'pt'),'。'),
     short?el('p',{style:'margin:0;font-size:14px'},'あと '+(PTS.submit_cost-PTS.balance)+'pt です。感想の少ない作品に40字以上の感想を書くと貯まります。'):null,
     short?el('div',{class:'row'},el('a',{class:'btn',href:'./'},'▶ ショートで感想を書く'),el('a',{class:'btn ghost',href:'./me.html#pt'},'ポイントのしくみ')):null));
   NEWBTN.forEach(b=>{ b.disabled=short; b.title=short?'ポイントが足りません':'' });
@@ -133,7 +136,7 @@ function newForm(){
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
   // 見本：押せるものではないと分かるよう、うすくして「見本」の印をつける。スマホでは畳んでおく
   const pv=el('details',{class:'card pv'}); const pvBody=el('div',{class:'body pvbody','aria-hidden':'true'});
-  pv.append(el('summary',{style:'cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 16px;font-weight:700;color:var(--accent);font-size:14px'},el('span',{class:'chip',style:'font-size:12px'},'見本'),'作品ページでは、こう見えます'),pvBody);
+  pv.append(el('summary',{style:'cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 16px;font-weight:700;color:var(--shu-ink);font-size:14px'},el('span',{class:'chip',style:'font-size:12px'},'見本'),'作品ページでは、こう見えます'),pvBody);
   pv.open=matchMedia('(min-width:521px)').matches;
   const PL={both:'PC・スマホ',pc:'PCのみ',sp:'スマホのみ'};
   function drawPv(){ const v=k=>f[k].value.trim();

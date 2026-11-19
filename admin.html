@@ -7,22 +7,25 @@
 <title>管理ページ | テストプレイ部</title>
 <link rel="icon" href="assets/icon-32.png">
 <style>
-:root{--bg:#0f1218;--card:#171b23;--line:#2a303c;--ink:#e8ebf0;--muted:#9aa3b2;--accent:#5ce1c6;--accent-ink:#06231d;--warn:#ffcf5a;--bad:#ff6b6b}
+:root{--bg:#F6F1E7;--paper:#F6F1E7;--paper-2:#EFE6D3;--card:#FFFDF8;--line:#DCCFB8;--ink:#2A241E;--muted:#6B6158;--shu:#C8401F;--shu-ink:#A5311A;--shu-soft:#F6D5C9;--ao:#2F5D9B;--ao-soft:#D7E2F1;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--accent:#C8401F;--accent-ink:#fff;--warn:#8A5A00;--bad:#B0301B;--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:light}
 *{box-sizing:border-box}
 [hidden]{display:none !important}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px;line-height:1.6}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;background-image:var(--noise);font-size:14px;line-height:1.6}
 .wrap{max-width:1180px;margin:0 auto;padding:16px}
 header{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:14px}
+h1,h2,h3{font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif}
+button.primary,.tabs button{font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--ao);outline-offset:1px}
 header h1{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
 header h1 img{border-radius:50%}
 .muted{color:var(--muted)}
-button,.btn{border:1px solid var(--line);background:#ffffff0d;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
-a{color:var(--accent)}
-button.danger{border-color:#ff6b6b66;color:var(--bad)}
+a{color:var(--shu-ink)}
+button.danger{border-color:var(--bad);color:var(--bad)}
 button:disabled{opacity:.5;cursor:default}
-input,select{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font:inherit}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+input,select{background:var(--paper-2);border:0;border-bottom:2px solid var(--ink);border-radius:4px 4px 0 0;padding:7px 10px;color:var(--ink);font:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 0 var(--line),0 6px 14px rgba(60,40,20,.08);padding:16px}
 .login{max-width:420px;margin:60px auto;display:grid;gap:12px}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .tabs button[aria-selected=true],.bar button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
@@ -33,11 +36,11 @@ th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
 td.free{max-width:420px;white-space:pre-wrap;word-break:break-word}
 tr.hidden td{opacity:.45}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0;white-space:nowrap}
-.tag.dev{border-color:var(--accent);color:var(--accent)}
+.tag.dev{border-color:var(--accent);color:var(--shu-ink)}
 .tag.ban{border-color:var(--bad);color:var(--bad)}
 .tag.warn{border-color:var(--warn);color:var(--warn)}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
-#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px rgba(42,36,30,.35)}
 button,.btn,header a{white-space:nowrap}
 #subRows,#subRows .card,#subRows .card>*,#subRows a,#mBody{min-width:0;max-width:100%;overflow-wrap:anywhere}
 #subRows{grid-template-columns:minmax(0,1fr)}
@@ -61,13 +64,13 @@ input[type=checkbox]{width:22px;height:22px}label:has(>input[type=checkbox]){dis
 .cbars i{display:block;border-radius:3px 3px 0 0;min-height:2px;background:var(--accent)}
 .cbars i.z{background:var(--line)}
 .chart.c2 .cbars i:not(.z){background:var(--warn)}
-.chart.c3 .cbars i:not(.z){background:#8ab4ff}
+.chart.c3 .cbars i:not(.z){background:var(--ao)}
 .clab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
 .todo{display:grid;gap:8px}
 .todo a.t,.todo span.t{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;text-decoration:none;color:var(--ink);overflow-wrap:anywhere}
 .todo a.t.on{border-color:var(--warn)}
 .todo a.t b{color:var(--warn)}
-.todo .go{color:var(--accent);white-space:nowrap}
+.todo .go{color:var(--shu-ink);white-space:nowrap}
 ol.top{margin:0;padding-left:22px;display:grid;gap:8px}
 ol.top li{min-width:0;overflow-wrap:anywhere}
 ol.top .n{display:block;font-size:12px;color:var(--muted)}
@@ -81,6 +84,9 @@ td.sel{width:34px}
   thead{display:none} tr{display:grid;border-bottom:1px solid var(--line);padding:8px 0} td{border:0;padding:2px 0} td.free{max-width:none}
 }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="wrap">
@@ -419,7 +425,7 @@ function subJson(s){
   if (GAMES[slug]) slug += '-' + Date.now().toString(36).slice(-3);
   return JSON.stringify({ slug, title: d.title || '', author: s.by_name || '', creator: s.handle || undefined, x: '', stage: d.stage || '', check: d.check || '', genre: d.genre || '',
     minutes: d.minutes || '', oneliner: d.oneliner || '', question: d.question || '', highlights: [], play: d.play_url || '', youtube: '', clip: '',
-    rating: d.rating || undefined, color: '#7fe0c9', bg: '#10141c', platform: d.platform || 'both', controls: d.controls || '', added: new Date().toISOString().slice(0, 10) }, null, 2);
+    rating: d.rating || undefined, color: '#C8401F', bg: '#10141c', platform: d.platform || 'both', controls: d.controls || '', added: new Date().toISOString().slice(0, 10) }, null, 2);
 }
 async function loadSubs(){ SUBS = await rpc('admin_submissions'); renderSubs() }
 function renderSubs(){
@@ -604,7 +610,7 @@ async function loadGames(){
   const rate = s => { const n=s.feedbacks+s.likes+s.hmms; return n ? Math.round((s.again_much+0.5*s.again_some+s.likes+1.5)/(n+3)*100)+'%（めやす・'+n+'人）' : '—' };
   $('gameRows').innerHTML = slugs.map(slug => {
     const s = by[slug] || {plays:0,likes:0,hmms:0,feedbacks:0,again_much:0,again_some:0,hmm_controls:0,hmm_heavy:0,hmm_fun:0,not_for_me:0};
-    return `<tr><td><a href="games/${esc(slug)}/" style="color:var(--accent)">${esc(GAMES[slug]?.title || slug)}</a></td>
+    return `<tr><td><a href="games/${esc(slug)}/" style="color:var(--shu-ink)">${esc(GAMES[slug]?.title || slug)}</a></td>
       <td>${s.plays}</td><td>${s.feedbacks}</td><td>${rate(s)}</td><td>${s.likes}</td>
       <td>${s.hmm_controls}</td><td>${s.hmm_heavy}</td><td>${s.hmm_fun}</td><td class="muted">${s.not_for_me}</td></tr>`;
   }).join('');

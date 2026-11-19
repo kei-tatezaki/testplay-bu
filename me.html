@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>マイページ｜テストプレイ部</title>
-<meta name="theme-color" content="#1f6f6a">
+<meta name="theme-color" content="#F6F1E7">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="assets/style.css">
@@ -23,17 +23,20 @@
 .subs{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
 .sub,.sub>*{min-width:0;overflow-wrap:anywhere}
 .sub{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;gap:2px;background:var(--card)}
-.st{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent)}
-.st.ng{background:#d2553f22;color:#d2553f}
+.st{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--shu-ink)}
+.st.ng{background:var(--shu-soft);color:#B0301B}
 .note{font-size:13px;color:var(--muted);margin:0}
-.ptbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ptbig b{font-size:34px;line-height:1.1;color:var(--accent)}
-.ptlist{display:grid;gap:0;margin:0;padding:0;list-style:none}.ptlist li{display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.ptlist li:first-child{border-top:0}.ptlist .d{font-weight:700;white-space:nowrap}.ptlist .d.minus{color:#d2553f}.ptlist small{display:block;color:var(--muted);font-size:12px}
+.ptbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ptbig b{font-size:34px;line-height:1.1;color:var(--shu-ink)}
+.ptlist{display:grid;gap:0;margin:0;padding:0;list-style:none}.ptlist li{display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.ptlist li:first-child{border-top:0}.ptlist .d{font-weight:700;white-space:nowrap}.ptlist .d.minus{color:#B0301B}.ptlist small{display:block;color:var(--muted);font-size:12px}
 .callout{border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;display:grid;gap:8px;justify-items:center}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="wrap wide">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./list.html">作品一覧</a><a class="btn" href="./">▶ ショート</a></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./list.html">作品一覧</a><a class="btn" href="./">▶ ショート</a></span></header>
 <main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
 <footer><a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
@@ -95,7 +98,7 @@ function render(){
 // ---- 自分の作品 ----
 async function paneGames(pane){
   const games=MINE.map(T.game).filter(Boolean);
-  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:el('a',{class:'by',href:'./dev.html?g='+g.slug,style:'color:var(--accent)'},'📊 数字と感想を見る')})))
+  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:el('a',{class:'by',href:'./dev.html?g='+g.slug,style:'color:var(--shu-ink)'},'📊 数字と感想を見る')})))
     :el('div',{class:'callout'},el('b',null,'まだあなたの作品はありません'),
       el('p',{class:'note'},'ブラウザで遊べるURLがあれば、ここから応募できます。運営が確かめてから載せます。'),
       el('a',{class:'btn',href:'./submit.html'},'作品を応募する'),
@@ -119,7 +122,7 @@ function panePlayed(pane){
   const sent=new Set(T.store.get('sent',[]));
   const games=T.store.get('played',[]).map(T.game).filter(Boolean).reverse();
   pane.append(el('p',{class:'note'},'この端末で「遊ぶ」を押した作品です。ほかの端末で遊んだ作品は出ません。'));
-  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:sent.has(g.slug)?el('span',{class:'by'},'✅ 感想を送った'):el('a',{class:'by',href:'./#fb-'+g.slug,style:'color:var(--accent)'},'💬 感想を送る')})))
+  pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:sent.has(g.slug)?el('span',{class:'by'},'✅ 感想を送った'):el('a',{class:'by',href:'./#fb-'+g.slug,style:'color:var(--shu-ink)'},'💬 感想を送る')})))
     :el('div',{class:'callout'},el('b',null,'まだ遊んだ作品はありません'),el('a',{class:'btn',href:'./'},'▶ ショートで探す')));
 }
 // ---- 送った感想 ----
@@ -150,7 +153,7 @@ async function panePoints(pane){
   if(!d){ pane.append(el('div',{class:'callout'},el('b',null,'ポイントを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>render()},'もう一度'))); pane.append(howCard()); return }
   const need=Math.max(0,d.submit_cost-d.balance);
   if(d.first_free&&!d.is_admin) pane.append(el('section',{class:'card',style:'border:2px solid var(--accent)'},el('div',{class:'body',style:'display:grid;gap:4px'},
-    el('h2',{style:'margin:0;font-size:18px;color:var(--accent)'},'最初の1本は投稿無料'),
+    el('h2',{style:'margin:0;font-size:18px;color:var(--shu-ink)'},'最初の1本は投稿無料'),
     el('p',{style:'margin:0'},'あなたの1本目の応募は、ポイントなしで送れます。2本目からは '+d.submit_cost+'pt いります。'),
     el('a',{class:'btn',href:'./submit.html',style:'justify-self:start'},'無料で作品を応募する'))));
   pane.append(el('section',{class:'card'},el('div',{class:'body',style:'display:grid;gap:10px'},

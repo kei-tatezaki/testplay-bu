@@ -8,16 +8,15 @@
 <link rel="icon" href="assets/icon-32.png">
 <link rel="stylesheet" href="assets/style.css">
 <style>
-:root{--warn:#b8860b;--bad:#d2553f}
-@media (prefers-color-scheme:dark){:root{--warn:#ffcf5a;--bad:#ff8a8a}}
+:root{--warn:#8A5A00;--bad:#B0301B}
 .wrap{max-width:1100px}
 .muted{color:var(--muted)}
 button,select,input{font:inherit}
 .wrap button,.wrap select{min-height:40px}
-.wrap button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 14px;cursor:pointer;font-size:14px}
+.wrap button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
 .wrap button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .wrap button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
-.wrap select,.wrap input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--ink);font-size:16px;min-height:44px}
+.wrap select,.wrap input{background:var(--paper-2);border:0;border-bottom:2px solid var(--ink);border-radius:4px 4px 0 0;padding:8px 12px;color:var(--ink);font-size:16px;min-height:44px}
 .card{padding:16px;display:block}
 .card h2{font-size:15px;margin:0 0 10px;line-height:1.5}
 .login{max-width:420px;width:100%;min-width:0;margin:30px auto;display:grid;gap:12px}
@@ -42,17 +41,20 @@ button,select,input{font:inherit}
 .fb{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:4px}
 .fb:first-child{border-top:0}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0}
-.tag.dev{border-color:var(--accent);color:var(--accent)}
+.tag.dev{border-color:var(--accent);color:var(--shu-ink)}
 .free{white-space:pre-wrap;word-break:break-word}
 .fb .tools{margin-top:4px}
 .note{font-size:12px;color:var(--muted)}
-#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008;z-index:10}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px rgba(42,36,30,.35);z-index:10}
 @media (max-width:420px){.brow{grid-template-columns:96px 1fr 70px}}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="biz">
 <div class="wrap wide">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./me.html">マイページ</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="./me.html">マイページ</a><span data-me></span></span></header>
 <main>
 <div class="tools"><h1 style="font-size:20px;margin:0">開発者ページ</h1><span id="who" class="muted"></span><a class="ghost-link" id="adminLink" href="./admin.html" hidden style="display:inline-flex;align-items:center;min-height:40px">管理ページ</a><button id="logout" hidden>ログアウト</button></div>
 
