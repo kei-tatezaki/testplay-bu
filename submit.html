@@ -15,7 +15,8 @@
 <style>
 .two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
-.req{color:#d2553f;font-size:12px;font-weight:700}
+.req{color:#d2553f;font-size:12px;font-weight:700;margin-left:2px}
+.form label>span>small{display:block;margin-top:2px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -79,7 +80,7 @@ function newForm(){
     controls:el('input',{type:'text',maxlength:60,placeholder:'例：WASDで移動、クリックで攻撃'}),
     rating:sel([['','なし（だれでも遊べる）'],['r15','R15（ホラー・暴力表現など）'],['r18','R18（18歳以上向け）']]),
     image_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://…（なければ空でOK）'}),
-    note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと（なければ空でOK）'})
+    note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと、プレイ動画のURLなど（なければ空でOK）'})
   };
   const L=(t,req,hint,input)=>el('label',null,el('span',null,t+' ',req?el('span',{class:'req'},'必須'):null,hint?el('small',null,hint):null),input);
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit'},'応募する');
@@ -94,8 +95,8 @@ function newForm(){
     L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
     el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
     L('年齢制限',false,'',f.rating),
-    L('画像のURL',false,'ゲーム画面の画像。運営が画面を撮ることもできます',f.image_url),
-    L('メモ',false,'',f.note),
+    L('画像のURL',false,'任意。なければ運営が作ります',f.image_url),
+    L('メモ',false,'プレイ動画は運営が撮ります。自分で用意したときは、ここにURLを書いてね（任意）',f.note),
     el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
     msg, btn);
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
@@ -122,7 +123,7 @@ async function start(){
   if(!SES){ main.replaceChildren(T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
     el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
       el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
-        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL・メモ')),
+        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'プレイ動画は、運営が撮ります（自分で用意してもOK）')),
       el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
   editSlug?editForm():newForm();
