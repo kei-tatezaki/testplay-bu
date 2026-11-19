@@ -107,6 +107,30 @@
     } catch (e) { if (e && e.name === "AbortError") return; prompt("このリンクをコピーしてね", url) }
   };
 
+  // ---- 端末の「戻る」で箱を閉じる ----
+  // 箱を開くとき layer.open(名前, 閉じる関数)、画面の中のボタンで閉じるとき layer.close(名前)。
+  // 「戻る」を押すと、いちばん上の箱だけが閉じる（サイトから出てしまわない）。
+  var stack = [], ignore = 0;
+  function flush() { if (ignore > 0) return; stack.forEach(function (l) { if (!l.pushed) { l.pushed = true; try { history.pushState({ tpbLayer: l.name }, "") } catch (e) {} } }) }
+  T.layer = {
+    open: function (name, onBack) {
+      for (var i = 0; i < stack.length; i++) if (stack[i].name === name) { stack[i].onBack = onBack; return }
+      stack.push({ name: name, onBack: onBack, pushed: false }); flush();
+    },
+    close: function (name) {
+      for (var i = 0; i < stack.length; i++) if (stack[i].name === name) {
+        var l = stack.splice(i, 1)[0];
+        if (l.pushed) { ignore++; history.back() }
+        return;
+      }
+    },
+    has: function (name) { return stack.some(function (l) { return l.name === name }) }
+  };
+  addEventListener("popstate", function () {
+    if (ignore > 0) { ignore--; flush(); return }
+    var l = stack.pop(); if (l) l.onBack();
+  });
+
   // ---- 重ねて出す箱（メニュー・報告） ----
   var lastFocus = null;
   function overlay(kind, box, anchor) {
@@ -115,6 +139,7 @@
     var ov = el("div", { class: "tpb-ov " + kind, id: "tpbOv" }, box);
     ov.addEventListener("click", function (e) { if (e.target === ov) closeOverlay() });
     document.body.append(ov);
+    T.layer.open("tpbOv", function () { closeOverlay() });
     if (kind === "menu" && anchor && innerWidth >= 600) {
       box.style.position = "fixed";
       ov.place = function () {
@@ -129,6 +154,7 @@
   }
   function closeOverlay() {
     var ov = document.getElementById("tpbOv"); if (!ov) return;
+    T.layer.close("tpbOv");
     ov.remove(); if (lastFocus && lastFocus.focus) try { lastFocus.focus() } catch (e) {}
   }
   T.closeOverlay = closeOverlay;
@@ -252,7 +278,7 @@
   T.tile = function (g, stat, o) {
     o = o || {};
     var sub = [PLAT[g.platform] || "", g.genre || ""].filter(Boolean).join(" ・ ");
-    var st = []; if (stat && stat.plays) st.push("遊んだ人 " + stat.plays + "人"); if (stat && stat.feedbacks) st.push("感想 " + stat.feedbacks + "件");
+    var st = []; if (stat && (stat.plays || 0) + (stat.feedbacks || 0) >= 10) { if (stat.plays) st.push("遊んだ人 " + stat.plays + "人"); if (stat.feedbacks) st.push("感想 " + stat.feedbacks + "件") }
     var r18 = g.rating === "r18";
     var thumb = el("a", { class: "thumb", href: BASE + "?g=" + g.slug, "aria-label": g.title + "をショートで見る", "data-clip": g.clip && !r18 ? BASE + g.clip : null },
       el("img", { class: "media", src: BASE + (g.cover && !r18 ? g.cover : "og/" + g.slug + ".png"), alt: "", loading: "lazy" }),
@@ -270,19 +296,21 @@
   var css = "" +
     ".tpb-av{display:inline-grid;place-items:center;border-radius:50%;object-fit:cover;color:#fff;font-weight:800;flex:none;line-height:1;background:#2a3240;overflow:hidden}" +
     ".tpb-av.guest{background:#8882;color:inherit;font-size:16px}" +
-    ".tpb-me{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;font-size:13px;border-radius:999px;min-height:40px;padding:3px 10px 3px 3px;border:1px solid var(--line,#8884)}" +
+    ".tpb-me{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;font-size:13px;border-radius:999px;min-height:44px;padding:3px 10px 3px 3px;border:1px solid var(--line,#8884)}" +
     ".tpb-me.in{padding:3px;border-color:transparent}" +
     "@media (max-width:480px){.tpb-me{padding:3px;border-color:transparent}.tpb-me-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.tpb-av.guest{border:1px solid var(--line,#8886)}}" +
     ".tpb-kebab{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;font-weight:800}" +
     ".tpb-kebab:hover,.tpb-kebab:focus-visible{background:#8883}" +
-    ".tpb-ov{position:fixed;inset:0;z-index:90;background:#0006}" +
+    ".tpb-ov{position:fixed;left:0;right:0;top:0;bottom:0;height:100vh;height:100dvh;z-index:90;background:#0006}" +
     ".tpb-ov.menu:not(.sheet){background:transparent}" +
-    ".tpb-ov.sheet{display:grid;align-items:end;justify-items:center;background:#0009}" +
+    ".tpb-ov.sheet{display:grid;align-items:end;align-content:end;justify-items:center;background:#0009}" +
     ".tpb-ov.dialog{display:grid;place-items:center;padding:16px;background:#0009}" +
-    ".tpb-ov.dialog.sheet{align-items:center}" +
+    ".tpb-ov.dialog.sheet{align-items:center;align-content:center}" +
+    "@media (max-width:599px){.tpb-ov.dialog{padding:0;align-items:end;align-content:end}.tpb-ov.dialog.sheet{align-items:end;align-content:end}" +
+    ".tpb-ov.dialog .tpb-dialog{max-width:560px;max-height:90vh;max-height:90dvh;border-radius:18px 18px 0 0;border-bottom:0;padding-bottom:calc(18px + env(safe-area-inset-bottom));overscroll-behavior:contain}}" +
     ".tpb-menu,.tpb-dialog{background:var(--card,var(--sheet,#1b2129));color:var(--ink,#e7eaee);border:1px solid var(--line,#2c343e);border-radius:14px;box-shadow:0 10px 40px #0007;font-size:15px;line-height:1.5}" +
     ".tpb-menu{min-width:260px;max-width:min(360px,calc(100vw - 16px));padding:6px;display:grid}" +
-    ".tpb-ov.sheet .tpb-menu{width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));border-bottom:0}" +
+    ".tpb-ov.sheet .tpb-menu{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;border-radius:18px 18px 0 0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));border-bottom:0}" +
     ".tpb-mt{font-size:12px;opacity:.7;padding:6px 12px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
     ".tpb-ms{font-size:11px;font-weight:700;color:var(--accent,#4fb3aa);padding:8px 12px 2px;border-top:1px solid var(--line,#2c343e);margin-top:4px}" +
     ".tpb-mi{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:8px 12px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer}" +
@@ -292,7 +320,7 @@
     ".tpb-mx{justify-content:center;opacity:.75;font-size:14px;border-top:1px solid var(--line,#2c343e);border-radius:0 0 10px 10px;margin-top:4px}" +
     ".tpb-ov.menu:not(.sheet) .tpb-mx{display:none}" +
     ".tpb-ic{width:24px;text-align:center;flex:none}" +
-    ".tpb-dialog{width:100%;max-width:440px;max-height:calc(100dvh - 32px);overflow:auto;padding:18px;display:grid;gap:12px}" +
+    ".tpb-dialog{width:100%;max-width:440px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:18px;display:grid;gap:12px}" +
     ".tpb-dialog h3{margin:0;font-size:18px}.tpb-sub{margin:0;font-size:13px;opacity:.8}" +
     ".tpb-opts{display:grid;gap:8px}" +
     ".tpb-opt{font:inherit;font-size:14px;text-align:left;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line,#2c343e);background:none;color:inherit;cursor:pointer}" +
