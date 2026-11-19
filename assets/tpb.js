@@ -477,4 +477,22 @@
       el("h1", { style: "font-size:20px;margin:0" }, title), el("p", { class: "muted", style: "margin:0;font-size:14px" }, text),
       prov, form, msg, otp, el("a", { class: "by", href: T.base + "privacy.html" }, "集める情報と使い道")));
   };
+
+  // ---- 訪問の記録（1つの端末につき1日1回） ----
+  // サイトのどこかを開いたら、その日のうち最初の1回だけ site_visits に書く（端末のIDと日付だけ。日付はDBが日本時間で入れる）。
+  // 同じ日にもう送ったかは localStorage（tpb:visitDay）に覚えて、2回目からは送らない。
+  // 別のタブで同時に送って 409 が返っても、失敗しても、何も出さずに終わる。運営（admin）と開発者（dev）のページは数えない。
+  T.visit = function () {
+    try {
+      if (/\/(admin|dev)(\.html)?\/?$/.test(location.pathname)) return;
+      var day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // 日本時間の日付
+      if (T.store.get("visitDay", "") === day) return;
+      fetch(SB_URL + "/rest/v1/site_visits", { method: "POST", keepalive: true,
+        headers: { apikey: SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ client_id: T.cid() }) })
+        .then(function (r) { if (r.status < 500) T.store.set("visitDay", day) })   // 409（もう数えた）や BAN の断りも「送った」ことにする。通信できなかったときだけ次回また試す
+        .catch(function () {});
+    } catch (e) {}
+  };
+  T.visit();
 })();
