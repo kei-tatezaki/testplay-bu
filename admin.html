@@ -73,6 +73,8 @@ tr.hidden td{opacity:.45}
     <button role="tab" data-tab="fb" aria-selected="true">感想</button>
     <button role="tab" data-tab="games">作品の数字</button>
     <button role="tab" data-tab="bans">BAN一覧</button>
+    <button role="tab" data-tab="owners">作者</button>
+    <a href="dev.html" class="btn" style="text-decoration:none">開発者ページを見る</a>
   </div>
 
   <div data-panel="fb">
@@ -100,6 +102,14 @@ tr.hidden td{opacity:.45}
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
       <thead><tr><th>BANした日時</th><th>種類</th><th>だれ</th><th>理由</th><th>操作</th></tr></thead>
       <tbody id="banRows"></tbody>
+    </table></div>
+  </div>
+
+  <div data-panel="owners" hidden>
+    <p class="muted" style="margin-top:0">作者にした人は、開発者ページでその作品の数字と感想を見られます。選べるのは、一度ログインしたことのある人です（作者にしたい人には、先にサイトでログインしてもらってください）。</p>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>作品</th><th>作者</th><th>作者を足す</th></tr></thead>
+      <tbody id="ownerRows"></tbody>
     </table></div>
   </div>
 
@@ -182,7 +192,7 @@ async function loadAll(){
     GAMES = {}; games.forEach(g => GAMES[g.slug] = g);
     $('fGame').innerHTML = '<option value="">すべての作品</option>' + games.map(g => `<option value="${esc(g.slug)}">${esc(g.title)}</option>`).join('');
   } catch (e) {}
-  await Promise.all([loadFb(), loadGames(), loadBans()]);
+  await Promise.all([loadFb(), loadGames(), loadBans(), loadOwners()]);
 }
 
 async function loadFb(){ FB = await rpc('admin_feedback', { lim: 500 }); renderFb(); }
@@ -250,6 +260,26 @@ $('banRows').onclick = async (e) => {
   if (!(await ask('BANを解きますか？', '解いたあとは、また感想を送れるようになります。非表示にした感想は自動では戻りません。', false))) return;
   toast(await rpc('admin_unban', { ident: b.dataset.cid }));
   await Promise.all([loadFb(), loadBans()]);
+};
+
+let USERS=[];
+async function loadOwners(){
+  const [owners, users] = await Promise.all([rpc('admin_owners'), rpc('admin_users')]);
+  USERS = users;
+  const opts = users.map(u => `<option value="${u.id}">${esc(u.name)}（${esc(u.email||'')}）</option>`).join('');
+  $('ownerRows').innerHTML = Object.keys(GAMES).map(slug => {
+    const mine = owners.filter(o => o.game_slug === slug);
+    return `<tr><td>${esc(GAMES[slug].title)}</td>
+      <td>${mine.map(o => `<span class="tag">${esc(o.name)} <button data-rm="${esc(slug)}" data-uid="${o.user_id}" style="border:0;background:none;color:var(--muted);padding:0 0 0 4px;cursor:pointer">✕</button></span>`).join('') || '<span class="muted">まだいません</span>'}</td>
+      <td><div class="acts"><select data-sel="${esc(slug)}"><option value="">選ぶ</option>${opts}</select><button data-add="${esc(slug)}">足す</button></div></td></tr>`;
+  }).join('');
+}
+$('ownerRows').onclick = async (e) => {
+  const add = e.target.closest('button[data-add]'), rm = e.target.closest('button[data-rm]');
+  if (add) { const uid = document.querySelector(`select[data-sel="${add.dataset.add}"]`).value; if (!uid) return;
+    toast(await rpc('admin_set_owner', { slug: add.dataset.add, uid, add: true })); await loadOwners(); }
+  if (rm) { if (!(await ask('作者から外しますか？', '外すと、その人は開発者ページでこの作品を見られなくなります。', false))) return;
+    toast(await rpc('admin_set_owner', { slug: rm.dataset.rm, uid: rm.dataset.uid, add: false })); await loadOwners(); }
 };
 
 start();

@@ -383,7 +383,7 @@ def build():
 {cards}
 </main>
 <p class="empty" id="empty" hidden>この条件の作品はまだありません。</p>
-<footer>登録なしで遊べます ・ 感想は任意 ・ {len(games)}作品</footer>
+<footer>登録なしで遊べます ・ 感想は任意 ・ {len(games)}作品 ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
 let F='',P='';
@@ -463,7 +463,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h2>運営の約束</h2>
 <p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
-<footer><a href="./list.html">← まとめに戻る</a></footer>
+<footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
 .hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 12px}}
@@ -476,6 +476,43 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     (ROOT / "creators.html").write_text(page("作品を載せたい人へ｜テストプレイ部",
                                              "説明するより、遊んでもらおう。小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録が残る作品ページができます。",
                                              f"{BASE}/creators.html", f"{BASE}/og/site.png", creators, ""), encoding="utf-8")
+
+    # プライバシーの説明
+    privacy = f"""<div class="wrap">
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<section class="card"><div class="body">
+<h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
+<p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
+<h2>集めるもの</h2>
+<ul>
+<li><b>端末ごとのID</b>：ブラウザに保存するランダムな文字列です。名前やメールアドレスとはつながっていません</li>
+<li><b>遊んだ記録</b>：「遊ぶ」「👍」「🤔」を押したこと（🤔は選んだ理由も）、遊んだ時間、PCかスマホか、時間帯</li>
+<li><b>感想</b>：送った内容と、送ったアカウント（ログインした人のみ）</li>
+<li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>
+</ul>
+<h2>使い道</h2>
+<ul>
+<li>ショートの並び順（あなたに合いそうな作品を先に出すため）</li>
+<li>作った人に、作品の数字（遊んだ人の数・遊んだ時間・離れたところなど）と感想を届けるため</li>
+<li>荒らしや、ふざけた感想への対策（感想の非表示・送れなくする措置）のため</li>
+</ul>
+<h2>だれに見えるか</h2>
+<ul>
+<li><b>作った人</b>：自分の作品の合計の数字と、感想の本文。だれが書いたかは見えません</li>
+<li><b>運営</b>：上のすべて。感想を書いたアカウントの名前は、荒らし対策のためにだけ使います</li>
+<li><b>みんな</b>：作品ページの感想の本文と、遊んだ人の数などの合計</li>
+</ul>
+<h2>保存する場所</h2>
+<p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
+<h2>消してほしいとき</h2>
+<p>自分の感想やアカウントの情報を消してほしいときは、<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
+<p class="muted">2026年11月19日 作成</p>
+</div></section>
+<footer><a href="./list.html">← まとめに戻る</a></footer>
+</div>"""
+    (ROOT / "privacy.html").write_text(page("集める情報と使い道｜テストプレイ部",
+                                            "テストプレイ部が集める情報と、その使い道。",
+                                            f"{BASE}/privacy.html", f"{BASE}/og/site.png", privacy, ""), encoding="utf-8")
 
     # トップはショート風のフィード
     feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube"))} for g in games]

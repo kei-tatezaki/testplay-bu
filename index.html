@@ -136,6 +136,7 @@ textarea{min-height:72px;resize:vertical}
     <div style="display:grid;gap:8px"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス"><button class="btn ghost" type="button" id="lSend">メールでログイン（リンクが届きます）</button></div>
     <p class="msg" id="lMsg" aria-live="polite"></p>
     <button class="btn ghost" type="button" id="lClose">あとで</button>
+    <p class="who"><a href="privacy.html" style="color:inherit">集める情報と使い道</a></p>
   </div>
 </div>
 
@@ -321,10 +322,21 @@ function play(g){
   if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
   markPlayed(g); track(g,'play'); current=g;
+  playing={slug:g.slug,t:Date.now(),external:!isLocal(g.play)};
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
   $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
   scheduleNudge(g);
 }
+// 遊んだ時間を記録する（サイトの中で開いたゲームは閉じるまで、別のタブで開いたゲームはこのページに戻ってくるまで）
+let playing=null;
+function endPlay(){
+  if(!playing) return;
+  const sec=Math.round((Date.now()-playing.t)/1000), slug=playing.slug; playing=null;
+  if(sec<1||sec>21600) return;
+  try{ fetch(SB_URL+'/rest/v1/play_sessions',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:slug,client_id:CLIENT,seconds:sec,device:DEVICE})}).catch(()=>{}) }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && playing && playing.external) endPlay() });
+addEventListener('pagehide',()=>{ if(playing && !playing.external) endPlay() });
 let warned={};
 function confirmWrongDevice(g){
   if(warned[g.slug]) return true;
@@ -333,7 +345,7 @@ function confirmWrongDevice(g){
   $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
   return false;
 }
-function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; maybeInvite() }
+function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; endPlay(); maybeInvite() }
 // ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
 function maybeInvite(){
   if(store.get('joined',false)) return;

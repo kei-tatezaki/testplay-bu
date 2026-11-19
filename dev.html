@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>開発者ページ | テストプレイ部</title>
+<link rel="icon" href="assets/icon-32.png">
+<style>
+:root{--bg:#0f1218;--card:#171b23;--line:#2a303c;--ink:#e8ebf0;--muted:#9aa3b2;--accent:#5ce1c6;--accent-ink:#06231d;--warn:#ffcf5a;--bad:#ff8a8a}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px;line-height:1.6}
+a{color:var(--accent)}
+.wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:14px}
+header{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
+header h1 img{border-radius:50%}
+.muted{color:var(--muted)}
+button,select,input{font:inherit}
+button{border:1px solid var(--line);background:#ffffff0d;color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+select,input{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:15px;margin:0 0 10px}
+.login{max-width:420px;margin:50px auto;display:grid;gap:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:24px;line-height:1.3}
+.kpi span{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.bars{display:grid;gap:6px}
+.brow{display:grid;grid-template-columns:120px 1fr 84px;gap:8px;align-items:center;font-size:13px}
+.track{background:#ffffff0f;border-radius:6px;height:14px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:6px}
+.fill.warn{background:var(--warn)}.fill.bad{background:var(--bad)}
+.brow .n{text-align:right;color:var(--muted)}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:90px}
+.hours div{background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
+.hlab{display:grid;grid-template-columns:repeat(24,1fr);font-size:10px;color:var(--muted);text-align:center}
+.list{margin:0;padding-left:18px}
+.fb{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:4px}
+.fb:first-child{border-top:0}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0}
+.tag.dev{border-color:var(--accent);color:var(--accent)}
+.free{white-space:pre-wrap;word-break:break-word}
+.note{font-size:12px;color:var(--muted)}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008;z-index:10}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><img src="assets/icon-192.png" alt="" width="28" height="28">開発者ページ</h1>
+  <div class="bar"><span id="who" class="muted"></span><button id="logout" hidden>ログアウト</button></div>
+</header>
+
+<section id="loginBox" class="card login" hidden>
+  <b>ログイン</b>
+  <p class="muted" style="margin:0">自分の作品の数字と、届いた感想が見られます。作品を載せたときと同じアカウントでログインしてください。</p>
+  <div id="providers" style="display:grid;gap:8px"></div>
+  <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
+  <button class="primary" id="sendLink">メールでログイン（リンクが届きます）</button>
+  <div id="loginMsg" class="muted"></div>
+  <a href="privacy.html" class="note">集める情報と使い道</a>
+</section>
+
+<section id="noneBox" class="card login" hidden>
+  <b>まだあなたの作品が登録されていません</b>
+  <p class="muted" style="margin:0">作品を載せたら、運営があなたのアカウントを作者として登録します。登録されると、ここに数字が出ます。</p>
+  <p style="margin:0"><a href="creators.html">作品を載せたい人へ</a></p>
+</section>
+
+<section id="app" hidden>
+  <div class="bar" style="margin-bottom:12px">
+    <select id="game"></select>
+    <span class="bar" id="period">
+      <button data-d="7">7日</button><button data-d="30" aria-pressed="true">30日</button><button data-d="3650">ぜんぶ</button>
+    </span>
+    <a id="gameLink" href="#" target="_blank" rel="noopener">作品ページを見る</a>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h2>どこで離れた？</h2>
+      <p class="note" style="margin-top:-6px">サイトの中で遊んだ時間（ゲームを開いてから閉じるまで）</p>
+      <div class="bars" id="buckets"></div>
+      <h2 style="margin-top:16px">感想の「どこまで遊んだ？」</h2>
+      <div class="bars" id="reach"></div>
+      <div id="stops"></div>
+    </div>
+    <div class="card"><h2>🤔 の理由</h2>
+      <div class="bars" id="hmm"></div>
+      <p class="note" id="notForMe"></p>
+      <h2 style="margin-top:16px">もう一回遊びたい？</h2>
+      <div class="bars" id="again"></div>
+    </div>
+    <div class="card"><h2>よかったところ</h2><div class="bars" id="good"></div></div>
+    <div class="card"><h2>気になったところ</h2><div class="bars" id="bad"></div></div>
+    <div class="card"><h2>あなたの質問への答え</h2><div class="bars" id="answer"></div></div>
+    <div class="card"><h2>遊ばれた時間帯</h2>
+      <div class="hours" id="hours"></div><div class="hlab" id="hlab"></div>
+      <h2 style="margin-top:16px">PC・スマホ</h2><div class="bars" id="devices"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px"><h2>届いた感想 <span class="muted" id="fbCount"></span></h2>
+    <p class="note" style="margin-top:-6px">だれが書いたかは表示されません。よかった感想には「いいね」を押すと、書いた人にも伝わるようになります（準備中）。</p>
+    <div id="fbList"></div>
+  </div>
+  <p class="note">ゲームの中のどこ（ステージごと）で離れたかは、もうすぐ測れるようになります。</p>
+</section>
+</div>
+<div id="msg"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+const SB_URL='https://jwrzqaxuvmdbroemenng.supabase.co', SB_KEY='sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=id=>document.getElementById(id);
+let GAMES={}, days=30, FB=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',2500)}
+function show(id){['loginBox','noneBox','app'].forEach(x=>$(x).hidden=(x!==id))}
+async function rpc(n,a){const{data,error}=await sb.rpc(n,a||{});if(error){toast('エラー：'+error.message);throw error}return data}
+const fmtSec=s=>s==null?'—':(s<60?Math.round(s)+'秒':Math.floor(s/60)+'分'+String(Math.round(s%60)).padStart(2,'0')+'秒');
+const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+
+function bars(id, pairs, cls){
+  const max=Math.max(1,...pairs.map(p=>p[1]));
+  const total=pairs.reduce((a,p)=>a+p[1],0);
+  $(id).innerHTML = total ? pairs.map(([k,v,c])=>`<div class="brow"><span>${esc(k)}</span><div class="track"><div class="fill ${c||cls||''}" style="width:${v/max*100}%"></div></div><span class="n">${v}${total?'（'+pct(v,total)+'）':''}</span></div>`).join('')
+                          : '<span class="muted">まだデータがありません</span>';
+}
+function objBars(id, obj, order, cls){ const keys=order||Object.keys(obj||{}).sort((a,b)=>(obj[b]-obj[a])); bars(id, keys.map(k=>[k,(obj||{})[k]||0]), cls) }
+
+async function start(){
+  const {data:{session}}=await sb.auth.getSession();
+  $('logout').hidden=!session;
+  if(!session){ $('who').textContent=''; show('loginBox'); return }
+  const m=session.user.user_metadata||{}; $('who').textContent=(m.full_name||m.name||session.user.email||'')+' でログイン中';
+  try{ const g=await (await fetch('games.json?'+Date.now())).json(); GAMES={}; g.forEach(x=>GAMES[x.slug]=x) }catch(e){}
+  const mine=(await rpc('dev_games')).map(r=>r.game_slug);
+  const admin=await rpc('is_admin').catch(()=>false);
+  const slugs = admin ? Object.keys(GAMES) : mine;
+  if(!slugs.length){ show('noneBox'); return }
+  $('game').innerHTML=slugs.map(s=>`<option value="${esc(s)}">${esc(GAMES[s]?.title||s)}${admin&&!mine.includes(s)?'（運営として表示）':''}</option>`).join('');
+  show('app'); load();
+}
+async function load(){
+  const slug=$('game').value; $('gameLink').href='games/'+slug+'/';
+  const [st, fb] = await Promise.all([rpc('dev_stats',{slug,since_days:days}), rpc('dev_feedback',{slug,lim:300})]);
+  FB=fb.filter(f=>new Date(f.created_at) >= new Date(Date.now()-days*864e5));
+  const s=st;
+  const rate = (()=>{ const n=(s.feedbacks||0)+(s.likes||0)+((s.hmm&&Object.entries(s.hmm).filter(([k])=>k!=='genre').reduce((a,[,v])=>a+v,0))||0);
+    const again=s.again||{}; const pts=(again['すごく遊びたい']||0)+0.5*(again['ちょっと遊びたい']||0)+(s.likes||0);
+    return n? Math.round((pts+1.5)/(n+3)*100)+'%' : '—' })();
+  $('kpis').innerHTML=[
+    ['遊んだ人',s.plays+'人'],['遊んだ回数',s.sessions+'回'],['遊んだ時間（真ん中）',fmtSec(s.median_seconds)],
+    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate],['👍',s.likes],['感想',s.feedbacks+'件']
+  ].map(([k,v])=>`<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('');
+  const B=s.buckets||[0,0,0,0,0];
+  bars('buckets',[['30秒未満',B[0],'bad'],['30秒〜1分',B[1],'warn'],['1〜3分',B[2]],['3〜5分',B[3]],['5分以上',B[4]]]);
+  objBars('reach',s.reach,['最後まで','途中でやめた']);
+  $('stops').innerHTML=(s.stop_at||[]).length?'<p class="note" style="margin:10px 0 4px">やめたあたり（新しい順）</p><ul class="list">'+s.stop_at.slice(0,30).map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':'';
+  const H=s.hmm||{}; bars('hmm',[['操作がわかりにくい',H.controls||0,'warn'],['重い・うまく動かない',H.heavy||0,'bad'],['おもしろさがわからなかった',H.fun||0,'warn']]);
+  $('notForMe').textContent = H.genre ? `「好みのジャンルじゃない」${H.genre}人（作品の評価には入れていません）` : '';
+  objBars('again',s.again,['すごく遊びたい','ちょっと遊びたい','もういいかな']);
+  objBars('good',s.good); objBars('bad',s.bad,null,'warn'); objBars('answer',s.answer,['◎ できた','○ だいたい','△ いまいち']);
+  const hours=s.hours||{}; const hmax=Math.max(1,...Object.values(hours));
+  $('hours').innerHTML=Array.from({length:24},(_,h)=>`<div title="${h}時 ${hours[h]||0}回" style="height:${(hours[h]||0)/hmax*100}%"></div>`).join('');
+  $('hlab').innerHTML=Array.from({length:24},(_,h)=>`<span>${h%6===0?h:''}</span>`).join('');
+  const D=s.devices||{}; bars('devices',[['PC',D.pc||0],['スマホ',D.sp||0]]);
+  renderFb();
+}
+function renderFb(){
+  $('fbCount').textContent=FB.length+'件';
+  $('fbList').innerHTML=FB.map(f=>{
+    const tags=[f.again,f.reach,f.stop_at&&('やめた所：'+f.stop_at),f.answer&&('質問：'+f.answer),...(f.good||[]).map(x=>'👍 '+x),...(f.bad||[]).map(x=>'⚠ '+x)].filter(Boolean);
+    return `<div class="fb"><div class="muted">${new Date(f.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}${f.is_dev?' <span class="tag dev">開発者</span>':''}</div>
+      <div>${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+      ${f.free?`<div class="free">${esc(f.free)}</div>`:''}
+      <div><button data-id="${f.id}" aria-pressed="${!!f.liked_by_dev}">${f.liked_by_dev?'いいね済み':'いいね'}</button></div></div>`;
+  }).join('')||'<span class="muted">まだ感想はありません</span>';
+}
+$('fbList').onclick=async e=>{ const b=e.target.closest('button[data-id]'); if(!b) return; const f=FB.find(x=>x.id===b.dataset.id);
+  toast(await rpc('dev_like',{fid:f.id,val:!f.liked_by_dev})); f.liked_by_dev=!f.liked_by_dev; renderFb() };
+$('game').onchange=load;
+document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#period button').forEach(x=>x.setAttribute('aria-pressed',x===b)); days=+b.dataset.d; load() });
+
+$('sendLink').onclick=async()=>{ const email=$('email').value.trim(); if(!email) return; $('sendLink').disabled=true;
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}}); $('sendLink').disabled=false;
+  $('loginMsg').textContent=error?'送れませんでした：'+error.message:'メールを送りました。届いたリンクをこのブラウザで開いてください（迷惑メールも確認してね）' };
+fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{const ext=(st&&st.external)||{};
+  [['discord','Discordでログイン'],['google','Googleでログイン']].forEach(([id,l])=>{ if(ext[id]){ const b=document.createElement('button'); b.textContent=l; b.onclick=()=>sb.auth.signInWithOAuth({provider:id,options:{redirectTo:location.origin+location.pathname}}); $('providers').append(b) } }) }).catch(()=>{});
+$('logout').onclick=async()=>{ await sb.auth.signOut(); start() };
+sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN'||ev==='SIGNED_OUT') start() });
+start();
+</script>
+</body>
+</html>
