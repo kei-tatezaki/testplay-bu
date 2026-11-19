@@ -1,0 +1,16 @@
+name: 今日のおすすめをDiscordに投稿
+
+on:
+  schedule:
+    - cron: "0 9 * * *"  # 毎日 18:00（日本時間）
+  workflow_dispatch:      # Actions画面から手動でも動かせる
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 3本選んで投稿
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 scripts/daily_pick.py

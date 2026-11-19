@@ -23,7 +23,8 @@
     "color": "#ffb23e",
     "bg": "#10141c",
     "platform": "both",
-    "controls": "タップ／スペースキー"
+    "controls": "タップ／スペースキー",
+    "added": "2026-11-19"
   },
   {
     "slug": "color",
@@ -55,7 +56,8 @@
       }
     ],
     "platform": "both",
-    "controls": "タップ／クリック"
+    "controls": "タップ／クリック",
+    "added": "2026-11-19"
   },
   {
     "slug": "lights",
@@ -81,6 +83,7 @@
     "color": "#7fe0c9",
     "bg": "#0f1622",
     "platform": "both",
-    "controls": "タップ／クリック"
+    "controls": "タップ／クリック",
+    "added": "2026-11-19"
   }
 ]
