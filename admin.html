@@ -73,8 +73,11 @@ ol.top li{min-width:0;overflow-wrap:anywhere}
 ol.top .n{display:block;font-size:12px;color:var(--muted)}
 .fbbulk{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 td.sel{width:34px}
+.lb{display:none;color:var(--muted);font-size:12px}
+#ptRows td{overflow-wrap:anywhere}
 @media (max-width:760px){
   header{flex-wrap:wrap}header h1{white-space:nowrap;font-size:16px}
+  .lb{display:inline}
   thead{display:none} tr{display:grid;border-bottom:1px solid var(--line);padding:8px 0} td{border:0;padding:2px 0} td.free{max-width:none}
 }
 </style>
@@ -119,6 +122,7 @@ td.sel{width:34px}
     <button role="tab" data-tab="subs">応募 <span id="subN"></span></button>
     <button role="tab" data-tab="reports">報告 <span id="repN"></span></button>
     <button role="tab" data-tab="profiles">プロフィール</button>
+    <button role="tab" data-tab="pts">ポイント</button>
     <a href="dev.html" class="btn" style="text-decoration:none">開発者ページを見る</a>
   </div>
 
@@ -191,6 +195,21 @@ td.sel{width:34px}
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
       <thead><tr><th>アイコン</th><th>名前</th><th>ID</th><th>ひとこと</th><th>直した日</th><th>操作</th></tr></thead>
       <tbody id="profRows"></tbody>
+    </table></div>
+  </div>
+
+  <div data-panel="pts" hidden>
+    <p class="muted" style="margin-top:0">感想でたまり、作品の応募でつかうポイントです。計算はすべてデータベースの中でしています。決まりを変えても、もう付いたポイントは変わりません。</p>
+    <div class="card" style="margin-bottom:14px"><h2>決まりの数字</h2>
+      <div id="ptSet" style="display:grid;gap:10px"></div></div>
+    <div class="card" style="margin-bottom:14px"><h2>ポイントを調整する</h2>
+      <form id="ptAdj" style="display:grid;gap:8px" novalidate>
+        <div id="ptAdjWho" class="muted">下の表の「調整」を押して、人を選んでね</div>
+        <div class="bar" style="margin:0"><label>ポイント（引くときは − をつける） <input id="ptDelta" type="number" step="1" min="-10000" max="10000" style="width:9em" inputmode="numeric"></label>
+          <input id="ptNote" maxlength="200" placeholder="理由（本人のマイページに出ます）" aria-label="理由" style="flex:1;min-width:14em"><button class="primary" type="submit" id="ptGo" disabled>調整する</button></div></form></div>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>名前</th><th>メール</th><th>残高</th><th>感想でもらった</th><th>応募でつかった</th><th>運営の調整</th><th>最後の動き</th><th>操作</th></tr></thead>
+      <tbody id="ptRows"></tbody>
     </table></div>
   </div>
 
@@ -286,7 +305,7 @@ document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => {
   document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
-const LOADERS = { overview: () => loadOverview(), fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles() };
+const LOADERS = { overview: () => loadOverview(), fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles(), pts: () => loadPts() };
 function setLoadErr(k, failed){
   const panel = document.querySelector('[data-panel="' + k + '"]'); if (!panel) return;
   let box = panel.querySelector(':scope > .loaderr');
@@ -358,7 +377,11 @@ function renderOverview(){
     kpi('BAN', nf((+bans.client || 0) + (+bans.user || 0)) + '件', '端末 ' + nf(bans.client) + '・アカウント ' + nf(bans.user) + '（いまの数）'),
     kpi('新しいアカウント', nf(ov.new_users), 'この期間に初めてログインした人'),
     kpi('👍・🤔', nf(ov.likes) + ' / ' + nf(ov.hmms), '押された数（同じ作品は1人1日1回）')
-  ].join('');
+  ].concat(ov.points ? [
+    kpi('配ったポイント', nf(ov.points.granted) + 'pt', '感想でもらわれた分。取り消し ' + nf(ov.points.revoked) + 'pt'),
+    kpi('使われたポイント', nf(ov.points.spent) + 'pt', '応募でつかわれた分。見送りで返した ' + nf(ov.points.refunded) + 'pt'),
+    kpi('みんなの残高の合計', nf(ov.points.outstanding) + 'pt', 'これまでの全部（期間に関係なし）')
+  ] : []).join('');
   const daily = ov.daily || [];
   const charts = daily.length ? chartHtml(daily, 'visits', '訪問した人', 'c1') + chartHtml(daily, 'plays', '遊んだ回数', 'c2') + chartHtml(daily, 'feedbacks', '感想', 'c3') : '<span class="muted">日ごとの数はありません</span>';
   const top = (ov.top_games || []).map(g => `<li><a href="games/${esc(g.slug)}/" target="_blank" rel="noopener">${esc(GAMES[g.slug]?.title || g.slug)}</a><span class="n">遊んだ ${nf(g.plays)}回 ・ 感想 ${nf(g.feedbacks)}件</span></li>`).join('');
@@ -421,7 +444,7 @@ $('subRows').onclick = async (e) => {
   const c = e.target.closest('button[data-copy]'), b = e.target.closest('button[data-sub]');
   if (c) { const s = SUBS.find(x => x.id === c.dataset.copy); try { await navigator.clipboard.writeText(subJson(s)); toast('コピーしました。games.json に貼って、slug と色を直してください') } catch (err) { toast('コピーできませんでした') } }
   if (b) { const st = b.dataset.st, s0 = SUBS.find(x => x.id === b.dataset.sub);
-    const note = st === 'new' ? '' : await ask(st === 'ok' ? (s0 && s0.kind === 'edit' ? '「直した」にしますか？' : '「載せた」にしますか？') : '「見送り」にしますか？', '下に書いた一言は、応募した本人のマイページに出ます。空でもOKです。', true, '', '本人に伝える一言（空でもOK・本人のマイページに出ます）');
+    const note = st === 'new' ? '' : await ask(st === 'ok' ? (s0 && s0.kind === 'edit' ? '「直した」にしますか？' : '「載せた」にしますか？') : '「見送り」にしますか？', '下に書いた一言は、応募した本人のマイページに出ます。空でもOKです。' + (st === 'ng' && s0 && s0.kind === 'new' ? '見送りにすると、応募でつかったポイントは本人に返ります。' : ''), true, '', '本人に伝える一言（空でもOK・本人のマイページに出ます）');
     if (note === false || note === null) return;
     toast(await rpc('admin_submission_set', { sid: b.dataset.sub, st, note: typeof note === 'string' && note !== '理由なし' ? note : '' })); await loadSubs(); }
 };
@@ -458,6 +481,45 @@ $('profRows').onclick = async (e) => {
   const hide = b.dataset.val === 'true';
   if (hide && !(await ask('プロフィールを非表示にしますか？', '@' + b.dataset.ph + ' のプロフィールが、ほかの人から見えなくなります。あとで戻せます。', false))) return;
   toast(await rpc('admin_profile_hide', { h: b.dataset.ph, hide })); await loadProfiles();
+};
+
+// ---- ポイント ----
+let PTU = [], PTSEL = null;
+const PT_ERR = { bad_tiers: '境目は「感想が少ない」より「ふつう」のほうが大きくなるようにしてね', bad_value: '数字が大きすぎる・小さすぎるみたい', need_note: '理由を書いてね', bad_delta: 'ポイントは 0 でなく、±10000 までにしてね', no_user: 'その人が見つかりません', not_admin: '運営だけが使えます' };
+const ptRpc = async (name, args) => { const { data, error } = await sb.rpc(name, args || {}); if (error) { toast('できませんでした：' + (PT_ERR[error.message] || error.message)); throw error } return data };
+async function loadPts(){
+  const [set, users] = await Promise.all([rpc('admin_settings_get'), rpc('admin_points_users')]);
+  PTU = users; renderPtSet(set); renderPtUsers();
+}
+function renderPtSet(set){
+  $('ptSet').innerHTML = set.map(r => `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(r.label)}<br><span class="muted">${esc(r.key)}</span></label>
+    <input type="number" min="0" max="100000" step="1" value="${Number(r.value)}" data-key="${esc(r.key)}" data-old="${Number(r.value)}" aria-label="${esc(r.label)}" style="width:7em" inputmode="numeric"><button data-setsave="${esc(r.key)}">保存</button></div>`).join('');
+}
+$('ptSet').onclick = async e => {
+  const b = e.target.closest('button[data-setsave]'); if (!b) return;
+  const inp = $('ptSet').querySelector('input[data-key="' + b.dataset.setsave + '"]'), v = Number(inp.value);
+  if (!Number.isInteger(v) || v < 0) { toast('0以上の整数を入れてね'); return }
+  b.disabled = true;
+  try { toast(await ptRpc('admin_settings_set', { p_key: b.dataset.setsave, p_value: v })); await loadPts() } catch (err) { inp.value = inp.dataset.old }
+  b.disabled = false;
+};
+function renderPtUsers(){
+  $('ptRows').innerHTML = PTU.map(u => `<tr><td>${esc(u.name || '')}${u.handle ? ' <span class="muted">@' + esc(u.handle) + '</span>' : ''}</td><td>${esc(u.email || '')}</td>
+    <td><span class="lb">残高 </span><b>${nf(u.balance)}pt</b></td><td><span class="lb">感想でもらった </span>${nf(u.earned)}pt</td><td><span class="lb">応募でつかった </span>${nf(u.spent)}pt</td><td><span class="lb">運営の調整 </span>${nf(u.adjusted)}pt</td><td><span class="lb">最後の動き </span>${u.last_at ? fmt(u.last_at) : '—'}</td>
+    <td><button data-adj="${esc(u.user_id)}">調整</button></td></tr>`).join('') || '<tr><td colspan="8" class="muted">まだポイントの動きはありません</td></tr>';
+}
+$('ptRows').onclick = e => {
+  const b = e.target.closest('button[data-adj]'); if (!b) return;
+  PTSEL = PTU.find(u => u.user_id === b.dataset.adj); if (!PTSEL) return;
+  $('ptAdjWho').innerHTML = '調整する人：<b>' + esc(PTSEL.name || PTSEL.email || '') + '</b>（いま ' + nf(PTSEL.balance) + 'pt）'; $('ptGo').disabled = false; $('ptDelta').focus();
+};
+$('ptAdj').onsubmit = async e => {
+  e.preventDefault(); if (!PTSEL) return;
+  const d = Number($('ptDelta').value), note = $('ptNote').value.trim();
+  if (!Number.isInteger(d) || d === 0 || Math.abs(d) > 10000) { toast('ポイントは 0 でなく、±10000 までの整数にしてね'); $('ptDelta').focus(); return }
+  if (!note) { toast('理由を書いてね'); $('ptNote').focus(); return }
+  if (!(await ask('ポイントを調整しますか？', (PTSEL.name || PTSEL.email || '') + ' さんに ' + (d > 0 ? '+' : '') + d + 'pt。理由は本人のマイページに出ます：' + note, false))) return;
+  try { toast(await ptRpc('admin_points_adjust', { uid: PTSEL.user_id, delta: d, note })); $('ptDelta').value = ''; $('ptNote').value = ''; $('ptAdjWho').textContent = '下の表の「調整」を押して、人を選んでね'; $('ptGo').disabled = true; PTSEL = null; await loadPts(); loadOverview().catch(() => {}) } catch (err) {}
 };
 
 async function loadFb(){ FB = await rpc('admin_feedback', { lim: 1000 }); SEL = new Set([...SEL].filter(id => FB.some(f => f.id === id && !f.hidden))); renderFb(); }
@@ -512,7 +574,7 @@ $('fbRows').onchange = e => { const c = e.target.closest('input[data-sel]'); if 
 $('fbRows').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) openTab(g.dataset.go) });
 $('fbBulk').onclick = async () => {
   const ids = [...SEL].filter(id => FB.some(f => f.id === id && !f.hidden)); if (!ids.length) return;
-  if (!(await ask(ids.length + '件の感想を非表示にしますか？', '選んだ感想が、ほかの人から見えなくなります。あとで1件ずつ「表示に戻す」で戻せます。', false))) return;
+  if (!(await ask(ids.length + '件の感想を非表示にしますか？', '選んだ感想が、ほかの人から見えなくなります。その感想でもらったポイントは取り消されます。あとで1件ずつ「表示に戻す」で戻すと、ポイントも返ります。', false))) return;
   $('fbBulk').disabled = true; let ok = 0, ng = 0;
   for (const id of ids) { const { error } = await sb.rpc('admin_set_hidden', { fid: id, hide: true }); error ? ng++ : ok++; $('fbBulk').textContent = `非表示にしています… ${ok + ng}/${ids.length}` }
   toast(ok + '件を非表示にしました' + (ng ? '（' + ng + '件はできませんでした）' : '')); SEL.clear();
@@ -525,7 +587,7 @@ $('fbRows').onclick = async (e) => {
   if (b.dataset.act === 'hide') { toast(await rpc('admin_set_hidden', { fid: id, hide: true })); }
   if (b.dataset.act === 'show') { toast(await rpc('admin_set_hidden', { fid: id, hide: false })); }
   if (b.dataset.act === 'ban') {
-    const why = await ask('この人をBANしますか？', `${f?.author || 'この人'}の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり、アカウントと端末の両方で、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想', '理由（運営だけが見ます）');
+    const why = await ask('この人をBANしますか？', `${f?.author || 'この人'}の感想（${f?.by_same_client ?? '?'}件）はすべて非表示になり（もらったポイントも取り消されます）、アカウントと端末の両方で、以後は感想も👍も送れなくなります。BAN一覧からいつでも解けます。`, true, '雑な感想', '理由（運営だけが見ます）');
     if (why === null) return;
     toast(await rpc('admin_ban', { fid: id, why }));
   }
