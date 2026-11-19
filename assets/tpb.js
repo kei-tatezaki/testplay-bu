@@ -487,8 +487,8 @@
       if (/\/(admin|dev)(\.html)?\/?$/.test(location.pathname)) return;
       var day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // 日本時間の日付
       if (T.store.get("visitDay", "") === day) return;
-      fetch(SB_URL + "/rest/v1/site_visits", { method: "POST", keepalive: true,
-        headers: { apikey: SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      fetch(T.SB_URL + "/rest/v1/site_visits", { method: "POST", keepalive: true,
+        headers: { apikey: T.SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
         body: JSON.stringify({ client_id: T.cid() }) })
         .then(function (r) { if (r.status < 500) T.store.set("visitDay", day) })   // 409（もう数えた）や BAN の断りも「送った」ことにする。通信できなかったときだけ次回また試す
         .catch(function () {});
