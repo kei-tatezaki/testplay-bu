@@ -89,6 +89,7 @@ button{font:inherit;color:inherit}
 .player header b{flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .player header button{background:#ffffff1a;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px}
 .player header button.fb{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.player .pbody{flex:1;display:flex;min-height:0}
 .player iframe{flex:1;border:0;width:100%;background:#fff}
 .why{position:fixed;z-index:45;right:84px;width:min(260px,calc(100vw - 100px));background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px;display:none;gap:8px;box-shadow:0 8px 30px #0009}
 .why.open{display:grid}
@@ -189,7 +190,7 @@ textarea{min-height:72px;resize:vertical}
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
-  <iframe id="pFrame" title="ゲーム" allow="fullscreen; autoplay; gamepad"></iframe>
+  <div class="pbody" id="pBody"></div>
 </div>
 
 <div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
@@ -455,6 +456,23 @@ async function share(g,btn){
 // ---- 遊ぶ ----
 let current=null, timer=0;
 function markPlayed(g){played.add(g.slug);store.set('played',[...played]);refreshChips(g.slug)}
+// プレイヤー：iframe は開くたびに作り、閉じるときに取りはずす（src を書きかえると「戻る」の履歴が1つ増えてしまうため）。
+// 開いたら iframe にフォーカスを渡す（スペースキーなどがゲームに届き、「閉じる」が押されない）。閉じるのは Esc と「閉じる」のクリックだけ。
+let playerOpener=null;
+function onPlayerKey(e){ if(e.key==='Escape'){ e.preventDefault(); closePlayer() } }
+function openPlayer(g){
+  const sl=document.querySelector('.slide[data-slug="'+g.slug+'"]'), ae=document.activeElement;
+  playerOpener = ae && ae!==document.body && ae.closest && ae.closest('.slide') ? ae : (sl&&sl.querySelector('.rail .play'));
+  $('pTitle').textContent=g.title;
+  const fr=document.createElement('iframe'); fr.id='pFrame'; fr.title='ゲーム：'+g.title; fr.allow='fullscreen; autoplay; gamepad';
+  fr.addEventListener('load',()=>{
+    fr.focus(); try{ fr.contentWindow.focus() }catch(_){}
+    try{ fr.contentDocument.addEventListener('keydown',onPlayerKey) }catch(_){}  // 同じ出どころのゲームなら、ゲームの中でも Esc で閉じられる
+  });
+  fr.src=g.play; $('pBody').replaceChildren(fr);
+  $('player').classList.add('open'); TPB.layer.open('player',closePlayer);
+  fr.focus();
+}
 function play(g){
   if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
@@ -462,7 +480,7 @@ function play(g){
   markPlayed(g); track(g,'play'); current=g;
   playing={slug:g.slug,t:Date.now(),external:!isLocal(g.play)};
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
-  $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); TPB.layer.open('player',closePlayer); $('pClose').focus();
+  openPlayer(g);
   scheduleNudge(g);
 }
 // 遊んだ時間を記録する（サイトの中で開いたゲームは閉じるまで、別のタブで開いたゲームはこのページに戻ってくるまで）
@@ -483,7 +501,8 @@ function confirmWrongDevice(g){
   $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
   return false;
 }
-function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); $('pFrame').src='about:blank'; TPB.layer.close('player'); endPlay();
+function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
+  if(playerOpener&&playerOpener.isConnected) try{ playerOpener.focus({preventScroll:true}) }catch(_){}
   // 遊んだ直後に、ひとこと聞く（まだ👍も🤔も感想もない作品だけ）。それ以外のときはDiscordに誘う
   if(current && !reacts[current.slug] && !sent.has(current.slug)) askAfter(current); else maybeInvite() }
 let afterT=0, afterG=null;
