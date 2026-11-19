@@ -31,7 +31,8 @@ PRIOR_N, PRIOR_MEAN = 3, 0.5  # 評価の数が少ない作品が1件だけで1�
 
 def load_games():
     games = json.loads((ROOT / "games.json").read_text(encoding="utf-8"))
-    return [g for g in games if not g.get("hidden")]
+    # R18作品はDiscordのふつうのチャンネルには出さない（Discordの決まり：性的な内容は年齢制限チャンネルだけ）
+    return [g for g in games if not g.get("hidden") and g.get("rating") != "r18"]
 
 
 def fetch_stats(days):

@@ -69,6 +69,13 @@ button{font:inherit;color:inherit}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
 .toast.show{display:flex}
 [hidden]{display:none!important}
+.agecover{position:absolute;inset:0;z-index:6;background:#120d10;display:grid;place-items:center;padding:24px;text-align:center}
+.agecover .box{display:grid;gap:10px;max-width:320px}
+.agecover .r{font-size:44px;font-weight:800;color:#f07890;line-height:1}
+.agecover button{border:0;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:15px;background:#f07890;color:#2a0d15}
+.agecover button.no{background:#ffffff14;color:var(--ink);font-weight:400}
+.chip.rate-r15{border-color:#d4a017;color:#d4a017}
+.chip.rate-r18{border-color:#e05a74;color:#e05a74;font-weight:700}
 .toast a.go{border-radius:999px;padding:6px 12px;font-size:13px;background:#5865F2;color:#fff;text-decoration:none;white-space:nowrap;font-weight:700}
 #sDone{display:none;gap:10px;text-align:center}
 .sheet.done #sDone{display:grid}
@@ -206,11 +213,22 @@ const feed = $('feed');
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
 function isLocal(url){return !/^https?:/i.test(url)}
 
+// R18作品は、18歳以上だと確認するまで表紙で隠す（確認は端末に保存）
+function age18(){ return !!store.get('age18',false) }
+function ageCover(){
+  const box=el('div',{class:'box'},el('div',{class:'r'},'R18'),el('b',null,'18歳以上向けの作品です'),
+    el('p',{class:'muted',style:'margin:0;font-size:13px'},'見るには年齢の確認が必要です'),
+    el('button',{type:'button',onclick:()=>{ box.replaceChildren(el('div',{class:'r'},'R18'),el('b',null,'あなたは18歳以上ですか？'),
+      el('button',{type:'button',onclick:()=>{ store.set('age18',true); document.querySelectorAll('.agecover').forEach(c=>c.remove()) }},'はい（表示する）'),
+      el('button',{type:'button',class:'no',onclick:()=>{ const s=box.closest('.slide'); const n=s&&s.nextElementSibling; if(n) n.scrollIntoView({behavior:'smooth'}) }},'いいえ（次の作品へ）')) }},'見る'));
+  return el('div',{class:'agecover'},box);
+}
 order.forEach((g,idx)=>{
   const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:'og/'+g.slug+'.png'})
                        : el('img',{class:'media',src:'og/'+g.slug+'.png',alt:g.title,loading:idx<2?'eager':'lazy'});
   if(g.clip){media.muted=true}
   const chips = el('div',{class:'chips'},
+    g.rating==='r15'||g.rating==='r18'?el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()):null,
     !played.has(g.slug)&&canPlay(g)?el('span',{class:'chip new'},'まだ遊んでない'):null,
     META[g.slug]&&META[g.slug].s.feedbacks===0?el('span',{class:'chip check'},'感想まだ0件・最初の1人に'):null,
     g.platform?el('span',{class:'chip'+(canPlay(g)?'':' warn')},canPlay(g)?PLAT[g.platform]:(g.platform==='pc'?'PCで遊べます':'スマホで遊べます')):null,
@@ -235,7 +253,8 @@ order.forEach((g,idx)=>{
       likeB, hmmB,
       el('button',{class:'rb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
       el('button',{class:'rb',type:'button','aria-label':'共有',onclick:e=>share(g,e.currentTarget)},el('span',{class:'ic'},'↗'),'共有')),
-    idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null);
+    idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null,
+    g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
 feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'))));
@@ -299,6 +318,7 @@ async function share(g,btn){
 let current=null, timer=0;
 function markPlayed(g){played.add(g.slug);store.set('played',[...played])}
 function play(g){
+  if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
   markPlayed(g); track(g,'play'); current=g;
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }

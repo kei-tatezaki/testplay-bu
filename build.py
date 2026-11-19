@@ -91,6 +91,28 @@ def make_og(game, out):
     im.save(out, optimize=True)
 
 
+RATING = {"r15": "R15", "r18": "R18"}
+
+
+def is_r18(g):
+    return g.get("rating") == "r18"
+
+
+def make_r18_og(game, out):
+    """R18作品の共通の表紙。作品の画像や動画はサイトに置かない（GitHub Pagesの決まり）。"""
+    W, H = 1200, 630
+    im = Image.new("RGB", (W, H), (24, 18, 22))
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, 24, H], fill=(230, 80, 100))
+    d.text((80, 70), "テストプレイ部", font=font(FONT_BOLD, 34), fill=(170, 150, 160))
+    d.rounded_rectangle([80, 160, 330, 290], radius=24, outline=(230, 80, 100), width=6)
+    d.text((112, 172), "R18", font=font(FONT_BOLD, 96), fill=(240, 120, 140))
+    d.text((80, 340), "18歳以上向けの作品です", font=font(FONT_BOLD, 56), fill=(240, 236, 238))
+    d.text((80, 430), "作品ページで年齢を確認してから表示します", font=font(FONT_REG, 34), fill=(190, 175, 182))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    im.save(out, optimize=True)
+
+
 def make_site_og(out):
     W, H = 1200, 630
     im = Image.new("RGB", (W, H), (16, 20, 28))
@@ -111,6 +133,8 @@ def make_site_og(out):
 
 
 def media_html(g, prefix):
+    if is_r18(g):
+        return f'<img class="media" src="{prefix}og/{e(g["slug"])}.png" alt="18歳以上向けの作品" loading="lazy">'
     yt = youtube_id(g.get("youtube"))
     if g.get("clip"):
         return f'<video class="media" src="{prefix}{e(g["clip"])}" autoplay muted loop playsinline poster="{prefix}og/{e(g["slug"])}.png"></video>'
@@ -125,6 +149,8 @@ PLATFORM = {"pc": "PCのみ", "sp": "スマホのみ", "both": "PC・スマホ"}
 
 def chips_html(g):
     out = []
+    if g.get("rating") in RATING:
+        out.append(f'<span class="chip rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>')
     if g.get("platform") in PLATFORM:
         out.append(f'<span class="chip plat">{PLATFORM[g["platform"]]}</span>')
     if g.get("sample"):
@@ -164,6 +190,10 @@ header p{margin:4px 0 0;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:#000;border:0}
 .thumb{position:relative;display:block}
+.rate{position:absolute;left:6px;top:6px;font-size:11px;font-weight:800;line-height:1.6;padding:0 7px;border-radius:4px;color:#fff;background:#b8860b}
+.rate.rate-r18{background:#d6405e}
+.chip.rate-r15{border-color:#d4a017;color:#d4a017}
+.chip.rate-r18{border-color:#e05a74;color:#e05a74;font-weight:700}
 .yt{position:relative}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body{padding:16px;display:grid;gap:10px}
 .body h2{margin:0;font-size:21px;line-height:1.4}
@@ -219,6 +249,22 @@ document.addEventListener('click',function(ev){
 </script>"""
 
 
+# R18作品のページは、年齢を確認するまで中身を隠す（確認は端末に保存して、次からは聞かない）
+AGE_GATE = """<div id="ageGate" style="position:fixed;inset:0;z-index:100;background:#120d10;display:grid;place-items:center;padding:20px">
+<div style="max-width:420px;width:100%;background:#1f171b;border:1px solid #3a2a31;border-radius:16px;padding:22px;display:grid;gap:12px;color:#f3eef0;text-align:center">
+<b style="font-size:40px;color:#f07890;line-height:1">R18</b>
+<b style="font-size:18px">18歳以上向けの作品です</b>
+<p style="margin:0;color:#c9b8c0;font-size:14px">あなたは18歳以上ですか？</p>
+<button type="button" id="ageYes" style="border:0;border-radius:12px;padding:12px;font-weight:700;background:#f07890;color:#2a0d15;cursor:pointer;font-size:15px">はい（表示する）</button>
+<a href="../../list.html" style="color:#c9b8c0;font-size:14px">いいえ（まとめに戻る）</a>
+</div></div>
+<script>
+(function(){try{if(JSON.parse(localStorage.getItem('tpb:age18')||'false')){document.getElementById('ageGate').remove();return}}catch(e){}
+document.getElementById('ageYes').onclick=function(){try{localStorage.setItem('tpb:age18','true')}catch(e){};document.getElementById('ageGate').remove()};})();
+</script>
+"""
+
+
 def page(title, desc, url, image, body, prefix):
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -233,7 +279,7 @@ def page(title, desc, url, image, body, prefix):
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{e(url)}">
 <meta property="og:image" content="{e(image)}">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary_large_image">{'<meta name="robots" content="noindex">' if 'id="ageGate"' in body else ''}
 <meta name="theme-color" content="#1f6f6a">
 <link rel="icon" type="image/png" sizes="32x32" href="{prefix}assets/icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="{prefix}assets/icon-192.png">
@@ -260,7 +306,7 @@ def card(g, prefix):
     slug = e(g["slug"])
     sub = " ・ ".join(x for x in (PLATFORM.get(g.get("platform"), ""), f"確かめたい：{g['check']}" if g.get("check") else "") if x)
     return f"""<article class="tile" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
-<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"><img class="media" src="{prefix}og/{slug}.png" alt="" loading="lazy">{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
+<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"><img class="media" src="{prefix}og/{slug}.png" alt="" loading="lazy">{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
 <div class="meta">
 <a class="t" href="{prefix}games/{slug}/">{e(g['title'])}</a>
 <div class="by">{e(g['author'])}</div>
@@ -278,9 +324,9 @@ def build():
     checks = sorted({g.get("check") for g in games if g.get("check")})
 
     for g in games:
-        make_og(g, ROOT / f"og/{g['slug']}.png")
+        (make_r18_og if is_r18(g) else make_og)(g, ROOT / f"og/{g['slug']}.png")
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
-        body = f"""<div class="wrap">
+        body = (AGE_GATE if is_r18(g) else "") + f"""<div class="wrap">
 <a href="../../list.html">← まとめに戻る</a>
 <article class="card">
 {media_html(g, '../../')}
@@ -403,6 +449,17 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </div></section>
 
 <section class="card"><div class="body">
+<h2>年齢制限のある作品について</h2>
+<p>ホラーや暴力表現のある作品（R15）、18歳以上向けの作品（R18）も載せられます。載せるときに、どちらにあたるかを教えてください。</p>
+<ul>
+<li><b>R15</b>：作品に「R15」の印がつきます</li>
+<li><b>R18</b>：見る人が18歳以上だと確認するまで、作品は表紙で隠れます。作品の画像や動画はこのサイトには置かず、共通の表紙を使います。ゲーム本体は、年齢制限のある作品を置けるサイトに置いてください</li>
+<li>R18の作品は、Discordの新作通知と毎日のおすすめには流れません</li>
+<li>未成年を性的に描いたもの、実在の人物を性的に描いたものは載せられません</li>
+</ul>
+</div></section>
+
+<section class="card"><div class="body">
 <h2>運営の約束</h2>
 <p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
@@ -421,7 +478,8 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
                                              f"{BASE}/creators.html", f"{BASE}/og/site.png", creators, ""), encoding="utf-8")
 
     # トップはショート風のフィード
-    data = json.dumps(games, ensure_ascii=False).replace("</", "<\\/")
+    feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube"))} for g in games]
+    data = json.dumps(feed_games, ensure_ascii=False).replace("</", "<\\/")
     feed = (ROOT / "feed_template.html").read_text(encoding="utf-8")
     feed = feed.replace("__GAMES__", data).replace("__BASE__", BASE).replace("__SB_URL__", SB_URL).replace("__SB_KEY__", SB_KEY).replace(
         "__DISCORD__", DISCORD_INVITE or "https://discord.com/channels/1572684471348498582/1572684778858348624")
