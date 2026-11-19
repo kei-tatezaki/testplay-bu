@@ -154,6 +154,10 @@ legend small{font-weight:400;color:var(--muted)}
 textarea,input[type=text]{width:100%;background:#0b0e13;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--ink);font:inherit;font-size:14px}
 textarea{min-height:72px;resize:vertical}
 .count{font-size:12px;color:var(--muted);text-align:right}
+em.req{font-style:normal;font-size:11px;font-weight:700;color:#06211b;background:var(--warn);border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
+.ferr{margin:0;font-size:13px;color:#ff8f7a;font-weight:700}
+.pubnote{margin:0;font-size:12px;color:var(--muted);text-align:center}
 .actions{display:grid;gap:8px}
 .btn{border:0;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:15px;background:var(--accent);color:var(--accent-ink);text-align:center;text-decoration:none}
 .btn.ghost{background:#ffffff14;color:var(--ink);font-weight:500}
@@ -219,14 +223,15 @@ textarea{min-height:72px;resize:vertical}
   <form class="sheet" id="sheet" aria-labelledby="sTitle">
     <h3 id="sTitle">感想を送る</h3>
     <p class="sub" id="sSub">選ぶだけで8割できあがり。1分で送れます。</p>
-    <fieldset data-k="again" data-single><legend>もう一回遊びたい？</legend><div class="opts"></div></fieldset>
-    <fieldset data-k="reach" data-single><legend>どこまで遊んだ？</legend><div class="opts"></div><input type="text" id="stopAt" placeholder="途中でやめた場合、どのあたり？（任意）" maxlength="60" hidden></fieldset>
+    <fieldset data-k="again" data-single><legend>もう一回遊びたい？ <em class="req">必須</em></legend><div class="opts"></div></fieldset>
+    <fieldset data-k="reach" data-single><legend>どこまで遊んだ？ <em class="req">必須</em></legend><div class="opts"></div><input type="text" id="stopAt" placeholder="途中でやめた場合、どのあたり？（任意）" maxlength="60" hidden></fieldset>
     <fieldset data-k="good"><legend>よかったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
     <fieldset data-k="bad"><legend>気になったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
     <fieldset data-k="answer" data-single><legend id="qLegend">作者の質問</legend><div class="opts"></div></fieldset>
     <fieldset><legend>一言 <small id="minNote">任意</small></legend><div class="opts" id="emo"></div><textarea id="free" maxlength="400" placeholder="🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
       <label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="dev"> 自分もゲームを作っている（開発者は40文字以上で書いてね）</label>
     </fieldset>
+    <p class="pubnote">書いた感想は、作品ページにのります（名前は出ません）。</p>
     <div class="actions">
       <button class="btn" type="submit">感想を送る</button>
       <button class="btn ghost" type="button" id="sClose">あとで</button>
@@ -561,6 +566,7 @@ document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
     if(single) box.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed','false'));
     b.setAttribute('aria-pressed',String(on));
     picks[k]=[...box.querySelectorAll('.opt[aria-pressed="true"]')].map(x=>x.dataset.v);
+    fs.classList.remove('err'); const fe=fs.querySelector('.ferr'); if(fe) fe.remove();
     if(k==='reach') $('stopAt').hidden = !(picks.reach||[]).includes('途中でやめた');
   }},label)) });
 });
@@ -624,7 +630,13 @@ $('sDoneClose').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
 $('sheet').addEventListener('submit',async e=>{
   e.preventDefault(); const g=sheetGame; const msg=$('sMsg');
-  if(!(picks.again||[]).length||!(picks.reach||[]).length){ msg.className='msg err'; msg.textContent='「もう一回遊びたい？」と「どこまで遊んだ？」は選んでね'; return }
+  const miss=['again','reach'].filter(k=>!(picks[k]||[]).length);
+  document.querySelectorAll('#sheet fieldset.err').forEach(f=>{ f.classList.remove('err'); const x=f.querySelector('.ferr'); if(x) x.remove() });
+  if(miss.length){
+    miss.forEach(k=>{ const f=document.querySelector('#sheet fieldset[data-k="'+k+'"]'); f.classList.add('err'); f.append(el('p',{class:'ferr',role:'alert'},'選んでね')) });
+    msg.className='msg err'; msg.textContent='赤い枠の質問は、選んでね';
+    const first=document.querySelector('#sheet fieldset[data-k="'+miss[0]+'"]'); first.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); first.querySelector('.opt').focus({preventScroll:true});
+    return }
   const n=[...free.value.trim()].length;
   if(dev.checked&&n<40){ msg.className='msg err'; msg.textContent='開発者は一言を40文字以上で書いてね（あと'+(40-n)+'文字）'; return }
   const payload={game_slug:g.slug, again:picks.again[0], reach:picks.reach[0], stop_at:$('stopAt').value.trim()||null,
