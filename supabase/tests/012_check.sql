@@ -5,6 +5,8 @@
 create function public.t_ok(label text, cond boolean) returns void language plpgsql as $$
 begin if cond is not true then raise exception 'FAIL: %', label; end if; raise notice 'ok  %', label; end $$;
 
+-- 013（最初の10作品は投稿無料）も一緒に入っているので、ここではキャンペーンを止めて、ポイントの動きだけを見る
+update public.settings set value = 0 where key = 'launch_free_total';
 -- 人：u1=もらう人 u2=作品g1の作者 u3=管理者 u4=お金のない人 u5〜=ほかの人
 insert into auth.users (id, email) select ('00000000-0000-0000-0000-0000000000' || lpad(i::text, 2, '0'))::uuid, 'u' || i || '@example.com' from generate_series(1, 30) i;
 insert into public.admins (user_id) values ('00000000-0000-0000-0000-000000000003');
@@ -169,7 +171,7 @@ select public.t_ok('13b 最近の記録は20件まで・0pt は出さない', js
 select public.t_as(3, $q$ select count(*)::text from public.admin_points_users() $q$) as r \gset
 select public.t_ok('13c admin_points_users', :'r'::int >= 5);
 select public.t_as(3, $q$ select count(*)::text from public.admin_settings_get() $q$) as r \gset
-select public.t_ok('13d admin_settings_get は8行', :'r' = '8');
+select public.t_ok('13d admin_settings_get は8行以上（013 が入っていれば9行）', :'r'::int >= 8);
 select public.t_as(3, $q$ select public.admin_settings_set('submit_cost', 20) $q$) as r \gset
 select public.t_ok('13e 設定を変えると反映される', :'r' = '変えました' and public.setting_int('submit_cost') = 20);
 select public.t_as(3, $q$ select public.admin_settings_set('tier1_max', 50) $q$) as r \gset
