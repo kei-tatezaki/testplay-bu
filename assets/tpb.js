@@ -223,14 +223,16 @@
   // ---- 報告する ----
   var REASONS = [["broken", "動かない・遊べない"], ["bad_content", "いやな気持ちになる内容がある"], ["rating", "年齢制限が合っていない"],
     ["copy", "ほかの人の作品をまねている"], ["spam", "宣伝・いたずら"], ["other", "そのほか"]];
-  T.report = function (kind, target, label, anchor) {
+  // opt.reasons：選べる理由を絞る ／ opt.prefix：くわしくの前につける文字（感想の報告で、どの感想かを運営に伝える） ／ opt.sub：説明の文
+  T.report = function (kind, target, label, anchor, opt) {
+    opt = opt || {};
     var pick = "", msg = el("p", { class: "tpb-msg", "aria-live": "polite" });
-    var opts = el("div", { class: "tpb-opts", role: "radiogroup", "aria-label": "理由" }, REASONS.filter(function (r) { return kind === "game" || (r[0] !== "broken" && r[0] !== "rating") }).map(function (r) {
+    var opts = el("div", { class: "tpb-opts", role: "radiogroup", "aria-label": "理由" }, REASONS.filter(function (r) { return opt.reasons ? opt.reasons.indexOf(r[0]) >= 0 : (kind === "game" || (r[0] !== "broken" && r[0] !== "rating")) }).map(function (r) {
       return el("button", { type: "button", class: "tpb-opt", role: "radio", "aria-checked": "false", onclick: function (e) {
         pick = r[0]; opts.querySelectorAll(".tpb-opt").forEach(function (x) { x.setAttribute("aria-checked", String(x === e.currentTarget)) });
       } }, r[1]);
     }));
-    var ta = el("textarea", { maxlength: 400, placeholder: "くわしく（書かなくてもOK）", "aria-label": "くわしく" });
+    var ta = el("textarea", { maxlength: 400 - (opt.prefix || "").length, placeholder: "くわしく（書かなくてもOK）", "aria-label": "くわしく" });
     var send = el("button", { class: "tpb-btn", type: "button" }, "報告を送る");
     send.addEventListener("click", async function () {
       if (!pick) { msg.className = "tpb-msg err"; msg.textContent = "理由をひとつ選んでね"; return }
@@ -239,7 +241,7 @@
       var s = T.maybeLoggedIn() ? await T.session() : null; if (s) headers.Authorization = "Bearer " + s.access_token;
       var ok = false, err = "";
       try {
-        var r = await fetch(SB_URL + "/rest/v1/rpc/report_send", { method: "POST", headers: headers, body: JSON.stringify({ p_kind: kind, p_target: target, p_reason: pick, p_detail: ta.value, p_client: T.cid() }) });
+        var r = await fetch(SB_URL + "/rest/v1/rpc/report_send", { method: "POST", headers: headers, body: JSON.stringify({ p_kind: kind, p_target: target, p_reason: pick, p_detail: ((opt.prefix || "") + ta.value).slice(0, 400), p_client: T.cid() }) });
         ok = r.ok; if (!ok) err = ((await r.json()) || {}).message || "";
       } catch (e) {}
       send.disabled = false;
@@ -247,7 +249,7 @@
       else { msg.className = "tpb-msg err"; msg.textContent = err === "too_many" ? "今日はもう報告を送れません（1日5件まで）" : err === "banned" ? "この端末からは報告を送れません" : "送れなかった…時間をおいてもう一度試してね" }
     });
     var box = el("div", { class: "tpb-dialog", role: "dialog", "aria-modal": "true", "aria-label": "報告する" },
-      el("h3", null, "報告する"), el("p", { class: "tpb-sub" }, "「" + label + "」について、運営に知らせます。作った人に、だれが報告したかは伝わりません。"),
+      el("h3", null, "報告する"), el("p", { class: "tpb-sub" }, opt.sub || ("「" + label + "」について、運営に知らせます。作った人に、だれが報告したかは伝わりません。")),
       opts, ta, msg, send, el("button", { class: "tpb-btn ghost", type: "button", onclick: closeOverlay }, "やめる"));
     overlay("dialog", box, anchor);
   };

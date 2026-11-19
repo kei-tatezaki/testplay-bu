@@ -44,6 +44,7 @@ button,select,input{font:inherit}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin:0 4px 2px 0}
 .tag.dev{border-color:var(--accent);color:var(--accent)}
 .free{white-space:pre-wrap;word-break:break-word}
+.fb .tools{margin-top:4px}
 .note{font-size:12px;color:var(--muted)}
 #msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px #0008;z-index:10}
 @media (max-width:420px){.brow{grid-template-columns:96px 1fr 70px}}
@@ -164,7 +165,7 @@ async function load(){
     return n? Math.round((pts+1.5)/(n+3)*100)+'%' : '—' })();
   $('kpis').innerHTML=[
     ['遊んだ人',s.plays+'人'],['遊んだ回数',s.sessions+'回'],['遊んだ時間（真ん中）',fmtSec(s.median_seconds),'半分の人はこれより長く遊んだ'],
-    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate,'もう一回遊びたいと答えた割合のめやす'],['👍',s.likes],['感想',s.feedbacks+'件']
+    ['30秒以内にやめた',pct(s.quit30,s.sessions)],['遊びたい度',rate,'もう一回遊びたいと答えた割合のめやす'],['いいね（👍）',s.likes],['感想',s.feedbacks+'件']
   ].map(([k,v,n])=>`<div class="kpi"><b>${esc(v)}</b><span>${esc(k)}</span>${n?`<small>${esc(n)}</small>`:''}</div>`).join('');
   const B=s.buckets||[0,0,0,0,0];
   bars('buckets',[['30秒未満',B[0],'bad'],['30秒〜1分',B[1],'warn'],['1〜3分',B[2]],['3〜5分',B[3]],['5分以上',B[4]]]);
@@ -188,10 +189,17 @@ function renderFb(){
     return `<div class="fb"><div class="muted">${new Date(f.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}${f.is_dev?' <span class="tag dev">開発者</span>':''}</div>
       <div>${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
       ${f.free?`<div class="free">${esc(f.free)}</div>`:''}
-      <div><button data-id="${f.id}" aria-pressed="${!!f.liked_by_dev}">${f.liked_by_dev?'いいね済み':'いいね'}</button></div></div>`;
+      <div class="tools"><button data-id="${f.id}" aria-pressed="${!!f.liked_by_dev}">${f.liked_by_dev?'👍 いいね済み':'👍 いいね'}</button><button data-rep="${f.id}" class="ghostb">🚩 運営に報告</button></div></div>`;
   }).join('')||'<span class="muted">まだ感想はありません</span>';
 }
-$('fbList').onclick=async e=>{ const b=e.target.closest('button[data-id]'); if(!b) return; const f=FB.find(x=>x.id===b.dataset.id);
+$('fbList').onclick=async e=>{
+  const r=e.target.closest('button[data-rep]');
+  if(r){ const f=FB.find(x=>x.id===r.dataset.rep); if(!f) return;
+    // 報告の種類は「作品」。どの感想かは、くわしくの先頭に書いて運営に伝える（感想のIDと、書き出しの40文字）
+    const head='【開発者ページから感想を報告】感想ID '+f.id+'「'+(f.free||'').replace(/\s+/g,' ').slice(0,40)+'」 ';
+    TPB.report('game',$('game').value,'この感想',r,{reasons:['bad_content','spam','other'],prefix:head,sub:'ひどい感想（人をけなす・いやな気持ちになる・宣伝など）を、運営に知らせます。運営が確かめて、必要なら非表示にします。'});
+    return }
+  const b=e.target.closest('button[data-id]'); if(!b) return; const f=FB.find(x=>x.id===b.dataset.id);
   toast(await rpc('dev_like',{fid:f.id,val:!f.liked_by_dev})); f.liked_by_dev=!f.liked_by_dev; renderFb() };
 $('game').onchange=load;
 document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#period button').forEach(x=>x.setAttribute('aria-pressed',x===b)); days=+b.dataset.d; load() });
