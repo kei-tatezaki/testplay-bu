@@ -120,7 +120,7 @@ def all_sample(games):
 
 
 NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span>'
-               '<b class="lfb" data-lf><span data-lf-t>最初の10作品は投稿無料</span></b>'
+               '<b class="lfb">最初の1本は投稿無料</b>'
                '<a class="btn" href="{p}submit.html">作品を応募する</a></div>')
 
 
@@ -640,7 +640,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
 <p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
-<div class="lfhero" data-lf><b data-lf-t>最初の10作品は投稿無料</b><span>ポイントなしで応募できます（1人1回）。見送りになった枠は戻ります。</span></div>
+<div class="lfhero"><b>最初の1本は投稿無料</b><span>はじめての応募は、ポイントなしで送れます。2本目からは30ポイント（感想を書くとたまります）。</span></div>
 <div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small></div>
 <h2 class="flow-h">載るまでの流れ</h2>
 <ol class="steps">
@@ -690,7 +690,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </details>
 <details class="fold" id="points"><summary>ポイントのしくみ<small>タップでひらく</small></summary>
 <p>テストプレイ部は、遊んで感想を送り合う場所です。ポイントは、ほかの人の作品に感想を送るとたまり、作品を応募するときに使います。</p>
-<p class="lfp" data-lf><b>いまなら：</b>最初の10作品は、ポイントなしで応募できます（1人1回・見送りになった枠は戻ります）。ポイントがいるのは、無料枠がなくなってからです。</p>
+<p class="lfp"><b>最初の1本は無料：</b>はじめての応募は、ポイントなしで送れます。ポイントがいるのは、2本目からです。見送りになったときは、無料がもう一度使えます。</p>
 <h3>ためる</h3>
 <ul class="checks">
 <li>ログインして、<b>遊んだ作品</b>に、一言を<b>40字以上</b>（空白は数えません）で書いた感想を送ると、ポイントがつきます。</li>

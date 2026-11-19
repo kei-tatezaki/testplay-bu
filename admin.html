@@ -334,7 +334,7 @@ async function loadAll(){
 }
 
 // ---- 概要 ----
-let OV_DAYS = 7, OV = null, OV_REQ = 0, LF = null;   // LF：無料枠（013）。まだ無いときは null で、カードを出さない
+let OV_DAYS = 7, OV = null, OV_REQ = 0, LF = null;   // LF：最初の1本を無料で受け付けた数（013）。まだ無いときは null で、カードを出さない
 const OV_LABEL = { 1: '今日', 7: 'この7日間', 30: 'この30日間', 3650: 'これまで（ぜんぶ）' };
 const nf = x => (Number(x) || 0).toLocaleString('ja-JP');
 function fmtDur(sec){ sec = Math.round(Number(sec) || 0); if (sec < 60) return sec + '秒';
@@ -347,7 +347,7 @@ async function loadOverview(){
   const req = ++OV_REQ; let ov;
   try { ov = await rpc('admin_overview', { since_days: OV_DAYS }) }
   catch (e) { if (req === OV_REQ) $('ovBody').innerHTML = '<span class="muted">概要を読み込めませんでした。supabase/011_admin_overview.sql がまだ適用されていないかもしれません。</span>'; throw e }
-  try { const r = await sb.rpc('admin_launch_free'); LF = r.error ? null : r.data } catch (e) { LF = null }   // 013 がまだ無くても、概要は出す（エラーの表示もしない）
+  try { const r = await sb.rpc('admin_free_used'); LF = r.error ? null : r.data } catch (e) { LF = null }   // 013 がまだ無くても、概要は出す（エラーの表示もしない）
   if (req !== OV_REQ) return;   // 期間を切り替えたあとに、古い答えが来たときは捨てる
   OV = ov; renderOverview();
 }
@@ -374,7 +374,7 @@ function renderOverview(){
     kpi('載っている作品', gl.length ? nf(gl.length) + '本' : '—', gl.length ? '運営のお試し ' + nf(official) + '本・それ以外 ' + nf(gl.length - official) + '本' : 'games.json を読み込めませんでした'),
     kpi('確認中の応募', nf(open) + '件', 'この期間に届いた応募 ' + nf((+sub.new || 0) + (+sub.ok || 0) + (+sub.ng || 0)) + '件（確認中 ' + nf(sub.new) + '・載せた ' + nf(sub.ok) + '・見送り ' + nf(sub.ng) + '）', open ? 'hot' : ''),
     kpi('感想', nf(fb.visible) + '件', '非表示 ' + nf(fb.hidden) + '件'),
-    LF ? kpi('無料枠', '使用 ' + nf(LF.used) + '／' + nf(LF.total), '「最初の' + nf(LF.total) + '作品は投稿無料」。のこり ' + nf(LF.left) + '枠（見送りにした分は戻ります）。数はポイントのタブで変えられます') : '',
+    LF !== null ? kpi('無料で受け付けた応募', nf(LF) + '件', '「最初の1本は投稿無料」で受け付けた数（見送りにした分は除く）') : '',
     kpi('未対応の報告', nf(rep) + '件', '', rep ? 'hotbad' : ''),
     kpi('BAN', nf((+bans.client || 0) + (+bans.user || 0)) + '件', '端末 ' + nf(bans.client) + '・アカウント ' + nf(bans.user) + '（いまの数）'),
     kpi('新しいアカウント', nf(ov.new_users), 'この期間に初めてログインした人'),

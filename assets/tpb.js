@@ -517,31 +517,10 @@
         el("li", null, el("b", null, "ためる："), "一言を" + r.min_chars + "字以上（空白は数えません）で書いた感想に、ポイントがつきます。感想が" + (r.tier1_max + 1) + "件より少ない作品は +" + r.tier1_pt + "pt、" + (r.tier2_max + 1) + "件より少ない作品は +" + r.tier2_pt + "pt、それより多い作品は +" + r.tier3_pt + "pt です。"),
         el("li", null, "遊んだ作品だけ・自分の作品はなし・同じ言葉のくり返しはなし。もらえるのは、1日 " + r.daily_cap + "pt までです。"),
         el("li", null, el("b", null, "つかう："), "作品を応募するとき " + r.submit_cost + "pt。直しの依頼はいりません。運営が見送りにしたら、返します。"),
-        el("li", { "data-lf": "" }, el("b", null, "いまなら："), "最初の10作品は、ポイントなしで応募できます（1人1回）。のこり ", el("b", { "data-lf-n": "" }, "10"), " 作品。"),
+        el("li", null, el("b", null, "最初の1本は無料："), "はじめての応募は、ポイントなしで送れます。2本目からは " + r.submit_cost + "pt です（見送りになったときは、無料がもう一度使えます）。"),
         el("li", null, "運営が感想を非表示にしたら、その感想でもらった分は取り消されます（表示に戻れば返ります）。")));
   };
 
-  // ---- 「最初の10作品は投稿無料」（013 の launch_free_left。だれでも読める） ----
-  // 静的なページには「最初の10作品は投稿無料」と書いてあり、[data-lf] で囲んである。残りの数が取れたら「いまなら投稿無料・のこり○作品」に替え、
-  // 0 のとき・取れなかったとき（013 がまだ無いときなど）は、その部分を隠す。直前の値は sessionStorage に覚えて、ページを移ってもちらつかせない
-  var _lf = null, _lfNow;
-  try { var _c = sessionStorage.getItem("tpb:lf"); if (_c !== null) _lfNow = _c === "x" ? null : parseInt(_c, 10) } catch (e) {}
-  T.launchFreeNow = function () { return _lfNow };   // 数 / null（取れなかった）/ undefined（まだ調べていない）
-  T.lfApply = function (root) {
-    var v = _lfNow; if (v === undefined) return;
-    (root || document).querySelectorAll("[data-lf]").forEach(function (n) { n.hidden = !(v > 0) });
-    if (v > 0) (root || document).querySelectorAll("[data-lf-t]").forEach(function (n) { n.textContent = "いまなら投稿無料・のこり" + v + "作品" });
-    if (v > 0) (root || document).querySelectorAll("[data-lf-n]").forEach(function (n) { n.textContent = v });
-  };
-  T.launchFree = function () {
-    if (!_lf) _lf = T.pub("launch_free_left").then(function (n) {
-      _lfNow = typeof n === "number" ? n : null;
-      try { sessionStorage.setItem("tpb:lf", _lfNow === null ? "x" : String(_lfNow)) } catch (e) {}
-      T.lfApply(); return _lfNow;
-    });
-    return _lf;
-  };
-  if (!/\/(admin|dev)(\.html)?\/?$/.test(location.pathname)) { T.lfApply(); T.launchFree(); }
 
   // ---- 訪問の記録（1つの端末につき1日1回） ----
   // サイトのどこかを開いたら、その日のうち最初の1回だけ site_visits に書く（端末のIDと日付だけ。日付はDBが日本時間で入れる）。

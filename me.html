@@ -149,14 +149,15 @@ async function panePoints(pane){
   pane.replaceChildren();
   if(!d){ pane.append(el('div',{class:'callout'},el('b',null,'ポイントを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>render()},'もう一度'))); pane.append(howCard()); return }
   const need=Math.max(0,d.submit_cost-d.balance);
-  if(d.launch_free_left>0) pane.append(el('section',{class:'card',style:'border:2px solid var(--accent)'},el('div',{class:'body',style:'display:grid;gap:4px'},
-    el('h2',{style:'margin:0;font-size:18px;color:var(--accent)'},'いまなら投稿無料'),
-    el('p',{style:'margin:0'},'最初の'+(d.launch_free_total||10)+'作品まで・のこり '+d.launch_free_left+' 作品。'+(d.is_admin?'':d.launch_free_can?'あなたは、ポイントなしで応募できます。':'無料で応募できるのは1人1回です。')),
-    d.launch_free_can&&!d.is_admin?el('a',{class:'btn',href:'./submit.html',style:'justify-self:start'},'無料で作品を応募する'):null)));
+  if(d.first_free&&!d.is_admin) pane.append(el('section',{class:'card',style:'border:2px solid var(--accent)'},el('div',{class:'body',style:'display:grid;gap:4px'},
+    el('h2',{style:'margin:0;font-size:18px;color:var(--accent)'},'最初の1本は投稿無料'),
+    el('p',{style:'margin:0'},'あなたの1本目の応募は、ポイントなしで送れます。2本目からは '+d.submit_cost+'pt いります。'),
+    el('a',{class:'btn',href:'./submit.html',style:'justify-self:start'},'無料で作品を応募する'))));
   pane.append(el('section',{class:'card'},el('div',{class:'body',style:'display:grid;gap:10px'},
     el('div',{class:'ptbig'},el('b',null,d.balance+'pt'),el('span',{class:'note'},'いま持っているポイント')),
     el('p',{class:'note',style:'margin:0'},'今日もらった分：'+d.today+' / '+d.daily_cap+'pt'),
     d.is_admin?el('p',{class:'note',style:'margin:0'},'運営は、応募にポイントはいりません。')
+      :d.first_free?el('p',{style:'margin:0'},'1本目の応募は無料です。2本目からは '+d.submit_cost+'pt いります。')
       :d.balance>=d.submit_cost?el('p',{style:'margin:0'},'作品を応募できます（'+d.submit_cost+'pt つかいます）。')
       :el('p',{style:'margin:0'},'作品の応募には '+d.submit_cost+'pt いります。あと '+need+'pt です。'),
     el('div',{class:'acts',style:'display:flex;gap:8px;flex-wrap:wrap'},
