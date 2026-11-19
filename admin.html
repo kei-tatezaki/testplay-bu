@@ -25,7 +25,7 @@ input,select{background:#0b0e13;border:1px solid var(--line);border-radius:8px;p
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
 .login{max-width:420px;margin:60px auto;display:grid;gap:12px}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.tabs button[aria-selected=true],.bar button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
@@ -44,6 +44,35 @@ button,.btn,header a{white-space:nowrap}
 .loaderr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;color:var(--bad)}
 button,.btn,select,input:not([type=checkbox]),header a,.tabs button{min-height:44px}header a{display:inline-flex;align-items:center}
 input[type=checkbox]{width:22px;height:22px}label:has(>input[type=checkbox]){display:inline-flex;align-items:center;gap:8px;min-height:44px}
+.scope{margin:0 0 12px;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0;overflow-wrap:anywhere}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{display:block;font-size:26px;line-height:1.3}
+.kpi small{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+.kpi.hot{border-color:var(--warn)}.kpi.hot b{color:var(--warn)}
+.kpi.hotbad{border-color:var(--bad)}.kpi.hotbad b{color:var(--bad)}
+.ovgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin-top:14px}
+.ovgrid .card{min-width:0}
+.card h2{font-size:15px;margin:0 0 10px;line-height:1.5}
+.chart{margin-bottom:14px}
+.chart .ct{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
+.cbars{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;align-items:end;height:80px}
+.cbars i{display:block;border-radius:3px 3px 0 0;min-height:2px;background:var(--accent)}
+.cbars i.z{background:var(--line)}
+.chart.c2 .cbars i:not(.z){background:var(--warn)}
+.chart.c3 .cbars i:not(.z){background:#8ab4ff}
+.clab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
+.todo{display:grid;gap:8px}
+.todo a.t,.todo span.t{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;text-decoration:none;color:var(--ink);overflow-wrap:anywhere}
+.todo a.t.on{border-color:var(--warn)}
+.todo a.t b{color:var(--warn)}
+.todo .go{color:var(--accent);white-space:nowrap}
+ol.top{margin:0;padding-left:22px;display:grid;gap:8px}
+ol.top li{min-width:0;overflow-wrap:anywhere}
+ol.top .n{display:block;font-size:12px;color:var(--muted)}
+.fbbulk{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+td.sel{width:34px}
 @media (max-width:760px){
   header{flex-wrap:wrap}header h1{white-space:nowrap;font-size:16px}
   thead{display:none} tr{display:grid;border-bottom:1px solid var(--line);padding:8px 0} td{border:0;padding:2px 0} td.free{max-width:none}
@@ -56,6 +85,8 @@ input[type=checkbox]{width:22px;height:22px}label:has(>input[type=checkbox]){dis
   <h1><img src="assets/icon-192.png" alt="" width="28" height="28">テストプレイ部 管理ページ</h1>
   <div style="display:flex;gap:12px;align-items:center"><a href="./">トップへ</a><span id="who" class="muted"></span></div>
 </header>
+
+<p class="muted scope">運営だけのページです。感想の非表示・BAN・応募の確認など、運営の作業はここで行います。作者のページは「開発者ページ」です。</p>
 
 <section id="loginBox" class="card login" hidden>
   <b>ログイン</b>
@@ -80,7 +111,8 @@ input[type=checkbox]{width:22px;height:22px}label:has(>input[type=checkbox]){dis
 
 <section id="app" hidden>
   <div class="tabs" role="tablist">
-    <button role="tab" data-tab="fb" aria-selected="true">感想</button>
+    <button role="tab" data-tab="overview" aria-selected="true">概要 <span id="ovN"></span></button>
+    <button role="tab" data-tab="fb" aria-selected="false">感想</button>
     <button role="tab" data-tab="games">作品の数字</button>
     <button role="tab" data-tab="bans">BAN一覧</button>
     <button role="tab" data-tab="owners">作者</button>
@@ -90,16 +122,30 @@ input[type=checkbox]{width:22px;height:22px}label:has(>input[type=checkbox]){dis
     <a href="dev.html" class="btn" style="text-decoration:none">開発者ページを見る</a>
   </div>
 
-  <div data-panel="fb">
+  <div data-panel="overview">
+    <div class="bar" id="ovPeriod" role="group" aria-label="期間">
+      <button data-d="1" aria-pressed="false">今日</button><button data-d="7" aria-pressed="true">7日</button><button data-d="30" aria-pressed="false">30日</button><button data-d="3650" aria-pressed="false">ぜんぶ</button>
+      <span id="ovRange" class="muted"></span>
+    </div>
+    <div id="ovBody" aria-live="polite"><span class="muted">読み込み中…</span></div>
+  </div>
+
+  <div data-panel="fb" hidden>
     <div class="bar">
-      <select id="fGame"><option value="">すべての作品</option></select>
-      <select id="fKind"><option value="">すべて</option><option value="dev">開発者だけ</option><option value="hidden">非表示だけ</option><option value="visible">表示中だけ</option></select>
-      <input id="fText" placeholder="一言で検索">
+      <select id="fGame" aria-label="作品"><option value="">すべての作品</option></select>
+      <select id="fKind" aria-label="絞り込み"><option value="">すべて</option><option value="dev">開発者だけ</option><option value="hidden">非表示だけ</option><option value="visible">表示中だけ</option><option value="reported">報告ありだけ</option></select>
+      <select id="fPeriod" aria-label="期間"><option value="0">すべての期間</option><option value="1">今日</option><option value="7">7日</option><option value="30">30日</option></select>
+      <select id="fSort" aria-label="並び順"><option value="new">新しい順</option><option value="old">古い順</option></select>
+      <input id="fText" placeholder="一言で検索" aria-label="一言で検索">
       <button id="reload">更新</button>
       <span id="fbCount" class="muted"></span>
     </div>
+    <div class="fbbulk">
+      <label><input type="checkbox" id="fbAll"> 表示している感想をぜんぶ選ぶ</label>
+      <button id="fbBulk" class="danger" disabled>選んだ感想を非表示にする</button>
+    </div>
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
-      <thead><tr><th>日時</th><th>作品</th><th>回答</th><th>一言</th><th>書いた人</th><th>操作</th></tr></thead>
+      <thead><tr><th><span class="muted" aria-hidden="true">選ぶ</span></th><th>日時</th><th>作品</th><th>回答</th><th>一言</th><th>書いた人</th><th>操作</th></tr></thead>
       <tbody id="fbRows"></tbody>
     </table></div>
   </div>
@@ -234,12 +280,13 @@ document.addEventListener('keydown', e => {
 $('logout').onclick = $('logout2').onclick = async () => { await sb.auth.signOut(); start(); };
 sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') start(); });
 
+function openTab(t){ const b = document.querySelector('[role=tab][data-tab="' + t + '"]'); if (b) b.click() }
 document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => {
   document.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', x===b));
   document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
-const LOADERS = { fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles() };
+const LOADERS = { overview: () => loadOverview(), fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles() };
 function setLoadErr(k, failed){
   const panel = document.querySelector('[data-panel="' + k + '"]'); if (!panel) return;
   let box = panel.querySelector(':scope > .loaderr');
@@ -267,6 +314,71 @@ async function loadAll(){
     if (t) document.querySelector('[role=tab][data-tab="' + t + '"]').click(); }
 }
 
+// ---- 概要 ----
+let OV_DAYS = 7, OV = null, OV_REQ = 0;
+const OV_LABEL = { 1: '今日', 7: 'この7日間', 30: 'この30日間', 3650: 'これまで（ぜんぶ）' };
+const nf = x => (Number(x) || 0).toLocaleString('ja-JP');
+function fmtDur(sec){ sec = Math.round(Number(sec) || 0); if (sec < 60) return sec + '秒';
+  if (sec < 3600) return Math.floor(sec / 60) + '分' + (sec % 60 ? sec % 60 + '秒' : '');
+  const m = Math.floor(sec % 3600 / 60); return Math.floor(sec / 3600) + '時間' + (m ? m + '分' : '') }
+const mdLabel = d => { const a = String(d).split('-'); return (+a[1]) + '/' + (+a[2]) };
+// 未対応（確認中の応募＋未対応の報告）を、概要タブに出す
+function ovBadge(){ const n = SUBS.filter(s => s.status === 'new').length + REPS.filter(r => !r.done).length; $('ovN').textContent = n ? '（未対応 ' + n + '）' : '' }
+async function loadOverview(){
+  const req = ++OV_REQ; let ov;
+  try { ov = await rpc('admin_overview', { since_days: OV_DAYS }) }
+  catch (e) { if (req === OV_REQ) $('ovBody').innerHTML = '<span class="muted">概要を読み込めませんでした。supabase/011_admin_overview.sql がまだ適用されていないかもしれません。</span>'; throw e }
+  if (req !== OV_REQ) return;   // 期間を切り替えたあとに、古い答えが来たときは捨てる
+  OV = ov; renderOverview();
+}
+function chartHtml(daily, key, title, cls){
+  const vals = daily.map(d => Number(d[key]) || 0), max = Math.max(0, ...vals), total = vals.reduce((a, b) => a + b, 0);
+  return `<div class="chart ${cls}" role="img" aria-label="${esc(title)}：${daily.length}日間で合計${total}、1日の最大${max}">
+    <div class="ct"><b>${esc(title)}</b><span class="muted">合計 ${nf(total)} ・ 1日の最大 ${nf(max)}</span></div>
+    <div class="cbars">${daily.map((d, i) => `<i class="${vals[i] ? '' : 'z'}" title="${esc(mdLabel(d.day))}：${vals[i]}" style="height:${max ? vals[i] / max * 100 : 0}%"></i>`).join('')}</div>
+    <div class="clab"><span>${esc(mdLabel(daily[0].day))}</span><span>${esc(mdLabel(daily[daily.length - 1].day))}</span></div></div>`;
+}
+function renderOverview(){
+  const ov = OV; if (!ov) return;
+  const per = OV_LABEL[OV_DAYS] || '';
+  $('ovRange').textContent = per + '（' + mdLabel(ov.from) + ' から今日まで・日本時間）';
+  const gl = Object.values(GAMES), official = gl.filter(g => g.sample).length;
+  const fb = ov.feedbacks || {}, sub = ov.submissions || {}, bans = ov.bans || {};
+  const open = Number(ov.submissions_open) || 0, rep = Number(ov.reports_open) || 0;
+  const kpi = (label, val, small, cls) => `<div class="kpi ${cls || ''}"><span>${esc(label)}</span><b>${val}</b>${small ? `<small>${small}</small>` : ''}</div>`;
+  const kpis = [
+    kpi('訪問した人', nf(ov.visitors), '訪問 ' + nf(ov.visits) + '回（1人1日1回まで）'),
+    kpi('遊んだ回数', nf(ov.plays), '「遊ぶ」を押した数（同じ作品は1人1日1回）'),
+    kpi('遊んだ人', nf(ov.players)),
+    kpi('遊んだ時間の合計', fmtDur(ov.play_seconds_total), nf(ov.sessions) + '回ぶん（サイトの中で遊んだ時間）'),
+    kpi('載っている作品', gl.length ? nf(gl.length) + '本' : '—', gl.length ? '運営のお試し ' + nf(official) + '本・それ以外 ' + nf(gl.length - official) + '本' : 'games.json を読み込めませんでした'),
+    kpi('確認中の応募', nf(open) + '件', 'この期間に届いた応募 ' + nf((+sub.new || 0) + (+sub.ok || 0) + (+sub.ng || 0)) + '件（確認中 ' + nf(sub.new) + '・載せた ' + nf(sub.ok) + '・見送り ' + nf(sub.ng) + '）', open ? 'hot' : ''),
+    kpi('感想', nf(fb.visible) + '件', '非表示 ' + nf(fb.hidden) + '件'),
+    kpi('未対応の報告', nf(rep) + '件', '', rep ? 'hotbad' : ''),
+    kpi('BAN', nf((+bans.client || 0) + (+bans.user || 0)) + '件', '端末 ' + nf(bans.client) + '・アカウント ' + nf(bans.user) + '（いまの数）'),
+    kpi('新しいアカウント', nf(ov.new_users), 'この期間に初めてログインした人'),
+    kpi('👍・🤔', nf(ov.likes) + ' / ' + nf(ov.hmms), '押された数（同じ作品は1人1日1回）')
+  ].join('');
+  const daily = ov.daily || [];
+  const charts = daily.length ? chartHtml(daily, 'visits', '訪問した人', 'c1') + chartHtml(daily, 'plays', '遊んだ回数', 'c2') + chartHtml(daily, 'feedbacks', '感想', 'c3') : '<span class="muted">日ごとの数はありません</span>';
+  const top = (ov.top_games || []).map(g => `<li><a href="games/${esc(g.slug)}/" target="_blank" rel="noopener">${esc(GAMES[g.slug]?.title || g.slug)}</a><span class="n">遊んだ ${nf(g.plays)}回 ・ 感想 ${nf(g.feedbacks)}件</span></li>`).join('');
+  const item = (go, n, textOn, textOff) => n
+    ? `<a href="#" class="t on" data-go="${go}"><span>${textOn}<b>${nf(n)}件</b></span><span class="go">開く ›</span></a>`
+    : `<span class="t muted"><span>${textOff}</span></span>`;
+  const todo = item('subs', open, '確認中の応募 ', '確認中の応募はありません') + item('reports', rep, '未対応の報告 ', '未対応の報告はありません') + item('fb', Number(fb.visible) || 0, per + 'の感想 ', per + 'の感想はまだありません');
+  $('ovBody').innerHTML = `<h2 style="font-size:15px;margin:0 0 8px">やること</h2><div class="todo">${todo}</div>
+    <div class="kpis" style="margin-top:14px">${kpis}</div>
+    <div class="ovgrid">
+      <div class="card"><h2>日ごとの数（直近${daily.length}日）</h2>${charts}</div>
+      <div class="card"><h2>よく遊ばれている作品（${esc(per)}）</h2>${top ? `<ol class="top">${top}</ol>` : '<span class="muted">この期間に遊ばれた作品は、まだありません</span>'}</div>
+    </div>`;
+}
+$('ovBody').onclick = e => { const a = e.target.closest('[data-go]'); if (a) { e.preventDefault(); openTab(a.dataset.go) } };
+document.querySelectorAll('#ovPeriod button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#ovPeriod button').forEach(x => x.setAttribute('aria-pressed', x === b)); OV_DAYS = +b.dataset.d;
+  loadOverview().catch(() => {});
+});
+
 // ---- 応募 ----
 const SUB_ST = { new: '確認中', ok: '載せた', ng: '見送り' };
 // 直しの依頼（kind==='edit'）は「載せた」ではなく「直した」
@@ -286,7 +398,7 @@ function subJson(s){
 }
 async function loadSubs(){ SUBS = await rpc('admin_submissions'); renderSubs() }
 function renderSubs(){
-  const n = SUBS.filter(s => s.status === 'new').length; $('subN').textContent = n ? '（' + n + '）' : '';
+  const n = SUBS.filter(s => s.status === 'new').length; $('subN').textContent = n ? '（' + n + '）' : ''; ovBadge();
   const onlyNew = $('subOnlyNew').checked;
   $('subRows').innerHTML = SUBS.filter(s => !onlyNew || s.status === 'new').map(s => { const d = s.data || {};
     const url = /^https:\/\//.test(d.play_url || '') ? `<a href="${esc(d.play_url)}" target="_blank" rel="noopener noreferrer">${esc(d.play_url)}</a>` : esc(d.play_url || '');
@@ -318,7 +430,7 @@ $('subRows').onclick = async (e) => {
 const REASON = { broken: '動かない・遊べない', bad_content: 'いやな気持ちになる内容', rating: '年齢制限が合っていない', copy: 'ほかの人の作品のまね', spam: '宣伝・いたずら', other: 'そのほか' };
 async function loadReports(){
   const rows = await rpc('admin_reports'); REPS = rows;
-  const n = rows.filter(r => !r.done).length; $('repN').textContent = n ? '（' + n + '）' : '';
+  const n = rows.filter(r => !r.done).length; $('repN').textContent = n ? '（' + n + '）' : ''; ovBadge(); renderFb();
   $('repRows').innerHTML = rows.map(r => `<tr style="${r.done ? 'opacity:.55' : ''}"><td>${fmt(r.created_at)}</td>
     <td>${r.kind === 'game' ? `作品：<a href="games/${esc(r.target)}/" target="_blank">${esc(GAMES[r.target]?.title || r.target)}</a>` : `プロフィール：<a href="profile.html?u=${esc(r.target)}" target="_blank">@${esc(r.target)}</a>`}</td>
     <td>${esc(REASON[r.reason] || r.reason)}</td><td class="free">${esc(r.detail)}</td><td>${esc(r.by_name || 'ログインなし')}<div class="muted" style="font-size:12px">${esc((r.client_id || '').slice(0, 8))}</div></td>
@@ -348,32 +460,64 @@ $('profRows').onclick = async (e) => {
   toast(await rpc('admin_profile_hide', { h: b.dataset.ph, hide })); await loadProfiles();
 };
 
-async function loadFb(){ FB = await rpc('admin_feedback', { lim: 500 }); renderFb(); }
+async function loadFb(){ FB = await rpc('admin_feedback', { lim: 1000 }); SEL = new Set([...SEL].filter(id => FB.some(f => f.id === id && !f.hidden))); renderFb(); }
+let SEL = new Set();
+// 報告された感想：報告の「くわしく」に感想のID が入っている（開発者ページの「運営に報告」が書き込む）
+const repsOf = f => REPS.filter(r => r.kind === 'game' && (r.detail || '').includes(f.id));
+// 日本時間の「今日を入れて n 日前の 0時」
+function sinceMs(n){ const j = new Date(Date.now() + 9 * 3600e3); return Date.UTC(j.getUTCFullYear(), j.getUTCMonth(), j.getUTCDate()) - (n - 1) * 864e5 - 9 * 3600e3 }
+function fbRowsNow(){
+  const g = $('fGame').value, k = $('fKind').value, q = $('fText').value.trim(), p = +$('fPeriod').value, since = p ? sinceMs(p) : 0;
+  const rows = FB.filter(f => (!g || f.game_slug === g)
+    && (!k || (k === 'dev' && f.is_dev) || (k === 'hidden' && f.hidden) || (k === 'visible' && !f.hidden) || (k === 'reported' && repsOf(f).length))
+    && (!since || new Date(f.created_at).getTime() >= since)
+    && (!q || (f.free || '').includes(q)));
+  return $('fSort').value === 'old' ? rows.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) : rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
 function renderFb(){
-  const g=$('fGame').value, k=$('fKind').value, q=$('fText').value.trim();
-  const rows = FB.filter(f => (!g || f.game_slug===g)
-    && (!k || (k==='dev'&&f.is_dev) || (k==='hidden'&&f.hidden) || (k==='visible'&&!f.hidden))
-    && (!q || (f.free||'').includes(q)));
-  $('fbCount').textContent = `${rows.length}件`;
+  const rows = fbRowsNow();
+  $('fbCount').textContent = `${rows.length}件` + (FB.length >= 1000 ? '（新しい1000件まで）' : '');
   $('fbRows').innerHTML = rows.map(f => {
     const title = GAMES[f.game_slug]?.title || f.game_slug;
+    const reps = repsOf(f), repOpen = reps.some(r => !r.done);
     const ans = [f.again, f.reach, f.stop_at && ('止まった所：' + f.stop_at), f.answer && ('質問への答え：' + ({'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}[f.answer] || f.answer)),
                  (f.good||[]).length && ('良い：' + f.good.join('・')), (f.bad||[]).length && ('気になる：' + f.bad.join('・'))].filter(Boolean);
     return `<tr class="${f.hidden?'hidden':''}">
+      <td class="sel">${f.hidden ? '' : `<input type="checkbox" data-sel="${f.id}" aria-label="この感想を選ぶ（${esc(title)}）" ${SEL.has(f.id) ? 'checked' : ''}>`}</td>
       <td class="muted">${fmt(f.created_at)}</td>
-      <td>${esc(title)}${f.is_dev?' <span class="tag dev">開発者</span>':''}${f.hidden?' <span class="tag warn">非表示</span>':''}</td>
+      <td>${esc(title)}${f.is_dev?' <span class="tag dev">開発者</span>':''}${f.hidden?' <span class="tag warn">非表示</span>':''}${reps.length ? (repOpen ? ' <span class="tag ban">報告あり</span>' : ' <span class="tag">報告あり（対応済み）</span>') : ''}</td>
       <td>${ans.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</td>
       <td class="free">${esc(f.free || '')}</td>
       <td><b>${esc(f.author || '')}</b><br><span class="muted">端末 ${esc(f.client_id.slice(0,8))}… ・ この人の感想 ${f.by_same_client}件</span>${f.banned?' <span class="tag ban">BAN中</span>':''}</td>
       <td><div class="acts">
         ${f.hidden ? `<button data-act="show" data-id="${f.id}">表示に戻す</button>` : `<button data-act="hide" data-id="${f.id}">非表示にする</button>`}
         ${f.banned ? '' : `<button class="danger" data-act="ban" data-id="${f.id}">BAN</button>`}
+        ${reps.length ? `<button data-go="reports">報告を見る</button>` : ''}
       </div></td></tr>`;
-  }).join('') || '<tr><td colspan="6" class="muted">感想はまだありません</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="muted">' + (FB.length ? '条件に合う感想はありません' : '感想はまだありません') + '</td></tr>';
+  updateBulk(rows);
 }
-['fGame','fKind'].forEach(id => $(id).onchange = renderFb);
+function updateBulk(rows){
+  rows = rows || fbRowsNow();
+  const sel = rows.filter(f => !f.hidden), on = sel.filter(f => SEL.has(f.id)).length, all = $('fbAll');
+  all.checked = sel.length > 0 && on === sel.length; all.indeterminate = on > 0 && on < sel.length; all.disabled = !sel.length;
+  const n = [...SEL].filter(id => FB.some(f => f.id === id && !f.hidden)).length;
+  $('fbBulk').disabled = !n; $('fbBulk').textContent = n ? `選んだ${n}件を非表示にする` : '選んだ感想を非表示にする';
+}
+['fGame','fKind','fPeriod','fSort'].forEach(id => $(id).onchange = renderFb);
 $('fText').oninput = renderFb;
 $('reload').onclick = loadAll;
+$('fbAll').onchange = () => { const rows = fbRowsNow().filter(f => !f.hidden); rows.forEach(f => $('fbAll').checked ? SEL.add(f.id) : SEL.delete(f.id)); renderFb() };
+$('fbRows').onchange = e => { const c = e.target.closest('input[data-sel]'); if (!c) return; c.checked ? SEL.add(c.dataset.sel) : SEL.delete(c.dataset.sel); updateBulk() };
+$('fbRows').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) openTab(g.dataset.go) });
+$('fbBulk').onclick = async () => {
+  const ids = [...SEL].filter(id => FB.some(f => f.id === id && !f.hidden)); if (!ids.length) return;
+  if (!(await ask(ids.length + '件の感想を非表示にしますか？', '選んだ感想が、ほかの人から見えなくなります。あとで1件ずつ「表示に戻す」で戻せます。', false))) return;
+  $('fbBulk').disabled = true; let ok = 0, ng = 0;
+  for (const id of ids) { const { error } = await sb.rpc('admin_set_hidden', { fid: id, hide: true }); error ? ng++ : ok++; $('fbBulk').textContent = `非表示にしています… ${ok + ng}/${ids.length}` }
+  toast(ok + '件を非表示にしました' + (ng ? '（' + ng + '件はできませんでした）' : '')); SEL.clear();
+  await loadFb().catch(() => {}); loadOverview().catch(() => {});
+};
 
 $('fbRows').onclick = async (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
@@ -385,7 +529,7 @@ $('fbRows').onclick = async (e) => {
     if (why === null) return;
     toast(await rpc('admin_ban', { fid: id, why }));
   }
-  await Promise.all([loadFb(), loadBans()]);
+  await Promise.all([loadFb(), loadBans()]); loadOverview().catch(() => {});
 };
 
 async function loadGames(){
