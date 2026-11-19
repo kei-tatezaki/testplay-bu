@@ -39,7 +39,7 @@ button{font:inherit;color:inherit}
 .top a.tpb-me{padding:3px!important}
 .top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
-.slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;max-width:560px;margin:0 auto;background:#000}
+.slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;overflow:clip;max-width:560px;margin:0 auto;background:#000}
 .slide{background:var(--bgc,#000)}
 .slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
 .slide video.media{object-fit:contain;object-position:center;height:calc(100% - 76px - 44%);top:calc(70px + env(safe-area-inset-top));left:10px;right:auto;width:calc(100% - 88px);border-radius:12px}
@@ -53,13 +53,21 @@ button{font:inherit;color:inherit}
 .side a.skipin:focus{position:static}
 .side hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
 @media (min-width:1100px){.side{display:grid}.top a.back{display:none}}
-.slide .bgfx{position:absolute;inset:-40px;background:center/cover no-repeat;filter:blur(32px) brightness(.7) saturate(1.4);pointer-events:none}
+.slide .bgfx{position:absolute;inset:0;transform:scale(1.2);background:center/cover no-repeat;filter:blur(32px) brightness(.7) saturate(1.4);pointer-events:none}
 .slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%);pointer-events:none}
 .slide .media{cursor:pointer}
+.vtag{position:absolute;z-index:1;left:18px;top:calc(78px + env(safe-area-inset-top));pointer-events:none;font-size:11px;font-weight:700;line-height:1.5;padding:1px 8px;border-radius:6px;background:#000a;color:#fff;border:1px solid #ffffff40}
+@media (hover:hover) and (pointer:fine) and (min-width:900px){.vtag{top:74px}}
+@media (min-width:600px) and (pointer:coarse){.vtag{top:calc(78px + env(safe-area-inset-top))}}
 .playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center}
 .playhint span{background:#0006;color:#ffffffcc;border:1px solid #ffffff55;border-radius:999px;padding:8px 18px;font-size:15px;font-weight:700;backdrop-filter:blur(3px)}
 .slide video.media+.playhint{left:10px;width:calc(100% - 88px);top:calc(70px + env(safe-area-inset-top));height:calc(100% - 76px - 44%)}
 .slide img.media+.playhint{left:0;right:0;top:calc(64px + env(safe-area-inset-top));height:calc(100% - 64px - 46%)}
+/* タブレット（タッチで幅600px以上）：動画は、題名などの上の空きいっぱいに、真ん中に置く（上で切れない） */
+@media (min-width:600px) and (pointer:coarse){
+ .slide video.media{top:calc(70px + env(safe-area-inset-top));height:calc(100dvh - 70px - 250px - env(safe-area-inset-top));object-fit:contain;object-position:center}
+ .slide video.media+.playhint{top:calc(70px + env(safe-area-inset-top));height:calc(100dvh - 70px - 250px - env(safe-area-inset-top))}
+}
 @media (hover:hover) and (pointer:fine) and (min-width:900px){
  .slide video.media{top:66px;height:calc(100dvh - 84px)}
  .slide video.media+.playhint{top:66px;height:calc(100dvh - 84px)}
@@ -111,11 +119,12 @@ button{font:inherit;color:inherit}
 .pcnav button:hover{background:#ffffff30}
 .pcnav button:disabled{opacity:.3;cursor:default}
 @media (hover:hover) and (pointer:fine) and (min-width:900px){.pcnav{display:grid}}
-.intro{position:fixed;left:max(12px,calc(50% - 268px));top:calc(56dvh + 4px + env(safe-area-inset-top));z-index:18;width:min(464px,calc(100% - 96px));background:#151a22f2;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.5;box-shadow:0 8px 30px #0008}
+.intro{position:fixed;left:max(12px,calc(50% - 268px));top:calc(64px + env(safe-area-inset-top));z-index:18;width:min(464px,calc(100% - 96px));background:#151a22f2;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.5;box-shadow:0 8px 30px #0008}
 .intro a{color:var(--accent)}
 @media (hover:hover) and (pointer:fine) and (min-width:1100px){.intro{left:calc(50% + 300px);top:90px;width:min(300px,calc(50% - 320px))}}
 @media (hover:hover) and (pointer:fine) and (min-width:900px) and (max-width:1099px){.intro{display:none}}
 .intro b{display:block;font-size:13px}
+@media (max-width:400px){.intro{font-size:11px;padding:6px 8px 6px 10px;gap:8px}.intro b{font-size:12px}.intro button{min-height:44px;padding:6px 12px}#introSample{display:none}}
 .intro button{flex:none;border:0;border-radius:999px;min-height:36px;padding:6px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
 [hidden]{display:none!important}
 .agecover{position:absolute;inset:0;z-index:6;background:#120d10;display:grid;place-items:center;padding:24px;text-align:center}
@@ -142,6 +151,16 @@ button{font:inherit;color:inherit}
 .toast.stack .btns{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .toast.stack .btns button{min-height:44px}
 .toast.stack .btns .go,.toast.stack .btns .x{padding:6px 16px}
+/* 案内は右の列（⋮・感想など）にかからない。スマホでは右に84px空ける。同時に出るのは1つだけ */
+@media (max-width:560px){
+ .toast,.toast.stack,#tpbToast{left:12px;right:84px;transform:none;width:auto;max-width:none}
+ .toast{flex-wrap:wrap;gap:8px}
+ .toast>span{flex:1 1 100%}
+ .toast.stack{width:auto}
+ #tpbToast{border-radius:14px;text-align:center}
+}
+body[data-note=bottom] #tpbToast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
+#tpbToast{z-index:62}
 .loading{height:100dvh;display:grid;place-items:center;color:var(--muted);font-size:14px}
 /* feedback sheet */
 .sheet-bg{position:fixed;inset:0;z-index:50;background:#0009;display:none}
@@ -212,11 +231,11 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 <div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
 
 <div class="sheet-bg" id="loginBg">
-  <div class="sheet" role="dialog" aria-labelledby="lTitle">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lTitle">
     <h3 id="lTitle">感想を送るにはログインしてね</h3>
     <p class="sub">遊ぶ・👍・🤔は、ログインなしでOK。感想を書くときだけ、ログインしてね（名前は運営にだけ見えます）。</p>
     <div id="providers"></div>
-    <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button><p class="lnote">メールにリンクが届きます。<b>このページを開いたのと同じブラウザ</b>でリンクを開いてね。</p></div>
+    <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス" aria-label="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button><p class="lnote">メールにリンクが届きます。<b>このページを開いたのと同じブラウザ</b>でリンクを開いてね。</p></div>
     <p class="msg" id="lMsg" aria-live="polite"></p>
     <button class="btn ghost" type="button" id="lClose">あとで</button>
     <p class="who"><a href="privacy.html" style="color:inherit">集める情報と使い道</a></p>
@@ -224,7 +243,7 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 </div>
 
 <div class="sheet-bg" id="sheetBg">
-  <form class="sheet" id="sheet" aria-labelledby="sTitle">
+  <form class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <h3 id="sTitle">感想を送る</h3>
     <p class="sub" id="sSub">選ぶだけで8割できあがり。1分で送れます。</p>
     <fieldset data-k="again" data-single><legend>もう一回遊びたい？ <em class="req">必須</em></legend><div class="opts"></div></fieldset>
@@ -291,11 +310,21 @@ let STATS = store.get('statsCache',null), statsKnown = !!STATS; if(!STATS) STATS
 let LIVE = store.get('liveCache',{}) || {};
 const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
                               : GAMES.slice().reverse().map(g=>({g,s:{feedbacks:-1}}));
-const order = ranked.map(o=>o.g);
+let order = ranked.map(o=>o.g);
 const META = {}; ranked.forEach(o=>META[o.g.slug]=o);
+// プロフィールなどから「戻る」で読み込み直したときは、前と同じ並びで、見ていた作品から始める（sessionStorage に、並びと見ていた作品を置いている）
+let restored=null;
+try{ const nv=performance.getEntriesByType('navigation')[0]; if(nv&&nv.type==='back_forward') restored=JSON.parse(sessionStorage.getItem('tpb:feedPos')||'null') }catch(_){}
+if(restored&&Array.isArray(restored.order)){
+  const by={}; order.forEach(g=>by[g.slug]=g);
+  const kept=restored.order.filter(x=>by[x]).map(x=>by[x]), have=new Set(kept.map(g=>g.slug));
+  order=kept.concat(order.filter(g=>!have.has(g.slug)));
+} else restored=null;
+function savePos(slug){ try{ sessionStorage.setItem('tpb:feedPos',JSON.stringify({order:order.map(g=>g.slug),slug:slug||(restored&&restored.slug)||''})) }catch(_){} }
+savePos();
 // まとめから作品をタップして来たとき（?g=作品ID）は、その作品を最初に出す
-const startSlug = new URLSearchParams(location.search).get('g');
-if(startSlug){ const k=order.findIndex(g=>g.slug===startSlug); if(k>0) order.unshift(order.splice(k,1)[0]) }
+const startSlug = restored ? null : new URLSearchParams(location.search).get('g');
+if(startSlug){ const k=order.findIndex(g=>g.slug===startSlug); if(k>0) order.unshift(order.splice(k,1)[0]); savePos(startSlug) }
 // ← は、まとめから来たときは「戻る」（スクロール位置もそのまま）、それ以外はまとめを開く
 document.getElementById('back').addEventListener('click',e=>{
   try{ const r=new URL(document.referrer); if(r.origin===location.origin && /list\.html$/.test(r.pathname) && history.length>1){ e.preventDefault(); history.back() } }catch(_){}
@@ -304,6 +333,19 @@ document.getElementById('back').addEventListener('click',e=>{
 const feed = $('feed'); feed.replaceChildren();
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
 function isLocal(url){return !/^https?:/i.test(url)}
+// 箱（プレイヤー・感想シート・ログイン）が開いているあいだは、うしろを inert にして、Tab が箱の中だけを回るようにする
+function syncInert(){
+  const L=$('loginBg').classList.contains('open'), S=$('sheetBg').classList.contains('open'), P=$('player').classList.contains('open');
+  document.querySelectorAll('.top,.side,#feed,#pcnav,#skip,#intro').forEach(n=>{ n.inert=L||S||P });
+  $('player').inert=L||S; $('sheetBg').inert=L;
+}
+// 閉じたときにフォーカスを戻す先（いま触っていた場所。なければその作品の「感想」ボタン）
+function openerFor(g){
+  const ae=document.activeElement;
+  if(ae&&ae!==document.body&&ae.getClientRects().length&&ae.closest&&ae.closest('.slide,#player')) return ae;
+  const sl=g&&document.querySelector('.slide[data-slug="'+g.slug+'"]'); return sl&&sl.querySelector('.rail .fbb');
+}
+function restoreFocus(n){ if(n&&n.isConnected&&n.getClientRects().length) try{ n.focus({preventScroll:true}) }catch(_){} }
 
 // R18作品は、18歳以上だと確認するまで表紙で隠す（確認は端末に保存）
 function age18(){ return !!store.get('age18',false) }
@@ -357,7 +399,7 @@ order.forEach((g,idx)=>{
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:radial-gradient(circle at 50% 38%,"+(g.color||'#7fe0c9')+"44,transparent 65%),url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
-    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
@@ -369,7 +411,7 @@ order.forEach((g,idx)=>{
       likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
-    idx===0?el('div',{class:'hint'},DEVICE==='sp'?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
+    idx===0?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
@@ -400,6 +442,11 @@ document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
   if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
   if(document.getElementById('tpbOv')||$('player').classList.contains('open')||$('sheetBg').classList.contains('open')||$('loginBg').classList.contains('open')||whyFor) return;
+  // 何もフォーカスしていないとき（PC）：スペース／Enterで、いまの作品を遊ぶ
+  if((e.key===' '||e.key==='Enter')&&(e.target===document.body||e.target===feed||e.target===document.documentElement)&&matchMedia('(pointer:fine)').matches){
+    const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)], g=cur&&cur.dataset.slug&&GAMES.find(x=>x.slug===cur.dataset.slug);
+    if(g){ e.preventDefault(); play(g); return }
+  }
   if(e.key==='ArrowDown'||e.key==='PageDown'||e.key==='j'){ e.preventDefault(); slideStep(1) }
   if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='k'){ e.preventDefault(); slideStep(-1) }
   if(e.key==='Home'||e.key==='End'){ const all=[...feed.querySelectorAll('.slide[data-slug]')], n=e.key==='Home'?all[0]:all[all.length-1]; if(n){ e.preventDefault(); n.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}) } }
@@ -410,7 +457,7 @@ document.addEventListener('keydown',e=>{
 let introT=0;
 function closeIntro(){ if($('intro').hidden) return; $('intro').hidden=true; store.set('introSeen',true); clearTimeout(introT) }
 if(ALL_SAMPLE){ const n=document.querySelector('.side .sampleNote'); if(n) n.hidden=false }
-if(!store.get('introSeen',false)&&!startSlug){ $('intro').hidden=false; if(ALL_SAMPLE) $('introSample').hidden=false;
+if(!store.get('introSeen',false)&&!startSlug&&!restored){ $('intro').hidden=false; if(ALL_SAMPLE) $('introSample').hidden=false;
   $('introX').addEventListener('click',closeIntro); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) closeIntro() },{passive:true}); introT=setTimeout(closeIntro,6000) }
 // 画面に入った動画だけ再生
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
@@ -424,7 +471,7 @@ function leaveView(){
   seen[slug]=v; store.set('seen',seen);
 }
 const vio = new IntersectionObserver(es=>es.forEach(e=>{const slug=e.target.dataset.slug; if(!slug) return;
-  if(e.isIntersecting){ if(viewing!==slug){ leaveView(); viewing=slug; viewStart=Date.now() } } else if(viewing===slug) leaveView();
+  if(e.isIntersecting){ if(viewing!==slug){ leaveView(); viewing=slug; viewStart=Date.now(); savePos(slug) } } else if(viewing===slug) leaveView();
 }),{threshold:.6});
 document.querySelectorAll('.slide[data-slug]').forEach(s=>vio.observe(s));
 addEventListener('pagehide',leaveView);
@@ -489,7 +536,7 @@ function openPlayer(g){
     try{ fr.contentDocument.addEventListener('keydown',onPlayerKey) }catch(_){}  // 同じ出どころのゲームなら、ゲームの中でも Esc で閉じられる
   });
   fr.src=g.play; $('pBody').replaceChildren(fr);
-  $('player').classList.add('open'); TPB.layer.open('player',closePlayer);
+  $('player').classList.add('open'); syncInert(); TPB.layer.open('player',closePlayer);
   fr.focus();
 }
 function play(g){
@@ -516,46 +563,61 @@ let warned={};
 function confirmWrongDevice(g){
   if(warned[g.slug]) return true;
   warned[g.slug]=true;
-  const t=$('toastText'); t.textContent = (g.platform==='pc'?'この作品はPC向けです。':'この作品はスマホ向けです。')+'もう一度「遊ぶ」を押すとそのまま開きます';
-  $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
+  $('toastText').textContent = (g.platform==='pc'?'この作品はPC向けです。':'この作品はスマホ向けです。')+'もう一度「遊ぶ」を押すとそのまま開きます';
+  $('toastGo').hidden=true; showNote('toast',3500);
   return false;
 }
-function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
+function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); syncInert(); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
   if(playerOpener&&playerOpener.isConnected) try{ playerOpener.focus({preventScroll:true}) }catch(_){}
   // 遊んだ直後に、ひとこと聞く（まだ👍も🤔も感想もない作品だけ）。それ以外のときはDiscordに誘う
   if(current && !reacts[current.slug] && !sent.has(current.slug)) askAfter(current); else maybeInvite() }
-let afterT=0, afterG=null;
-function hideAfter(){ $('after').classList.remove('show'); clearTimeout(afterT) }
-function askAfter(g){ afterG=g; $('afterText').textContent='「'+g.title+'」どうだった？'; $('after').classList.add('show'); clearTimeout(afterT); afterT=setTimeout(()=>$('after').classList.remove('show'),12000) }
+// 遊んだあとの案内（どうだった？・Discordの招待・まだ遊んでいません・感想のお願い）は、同時に1つだけ出す。
+// 新しいものが出たら古いものは閉じる。右の列（⋮・感想など）にかからない位置に出し、短い時間で消える。
+// body[data-note] は、TPB.toast（👍など）をずらすための印（top＝上に出ている／bottom＝下に出ている）
+const NOTES=['after','needPlay','invite','toast']; let noteT=0, noteOn='';
+function closeNote(id){
+  const n=$(id); if(!n) return; n.classList.remove('show');
+  if(id==='toast'){ $('toastText').textContent=TOAST_NUDGE; $('toastGo').hidden=false }
+  if(noteOn===id){ noteOn=''; clearTimeout(noteT); document.body.dataset.note='' }
+}
+function showNote(id,ms){
+  NOTES.forEach(x=>{ if(x!==id) closeNote(x) });
+  clearTimeout(noteT); $(id).classList.add('show'); noteOn=id; document.body.dataset.note=id==='after'?'top':'bottom';
+  if(ms) noteT=setTimeout(()=>closeNote(id),ms);
+}
+const TOAST_NUDGE='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ';
+let afterG=null;
+function hideAfter(){ closeNote('after') }
+function askAfter(g){ afterG=g; $('afterText').textContent='「'+g.title+'」どうだった？'; showNote('after',8000) }
 $('after').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!afterG) return; const g=afterG, a=b.dataset.a; hideAfter();
   const sl=document.querySelector('.slide[data-slug="'+g.slug+'"]'); if(!sl) return;
   if(a==='like') react(g,'like',sl.querySelector('.rb[aria-label="いいね"]'));
   if(a==='hmm') react(g,'hmm',sl.querySelector('.rb[aria-label="うーん"]'));
   if(a==='fb') openSheet(g);
   if(a==='like'||a==='hmm') setTimeout(maybeInvite,2800) });
-feed.addEventListener('scroll',()=>$('after').classList.remove('show'),{passive:true});
+feed.addEventListener('scroll',()=>closeNote('after'),{passive:true});
 // ゲームを閉じたら、Discordに誘う（1日1回まで。参加ボタンを押した人には出さない）
 function maybeInvite(){
   if(store.get('joined',false)) return;
   const today=new Date().toDateString(); if(store.get('inviteDay','')===today) return;
-  store.set('inviteDay',today); $('invite').classList.add('show'); setTimeout(()=>$('invite').classList.remove('show'),12000);
+  store.set('inviteDay',today); showNote('invite',8000);
 }
-$('inviteX').addEventListener('click',()=>$('invite').classList.remove('show'));
-document.querySelectorAll('a.join').forEach(a=>a.addEventListener('click',()=>{ store.set('joined',true); $('invite').classList.remove('show') }));
-function scheduleNudge(g){ clearTimeout(timer); if(sent.has(g.slug))return; timer=setTimeout(()=>{ $('toast').classList.add('show') }, 5*60*1000) }
+$('inviteX').addEventListener('click',()=>closeNote('invite'));
+document.querySelectorAll('a.join').forEach(a=>a.addEventListener('click',()=>{ store.set('joined',true); closeNote('invite') }));
+function scheduleNudge(g){ clearTimeout(timer); if(sent.has(g.slug))return; timer=setTimeout(()=>{ showNote('toast',10000) }, 5*60*1000) }
 $('pClose').addEventListener('click',closePlayer);
 $('pFb').addEventListener('click',()=>{ if(current) openSheet(current) });
-$('toastGo').addEventListener('click',()=>{ $('toast').classList.remove('show'); if(current) openSheet(current) });
-$('toastX').addEventListener('click',()=>$('toast').classList.remove('show'));
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('sheetBg').classList.contains('open')) closeSheet(); else if($('player').classList.contains('open')) closePlayer() } });
+$('toastGo').addEventListener('click',()=>{ closeNote('toast'); if(current) openSheet(current) });
+$('toastX').addEventListener('click',()=>closeNote('toast'));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('loginBg').classList.contains('open')) $('lClose').click(); else if($('sheetBg').classList.contains('open')) closeSheet(); else if($('player').classList.contains('open')) closePlayer() } });
 
 // 遊んでいない作品で「💬感想」を押したとき：先に遊ぶよう案内する（それでも書ける）
-let needG=null, needT=0;
-function hideNeedPlay(){ $('needPlay').classList.remove('show'); clearTimeout(needT) }
+let needG=null;
+function hideNeedPlay(){ closeNote('needPlay') }
 function wantFeedback(g){
   hideAfter();
   if(played.has(g.slug)||sent.has(g.slug)){ openSheet(g); return }
-  needG=g; $('needPlayText').textContent='「'+g.title+'」はまだ遊んでいません。先に遊んでみてね'; $('needPlay').classList.add('show'); clearTimeout(needT); needT=setTimeout(hideNeedPlay,15000);
+  needG=g; $('needPlayText').textContent='「'+g.title+'」はまだ遊んでいません。先に遊んでみてね'; showNote('needPlay',6000);
 }
 $('needPlay').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!needG) return; const g=needG, a=b.dataset.a; hideNeedPlay();
   if(a==='play') play(g); if(a==='write') openSheet(g) });
@@ -592,8 +654,9 @@ free.addEventListener('input',upd); dev.addEventListener('change',()=>{store.set
 const sbc = () => TPB.sb();
 async function getSession(){ const sb=sbc(); if(!sb) return null; try{ const {data}=await sb.auth.getSession(); return data.session }catch(e){ return null } }
 function userName(s){ const m=(s&&s.user&&s.user.user_metadata)||{}; return m.full_name||m.name||((s&&s.user&&s.user.email)||'').split('@')[0]||'ログイン中' }
-function closeLogin(){ $('loginBg').classList.remove('open'); TPB.layer.close('login') }
-function needLogin(g){ store.set('pendingFb',g.slug); store.set('pendingFbT',Date.now()); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }) }
+let loginOpener=null;
+function closeLogin(){ const was=$('loginBg').classList.contains('open'); $('loginBg').classList.remove('open'); syncInert(); TPB.layer.close('login'); if(was) restoreFocus(loginOpener) }
+function needLogin(g){ loginOpener=openerFor(g); store.set('pendingFb',g.slug); store.set('pendingFbT',Date.now()); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); syncInert(); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }); setTimeout(()=>$('lEmail').focus(),30) }
 $('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); closeLogin() });
 $('loginBg').addEventListener('click',e=>{ if(e.target===$('loginBg')) $('lClose').click() });
 $('lSend').addEventListener('click',async()=>{
@@ -624,7 +687,7 @@ async function resumePending(){
 }
 ready.then(()=>{ const sb=sbc(); if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN') resumePending() }) });
 
-let sheetGame=null;
+let sheetGame=null, sheetOpener=null;
 async function openSheet(g){
   hideAfter(); hideNeedPlay();
   const ses=await getSession(); if(!ses){ needLogin(g); return }
@@ -634,9 +697,10 @@ async function openSheet(g){
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
   free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; upd();
-  $('sheetBg').classList.add('open'); TPB.layer.open('sheet',closeSheet); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
+  if(!$('sheetBg').classList.contains('open')) sheetOpener=openerFor(g);
+  $('sheetBg').classList.add('open'); syncInert(); TPB.layer.open('sheet',closeSheet); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
 }
-function closeSheet(){ $('sheetBg').classList.remove('open'); TPB.layer.close('sheet') }
+function closeSheet(){ const was=$('sheetBg').classList.contains('open'); $('sheetBg').classList.remove('open'); syncInert(); TPB.layer.close('sheet'); if(was&&!$('loginBg').classList.contains('open')) restoreFocus(sheetOpener) }
 $('sClose').addEventListener('click',closeSheet);
 $('sDoneClose').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
@@ -677,6 +741,7 @@ $('sheet').addEventListener('submit',async e=>{
 // まとめ・作品ページの「感想を送る」から来たら、その作品を出して感想シートを開く
 const m=location.hash.match(/^#fb-([a-z0-9-]+)$/);
 ready.then(()=>{
+  if(restored&&restored.slug){ const s0=document.querySelector('.slide[data-slug="'+restored.slug+'"]'); if(s0) s0.scrollIntoView({behavior:'instant'}) }
   resumePending();
   if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>wantFeedback(g),300) } history.replaceState(null,'',location.pathname+location.search) }
 });
