@@ -9,8 +9,8 @@
 <meta property="og:site_name" content="テストプレイ部">
 <meta property="og:title" content="テストプレイ部｜学生のゲームを5分でつまみ食い">
 <meta property="og:description" content="学生のゲームを、5分でつまみ食い。スワイプして、気になったら遊んで、一言感想を送ろう。">
-<meta property="og:url" content="https://kei-tatezaki.github.io/testplay-bu/">
-<meta property="og:image" content="https://kei-tatezaki.github.io/testplay-bu/og/site.png">
+<meta property="og:url" content="/">
+<meta property="og:image" content="/og/site.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0e13">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
@@ -891,7 +891,7 @@ async function loadHint(g){
   let h=null; try{ const r=await sbc().rpc('game_point_hint',{p_slug:g.slug,p_client:CLIENT}); h=r.error?null:r.data }catch(e){}
   if(sheetGame!==g||!$('sheetBg').classList.contains('open')) return;
   ptHint=h; const box=$('ptInfo'); box.classList.remove('off');
-  if(!h||h.blocked==='already'){ box.hidden=true; upd(); return }
+  if(!h||h.blocked==='already'||(!h.blocked&&typeof h.points!=='number')){ box.hidden=true; upd(); return }
   const r=TPB.ptRuleNow(), min=r.min_chars;
   if(h.blocked){ box.classList.add('off'); box.textContent={own:'自分の作品に書いても、ポイントはつきません',not_played:'まだ遊んでいないので、ポイントはつきません。遊んでから書くと +'+h.base+'pt です',cap:'今日のポイントの上限に届いたので、この感想にポイントはつきません'}[h.blocked]||''; box.hidden=!box.textContent }
   else{ const kind=h.feedbacks<=r.tier1_max?'感想がまだ少ない作品':h.feedbacks<=r.tier2_max?'感想がふつうの数の作品':'感想が多い作品なので、少なめ';
