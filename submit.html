@@ -109,6 +109,10 @@ function newForm(){
 async function start(){
   SES=sb?await T.session():null;
   if(!SES){ main.replaceChildren(T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
+    el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
+      el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
+        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL・メモ')),
+      el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
   editSlug?editForm():newForm();
 }

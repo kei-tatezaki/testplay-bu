@@ -398,7 +398,7 @@ def card(g, prefix):
     slug = e(g["slug"])
     sub = " ・ ".join(x for x in (PLATFORM.get(g.get("platform"), ""), f"確かめたい：{g['check']}" if g.get("check") else "") if x)
     return f"""<article class="tile" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
-<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"><img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
+<a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{prefix}{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}><img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
 <div class="meta2">
 {by_html(g, prefix, 36, "av-link", True)}
 <div class="meta">

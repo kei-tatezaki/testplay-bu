@@ -245,7 +245,7 @@
     var sub = [PLAT[g.platform] || "", g.genre || ""].filter(Boolean).join(" ・ ");
     var st = []; if (stat && stat.plays) st.push("遊んだ人 " + stat.plays + "人"); if (stat && stat.feedbacks) st.push("感想 " + stat.feedbacks + "件");
     var r18 = g.rating === "r18";
-    var thumb = el("a", { class: "thumb", href: BASE + "?g=" + g.slug, "aria-label": g.title + "をショートで見る" },
+    var thumb = el("a", { class: "thumb", href: BASE + "?g=" + g.slug, "aria-label": g.title + "をショートで見る", "data-clip": g.clip && !r18 ? BASE + g.clip : null },
       el("img", { class: "media", src: BASE + (g.cover && !r18 ? g.cover : "og/" + g.slug + ".png"), alt: "", loading: "lazy" }),
       g.rating ? el("span", { class: "rate rate-" + g.rating }, g.rating.toUpperCase()) : null,
       g.minutes ? el("span", { class: "dur" }, g.minutes) : null);
@@ -295,6 +295,7 @@
     ".tpb-msg{margin:0;min-height:1.2em;font-size:13px;text-align:center}.tpb-msg.err{color:#e2674f}" +
     ".tpb-toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:95;background:#1d2430;color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;display:none;box-shadow:0 8px 30px #0008;max-width:calc(100% - 24px)}" +
     ".tpb-toast.show{display:block}" +
+    ".thumb video.hov{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;max-height:none;object-fit:contain;background:#0b0e13;border-radius:12px}" +
     ".meta2{display:flex;gap:4px;align-items:flex-start;min-width:0}.meta2 .meta{flex:1}.meta2 .tpb-kebab{margin:-6px -8px 0 0}";
   document.head.append(el("style", null, css));
 })();
@@ -314,6 +315,15 @@
         if (m.hasAttribute("data-noname")) a.setAttribute("aria-label", c.name + " のプロフィール");
         m.replaceWith(a);
       });
+    });
+  }
+  // PC：カードの画像にマウスをのせると、プレイ動画が流れる
+  if (matchMedia("(hover:hover) and (pointer:fine)").matches) {
+    document.addEventListener("mouseover", function (e) {
+      var t = e.target.closest && e.target.closest(".thumb[data-clip]"); if (!t || t.querySelector("video")) return;
+      var v = T.el("video", { class: "media hov", src: t.getAttribute("data-clip"), muted: true, loop: true, playsinline: true, "aria-hidden": "true" });
+      v.muted = true; t.append(v); v.play().catch(function () {});
+      t.addEventListener("mouseleave", function () { v.remove() }, { once: true });
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
