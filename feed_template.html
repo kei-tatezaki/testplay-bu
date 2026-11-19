@@ -23,6 +23,8 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip{position:fixed;left:8px;top:-60px;z-index:100;background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:8px}
 .top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;justify-content:flex-start;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#0b0e13cc,transparent);pointer-events:none}
 .top *{pointer-events:auto}
 .top a.back{font-size:13px;line-height:1;min-height:40px;display:inline-flex;align-items:center;gap:5px;padding:0 12px;border-radius:999px;white-space:nowrap}
@@ -47,20 +49,32 @@ button{font:inherit;color:inherit}
 .side a[aria-current]{font-weight:800;color:var(--accent)}
 .side .ic{width:24px;text-align:center}
 .side p{margin:14px 12px 0;font-size:12px;line-height:1.7;color:var(--muted)}
+.side a.skipin{position:absolute;left:-9999px}
+.side a.skipin:focus{position:static}
 .side hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
 @media (min-width:1100px){.side{display:grid}.top a.back{display:none}}
-.slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%)}
-.info{position:absolute;left:16px;right:84px;bottom:calc(24px + env(safe-area-inset-bottom));display:grid;gap:8px}
+.slide .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,#000d 70%);pointer-events:none}
+.slide .media{cursor:pointer}
+.playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center}
+.playhint span{background:#0006;color:#ffffffcc;border:1px solid #ffffff55;border-radius:999px;padding:8px 18px;font-size:15px;font-weight:700;backdrop-filter:blur(3px)}
+.slide video.media+.playhint{left:10px;width:calc(100% - 88px);top:calc(70px + env(safe-area-inset-top));height:calc(100% - 76px - 44%)}
+.slide img.media+.playhint{left:0;right:0;top:calc(64px + env(safe-area-inset-top));height:calc(100% - 64px - 46%)}
+@media (hover:hover) and (pointer:fine) and (min-width:900px){
+ .slide video.media{top:66px;height:calc(100dvh - 84px)}
+ .slide video.media+.playhint{top:66px;height:calc(100dvh - 84px)}
+}
+.info{position:absolute;z-index:2;left:16px;right:84px;bottom:calc(24px + env(safe-area-inset-bottom));display:grid;gap:8px}
+.info .by .sample{color:var(--accent)}
 .info h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
 .info .by{font-size:13px;color:var(--muted)}
 .info p{margin:0;font-size:14px;line-height:1.6}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:11px;border:1px solid #ffffff55;border-radius:999px;padding:1px 9px;background:#0005}
+.chip{font-size:12px;border:1px solid #ffffff55;border-radius:999px;padding:1px 9px;background:#0005}
 .chip.check{border-color:var(--accent);color:var(--accent)}
 .chip.warn{border-color:var(--warn);color:var(--warn)}
 .chip.new{background:var(--warn);color:#2a2000;border-color:transparent;font-weight:700}
 .q{font-size:13px;background:#ffffff14;border-left:3px solid var(--accent);padding:6px 10px;border-radius:6px}
-.rail{position:absolute;right:10px;bottom:calc(28px + env(safe-area-inset-bottom));display:grid;gap:16px;justify-items:center}
+.rail{position:absolute;z-index:2;right:10px;bottom:calc(28px + env(safe-area-inset-bottom));display:grid;gap:16px;justify-items:center}
 .rb{display:grid;justify-items:center;gap:2px;background:none;border:0;cursor:pointer;font-size:11px;color:var(--ink);text-shadow:0 1px 3px #000}
 .rb .ic{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#ffffff1f;backdrop-filter:blur(6px)}
 .rb.play .ic{background:var(--accent);color:var(--accent-ink);font-size:20px}
@@ -81,6 +95,7 @@ button{font:inherit;color:inherit}
 .why b{font-size:14px}
 .why small{color:var(--muted);font-size:11px;line-height:1.5}
 .why button{text-align:left;border:1px solid var(--line);background:#ffffff0d;border-radius:10px;padding:9px 12px;cursor:pointer;font-size:14px;color:var(--ink)}
+.why hr.sep{border:0;border-top:1px solid var(--line);margin:2px 0}
 .why button.x{border:0;background:none;text-align:center;color:var(--muted);font-size:12px;padding:4px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
 .toast.show{display:flex}
@@ -92,9 +107,12 @@ button{font:inherit;color:inherit}
 .pcnav button:hover{background:#ffffff30}
 .pcnav button:disabled{opacity:.3;cursor:default}
 @media (hover:hover) and (pointer:fine) and (min-width:900px){.pcnav{display:grid}}
-.intro{position:fixed;left:50%;transform:translateX(-50%);top:calc(60px + env(safe-area-inset-top));z-index:18;width:min(528px,calc(100% - 24px));background:#151a22f2;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.6;box-shadow:0 8px 30px #0008}
-.intro b{display:block;font-size:14px}
-.intro button{flex:none;border:0;border-radius:999px;padding:8px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
+.intro{position:fixed;left:max(12px,calc(50% - 268px));top:calc(56dvh + 4px + env(safe-area-inset-top));z-index:18;width:min(464px,calc(100% - 96px));background:#151a22f2;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.5;box-shadow:0 8px 30px #0008}
+.intro a{color:var(--accent)}
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){.intro{left:calc(50% + 300px);top:90px;width:min(300px,calc(50% - 320px))}}
+@media (hover:hover) and (pointer:fine) and (min-width:900px) and (max-width:1099px){.intro{display:none}}
+.intro b{display:block;font-size:13px}
+.intro button{flex:none;border:0;border-radius:999px;min-height:36px;padding:6px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
 [hidden]{display:none!important}
 .agecover{position:absolute;inset:0;z-index:6;background:#120d10;display:grid;place-items:center;padding:24px;text-align:center}
 .agecover .box{display:grid;gap:10px;max-width:320px}
@@ -114,6 +132,11 @@ button{font:inherit;color:inherit}
 .toast .go{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .toast .x{background:#ffffff1a}
 .toast .pick{background:#ffffff1a;font-size:20px;width:44px;height:44px;padding:0;border-radius:50%}
+.toast.stack{flex-direction:column;align-items:stretch;gap:10px;width:min(360px,calc(100% - 24px))}
+.toast.stack>span{text-align:center}
+.toast.stack .btns{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.toast.stack .btns button{min-height:44px}
+.toast.stack .btns .go,.toast.stack .btns .x{padding:6px 16px}
 .loading{height:100dvh;display:grid;place-items:center;color:var(--muted);font-size:14px}
 /* feedback sheet */
 .sheet-bg{position:fixed;inset:0;z-index:50;background:#0009;display:none}
@@ -139,15 +162,16 @@ textarea{min-height:72px;resize:vertical}
 </style>
 </head>
 <body>
+<a class="skip" href="#feed" id="skip">作品へ飛ぶ</a>
 <div class="top"><a class="back" id="back" href="list.html" aria-label="まとめ（作品の一覧）を見る"><span aria-hidden="true">▦</span> まとめ</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
-<div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは作った人に届きます（名前は出ません）</small>
+<div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは、作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">🎮 操作がわかりにくい</button>
 <button type="button" data-r="heavy">🐢 重い・うまく動かない</button>
 <button type="button" data-r="fun">😐 おもしろさがわからなかった</button>
-<button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
+<hr class="sep"><button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
 <button type="button" class="x" data-r="">やめる</button></div>
-<main class="feed" id="feed" aria-label="作品フィード"><p class="loading" id="loading">読み込み中…</p></main>
 <nav class="side" aria-label="メニュー">
+<a href="#feed" class="skipin" id="skipIn"><span class="ic">↓</span>作品へ飛ぶ</a>
 <a href="./" aria-current="page"><span class="ic">▶</span>ショート</a>
 <a href="list.html"><span class="ic">▦</span>まとめ（作品の一覧）</a>
 <a href="me.html"><span class="ic">👤</span>マイページ</a>
@@ -156,10 +180,12 @@ textarea{min-height:72px;resize:vertical}
 <a href="submit.html"><span class="ic">＋</span>作品を応募する</a>
 <a href="__DISCORD__" target="_blank" rel="noopener" class="join"><span class="ic">💬</span>Discordに参加する</a>
 <p>学生が作ったゲームを、5分でつまみ食い。<br>遊ぶのに登録はいりません。</p>
+<p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--accent);text-decoration:underline">最初の作品を募集中</a></p>
 <p><a href="privacy.html" style="display:inline;padding:0;font-size:12px;color:var(--muted);text-decoration:underline">集める情報と使い道</a></p>
 </nav>
+<main class="feed" id="feed" tabindex="-1" aria-label="作品フィード"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
-<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>登録なし・無料。<span style="color:var(--accent)">▶ 遊ぶ</span> を押すと、この画面のまま始まります。</span><button type="button" id="introX">OK</button></div>
+<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>登録なし・無料です。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span></span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
@@ -168,7 +194,9 @@ textarea{min-height:72px;resize:vertical}
 
 <div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
 
-<div class="toast" id="after" role="status"><span id="afterText">どうだった？</span><button type="button" class="pick" data-a="like" aria-label="よかった">👍</button><button type="button" class="pick" data-a="hmm" aria-label="うーん">🤔</button><button type="button" class="go" data-a="fb">💬 感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div>
+<div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった">👍</button><button type="button" class="pick" data-a="hmm" aria-label="うーん">🤔</button><button type="button" class="go" data-a="fb">💬 感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
+
+<div class="toast stack" id="needPlay" role="status"><span id="needPlayText">先に遊んでみてね。遊んでからのほうが、いい感想になります</span><div class="btns"><button type="button" class="go" data-a="play">▶ 遊ぶ</button><button type="button" class="x" data-a="write">それでも書く</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
 
 <div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="__DISCORD__" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
 
@@ -211,17 +239,19 @@ textarea{min-height:72px;resize:vertical}
   </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="assets/rank.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
 <script>
 const GAMES = __GAMES__;
 const DISCORD_DEFAULT = "__DISCORD__";
+const ALL_SAMPLE = __ALLSAMPLE__;
 const SB_URL = "__SB_URL__", SB_KEY = "__SB_KEY__";
-(async function(){
+(function(){
 "use strict";
 const $ = id => document.getElementById(id);
+const ready = new Promise(r=>document.readyState==='loading'?document.addEventListener('DOMContentLoaded',r):r());
 const store = {get(k,d){try{return JSON.parse(localStorage.getItem('tpb:'+k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem('tpb:'+k,JSON.stringify(v))}catch(e){}}};
 const played = new Set(store.get('played',[]));
 const reacts = store.get('reacts',{});
@@ -234,16 +264,19 @@ const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
 const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
 // 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
 // 並び順は assets/rank.js（作る人優先：新作・感想が少ない作品を上げつつ、その人の好みも見る）
+// 前回とどいた数字（game_stats）と作者の情報を端末にとっておき、今回の並び替えと表示にすぐ使う。
+// 新しい数字は、あとからラベルにだけ反映する（描いたあとに並びは入れ替えない）。
 async function loadStats(){
   try{
-    const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),1500);
+    const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),5000);
     const r=await fetch(SB_URL+'/rest/v1/rpc/game_stats',{method:'POST',signal:ctl.signal,headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:'{"since_days":30}'});
-    clearTimeout(t); if(!r.ok) return {};
+    clearTimeout(t); if(!r.ok) return null;
     const rows=await r.json(); const o={}; rows.forEach(x=>o[x.game_slug]=x); return o;
-  }catch(e){ return {} }
+  }catch(e){ return null }
 }
 const seen = store.get('seen',{});
-const [STATS, LIVE] = await Promise.all([loadStats(), Promise.race([TPB.liveCreators(), new Promise(r=>setTimeout(()=>r({}),1500))])]);
+let STATS = store.get('statsCache',null), statsKnown = !!STATS; if(!STATS) STATS={};
+let LIVE = store.get('liveCache',{}) || {};
 const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
                               : GAMES.slice().reverse().map(g=>({g,s:{feedbacks:-1}}));
 const order = ranked.map(o=>o.g);
@@ -278,43 +311,56 @@ function whoBtn(g){
 }
 function byLine(g){
   const c=TPB.creatorOf(g,LIVE);
-  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},c.name):c.name, c.official&&!/運営|公式/.test(c.name)?' ・ 運営':'', g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
+  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},c.name):c.name, g.sample?el('span',{class:'sample'},' ・ 運営のお試し作品'):(c.official&&!/運営|公式/.test(c.name)?' ・ 運営':''), g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
+}
+// スライドのラベル：大事なものだけ2つまで（年齢制限・遊べない端末・まだ遊んでない・感想まだ0件）＋時間。
+// 「確かめたいこと」と「作者が確かめたいこと」は、感想シートと作品ページにまかせる
+function chipsFor(g){
+  const imp=[];
+  if(g.rating==='r15'||g.rating==='r18') imp.push(el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()));
+  if(g.platform&&!canPlay(g)) imp.push(el('span',{class:'chip warn'},g.platform==='pc'?'PCで遊べます':'スマホで遊べます'));
+  if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
+  if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},'感想まだ0件・最初の1人に'));
+  return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null);
+}
+function refreshChips(slug){
+  const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]'), old=sl&&sl.querySelector('.chips');
+  if(g&&old) old.replaceWith(chipsFor(g));
+}
+function refreshCreators(){
+  document.querySelectorAll('.slide[data-slug]').forEach(sl=>{
+    const g=GAMES.find(x=>x.slug===sl.dataset.slug); if(!g) return;
+    const w=sl.querySelector('.rail .who'), b=sl.querySelector('.info .by');
+    if(w) w.replaceWith(whoBtn(g)); if(b) b.replaceWith(byLine(g));
+  });
 }
 order.forEach((g,idx)=>{
   const media = g.clip ? el('video',{class:'media',src:g.clip,muted:true,loop:true,playsinline:true,preload:'metadata',poster:g.cover||('og/'+g.slug+'.png')})
                        : el('img',{class:'media'+(g.cover?' shot':''),src:g.cover||('og/'+g.slug+'.png'),alt:g.title,loading:idx<2?'eager':'lazy'});
   if(g.clip){media.muted=true}
-  const chips = el('div',{class:'chips'},
-    g.rating==='r15'||g.rating==='r18'?el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()):null,
-    !played.has(g.slug)&&canPlay(g)?el('span',{class:'chip new'},'まだ遊んでない'):null,
-    META[g.slug]&&META[g.slug].s.feedbacks===0?el('span',{class:'chip check'},'感想まだ0件・最初の1人に'):null,
-    g.platform&&!canPlay(g)?el('span',{class:'chip warn'},g.platform==='pc'?'PCで遊べます':'スマホで遊べます'):null,
-    g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null,
-    g.genre?el('span',{class:'chip'},g.genre):null,
-    (g.updates||[]).length?el('span',{class:'chip check'},'感想でアップデート'):null,
-    g.check?el('span',{class:'chip check'},'確かめたい：'+g.check):null);
+  media.addEventListener('click',()=>{ play(g) });
+  const chips = chipsFor(g);
   const r = reacts[g.slug]||'';
   const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),'うーん');
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
-    media, el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
       chips,
-      el('p',null,g.oneliner),
-      g.question?el('div',{class:'q'},'作者が確かめたいこと：'+g.question):null),
+      el('p',null,g.oneliner)),
     el('div',{class:'rail'},
       whoBtn(g),
       el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),'遊ぶ'),
       likeB, hmmB,
-      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
-      el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>TPB.openMenu(e.currentTarget,g.slug,{inFeed:true})},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
+      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
+      el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
     idx===0?el('div',{class:'hint'},DEVICE==='sp'?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'),el('a',{href:'creators.html'},'自分の作品を載せたい'))));
+feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。'):null,ALL_SAMPLE?el('a',{href:'submit.html'},'作品を応募する'):null,el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'),el('a',{href:'creators.html'},'自分の作品を載せたい'))));
 
 // PC：↑↓キーと右のボタンで前後の作品へ
 function slideStep(d){
@@ -323,6 +369,17 @@ function slideStep(d){
 }
 $('navUp').addEventListener('click',()=>slideStep(-1)); $('navDown').addEventListener('click',()=>slideStep(1));
 feed.addEventListener('scroll',()=>{ const i=Math.round(feed.scrollTop/feed.clientHeight); $('navUp').disabled=i<=0; $('navDown').disabled=i>=feed.children.length-1 },{passive:true}); $('navUp').disabled=true;
+// PC：マウスのホイール・トラックパッドで1枚ずつ進む。deltaがたまったら1枚、そのあと600msは次に進まない（勢いが続いているあいだも待つ）
+let wAcc=0, wUntil=0, wLocked=false, wIdle=0, wReset=0;
+function wUnlock(){ const rest=wUntil-Date.now(); if(rest>0){ wIdle=setTimeout(wUnlock,rest) } else { wLocked=false; wAcc=0 } }
+feed.addEventListener('wheel',e=>{
+  if(e.ctrlKey||e.deltaY===0&&e.deltaX!==0) return;
+  e.preventDefault();
+  const dy = e.deltaMode===1 ? e.deltaY*16 : e.deltaMode===2 ? e.deltaY*innerHeight : e.deltaY;
+  if(wLocked){ clearTimeout(wIdle); wIdle=setTimeout(wUnlock,150); return }
+  wAcc+=dy; clearTimeout(wReset); wReset=setTimeout(()=>wAcc=0,250);
+  if(Math.abs(wAcc)>=30){ slideStep(wAcc>0?1:-1); wAcc=0; wLocked=true; wUntil=Date.now()+600; clearTimeout(wIdle); wIdle=setTimeout(wUnlock,150) }
+},{passive:false});
 document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
   if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
@@ -330,9 +387,14 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'||e.key==='PageDown'||e.key==='j'){ e.preventDefault(); slideStep(1) }
   if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='k'){ e.preventDefault(); slideStep(-1) }
 });
-// 初めて来た人にだけ、ここが何の場所かを一度だけ出す
-if(!store.get('introSeen',false)&&!startSlug){ $('intro').hidden=false; const done=()=>{ $('intro').hidden=true; store.set('introSeen',true) };
-  $('introX').addEventListener('click',done); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) done() },{passive:true}) }
+// 「作品へ飛ぶ」：キーボードで左メニューを飛ばして作品へ
+['skip','skipIn'].forEach(id=>{ const a=$(id); if(a) a.addEventListener('click',e=>{ e.preventDefault(); feed.focus({preventScroll:true}); const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)], b=cur&&cur.querySelector('.rail .play'); if(b) b.focus({preventScroll:true}) }) });
+// 初めて来た人にだけ、ここが何の場所かを一度だけ出す。「遊ぶ」を押したとき・6秒たったとき・スクロールしたときに自動で閉じる
+let introT=0;
+function closeIntro(){ if($('intro').hidden) return; $('intro').hidden=true; store.set('introSeen',true); clearTimeout(introT) }
+if(ALL_SAMPLE){ const n=document.querySelector('.side .sampleNote'); if(n) n.hidden=false }
+if(!store.get('introSeen',false)&&!startSlug){ $('intro').hidden=false; if(ALL_SAMPLE) $('introSample').hidden=false;
+  $('introX').addEventListener('click',closeIntro); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) closeIntro() },{passive:true}); introT=setTimeout(closeIntro,6000) }
 // 画面に入った動画だけ再生
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
@@ -356,22 +418,24 @@ function track(g,kind,reason){
   try{ fetch(SB_URL+'/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(body)}).catch(()=>{}) }catch(e){}
 }
 let whyFor=null;
+function closeWhy(){ whyFor=null; $('why').classList.remove('open'); TPB.layer.close('why') }
 function askWhy(g,btn){
-  whyFor={g,btn}; const box=$('why'), r=btn.getBoundingClientRect();
-  box.classList.add('open'); box.style.top=Math.max(60,Math.min(r.top-40, innerHeight-box.offsetHeight-16))+'px';
+  hideAfter(); whyFor={g,btn}; const box=$('why'), r=btn.getBoundingClientRect();
+  TPB.layer.open('why',closeWhy); box.classList.add('open'); box.style.top=Math.max(60,Math.min(r.top-40, innerHeight-box.offsetHeight-16))+'px';
   box.querySelector('button').focus();
 }
 $('why').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||!whyFor) return;
-  const r=b.dataset.r, {g,btn}=whyFor; whyFor=null; $('why').classList.remove('open');
+  const r=b.dataset.r, {g,btn}=whyFor; closeWhy();
   if(!r) return;
   hmmWhy[g.slug]=r; store.set('hmmWhy',hmmWhy);
   setReact(g,'hmm',btn,r);
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&whyFor){ whyFor=null; $('why').classList.remove('open') } });
-feed.addEventListener('scroll',()=>{ if(whyFor){ whyFor=null; $('why').classList.remove('open') } },{passive:true});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&whyFor) closeWhy() });
+feed.addEventListener('scroll',()=>{ if(whyFor) closeWhy() },{passive:true});
 const hmmWhy = store.get('hmmWhy',{});
 function react(g,kind,btn){
+  hideAfter();
   // 🤔は理由を選んでから記録する（押し直すと取り消し）
   if(kind==='hmm' && reacts[g.slug]!=='hmm'){ askWhy(g,btn); return }
   if(kind==='hmm'){ delete hmmWhy[g.slug]; store.set('hmmWhy',hmmWhy) }
@@ -390,14 +454,15 @@ async function share(g,btn){
 
 // ---- 遊ぶ ----
 let current=null, timer=0;
-function markPlayed(g){played.add(g.slug);store.set('played',[...played]);const c=document.querySelector('.slide[data-slug="'+g.slug+'"] .chip.new');if(c)c.remove()}
+function markPlayed(g){played.add(g.slug);store.set('played',[...played]);refreshChips(g.slug)}
 function play(g){
   if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g) && !confirmWrongDevice(g)) return;
+  closeIntro(); hideAfter(); hideNeedPlay();
   markPlayed(g); track(g,'play'); current=g;
   playing={slug:g.slug,t:Date.now(),external:!isLocal(g.play)};
   if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
-  $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); $('pClose').focus();
+  $('pTitle').textContent=g.title; $('pFrame').src=g.play; $('player').classList.add('open'); TPB.layer.open('player',closePlayer); $('pClose').focus();
   scheduleNudge(g);
 }
 // 遊んだ時間を記録する（サイトの中で開いたゲームは閉じるまで、別のタブで開いたゲームはこのページに戻ってくるまで）
@@ -418,12 +483,13 @@ function confirmWrongDevice(g){
   $('toastGo').hidden=true; $('toast').classList.add('show'); setTimeout(()=>{$('toast').classList.remove('show');$('toastGo').hidden=false;t.textContent='5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ'},3500);
   return false;
 }
-function closePlayer(){ $('player').classList.remove('open'); $('pFrame').src='about:blank'; endPlay();
+function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); $('pFrame').src='about:blank'; TPB.layer.close('player'); endPlay();
   // 遊んだ直後に、ひとこと聞く（まだ👍も🤔も感想もない作品だけ）。それ以外のときはDiscordに誘う
   if(current && !reacts[current.slug] && !sent.has(current.slug)) askAfter(current); else maybeInvite() }
 let afterT=0, afterG=null;
+function hideAfter(){ $('after').classList.remove('show'); clearTimeout(afterT) }
 function askAfter(g){ afterG=g; $('afterText').textContent='「'+g.title+'」どうだった？'; $('after').classList.add('show'); clearTimeout(afterT); afterT=setTimeout(()=>$('after').classList.remove('show'),12000) }
-$('after').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!afterG) return; const g=afterG, a=b.dataset.a; $('after').classList.remove('show'); clearTimeout(afterT);
+$('after').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!afterG) return; const g=afterG, a=b.dataset.a; hideAfter();
   const sl=document.querySelector('.slide[data-slug="'+g.slug+'"]'); if(!sl) return;
   if(a==='like') react(g,'like',sl.querySelector('.rb[aria-label="いいね"]'));
   if(a==='hmm') react(g,'hmm',sl.querySelector('.rb[aria-label="うーん"]'));
@@ -445,6 +511,17 @@ $('toastGo').addEventListener('click',()=>{ $('toast').classList.remove('show');
 $('toastX').addEventListener('click',()=>$('toast').classList.remove('show'));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('sheetBg').classList.contains('open')) closeSheet(); else if($('player').classList.contains('open')) closePlayer() } });
 
+// 遊んでいない作品で「💬感想」を押したとき：先に遊ぶよう案内する（それでも書ける）
+let needG=null, needT=0;
+function hideNeedPlay(){ $('needPlay').classList.remove('show'); clearTimeout(needT) }
+function wantFeedback(g){
+  hideAfter();
+  if(played.has(g.slug)||sent.has(g.slug)){ openSheet(g); return }
+  needG=g; $('needPlayText').textContent='「'+g.title+'」はまだ遊んでいません。先に遊んでみてね'; $('needPlay').classList.add('show'); clearTimeout(needT); needT=setTimeout(hideNeedPlay,15000);
+}
+$('needPlay').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!needG) return; const g=needG, a=b.dataset.a; hideNeedPlay();
+  if(a==='play') play(g); if(a==='write') openSheet(g) });
+feed.addEventListener('scroll',hideNeedPlay,{passive:true});
 // ---- 感想シート ----
 const OPTS = {
   again:['すごく遊びたい','ちょっと遊びたい','もういいかな'],
@@ -471,16 +548,19 @@ dev.checked = !!store.get('dev',false);
 function upd(){ const n=[...free.value.trim()].length; $('count').textContent=n+'文字'+(dev.checked&&n<40?'（あと'+(40-n)+'文字）':''); $('minNote').textContent=dev.checked?'開発者は40文字以上':'任意' }
 free.addEventListener('input',upd); dev.addEventListener('change',()=>{store.set('dev',dev.checked);upd()});
 // ---- ログイン（感想を送るときだけ必要） ----
-const sb = window.supabase ? supabase.createClient(SB_URL, SB_KEY) : null;
-async function getSession(){ if(!sb) return null; try{ const {data}=await sb.auth.getSession(); return data.session }catch(e){ return null } }
+// Supabaseのクライアントは、tpb.js が作った1つを使い回す（2つ作ると警告が出る）。CDNの読み込みは画面を止めないよう、使うときに取り出す
+const sbc = () => TPB.sb();
+async function getSession(){ const sb=sbc(); if(!sb) return null; try{ const {data}=await sb.auth.getSession(); return data.session }catch(e){ return null } }
 function userName(s){ const m=(s&&s.user&&s.user.user_metadata)||{}; return m.full_name||m.name||((s&&s.user&&s.user.email)||'').split('@')[0]||'ログイン中' }
-function needLogin(g){ store.set('pendingFb',g.slug); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open') }
-$('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); $('loginBg').classList.remove('open') });
+function closeLogin(){ $('loginBg').classList.remove('open'); TPB.layer.close('login') }
+function needLogin(g){ store.set('pendingFb',g.slug); $('lMsg').textContent=''; $('lMsg').className='msg'; $('loginBg').classList.add('open'); TPB.layer.open('login',()=>{ store.set('pendingFb',''); closeLogin() }) }
+$('lClose').addEventListener('click',()=>{ store.set('pendingFb',''); closeLogin() });
 $('loginBg').addEventListener('click',e=>{ if(e.target===$('loginBg')) $('lClose').click() });
 $('lSend').addEventListener('click',async()=>{
   const email=$('lEmail').value.trim(); const msg=$('lMsg');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.className='msg err'; msg.textContent='メールアドレスを確かめてね'; return }
   $('lSend').disabled=true; msg.className='msg'; msg.textContent='送信中…';
+  const sb=sbc(); if(!sb){ $('lSend').disabled=false; msg.className='msg err'; msg.textContent='いま読み込めませんでした。ページを開き直してね'; return }
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
   $('lSend').disabled=false;
   if(error){ msg.className='msg err'; msg.textContent='送れなかった…時間をおいてもう一度試してね' }
@@ -490,31 +570,32 @@ $('lSend').addEventListener('click',async()=>{
 fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()).then(st=>{
   const ext=(st&&st.external)||{};
   [['discord','Discordでログイン','#5865F2','#fff'],['google','Googleでログイン','#fff','#222']].forEach(([id,label,bg,fg])=>{
-    if(ext[id]) $('providers').append(el('button',{class:'btn',type:'button',style:'background:'+bg+';color:'+fg,onclick:()=>sb.auth.signInWithOAuth({provider:id,options:{redirectTo:location.origin+location.pathname}})},label));
+    if(ext[id]) $('providers').append(el('button',{class:'btn',type:'button',style:'background:'+bg+';color:'+fg,onclick:()=>sbc().auth.signInWithOAuth({provider:id,options:{redirectTo:location.origin+location.pathname}})},label));
   });
 }).catch(()=>{});
 // ログインから戻ってきたら、書きかけだった作品の感想シートを開く
 async function resumePending(){
   const slug=store.get('pendingFb',''); if(!slug) return;
   const s=await getSession(); if(!s) return;
-  store.set('pendingFb',''); $('loginBg').classList.remove('open');
+  store.set('pendingFb',''); closeLogin();
   const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]');
   if(g){ if(sl) sl.scrollIntoView(); setTimeout(()=>openSheet(g),300) }
 }
-if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN') resumePending() });
+ready.then(()=>{ const sb=sbc(); if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN') resumePending() }) });
 
 let sheetGame=null;
 async function openSheet(g){
+  hideAfter(); hideNeedPlay();
   const ses=await getSession(); if(!ses){ needLogin(g); return }
   $('sheet').classList.remove('done');
-  $('sWho').innerHTML=''; $('sWho').append('ログイン中：'+userName(ses)+' ・ ', el('button',{type:'button',onclick:async()=>{ await sb.auth.signOut(); closeSheet() }},'ログアウト'));
+  $('sWho').innerHTML=''; $('sWho').append('ログイン中：'+userName(ses)+' ・ ', el('button',{type:'button',onclick:async()=>{ await sbc().auth.signOut(); closeSheet() }},'ログアウト'));
   sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
   free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; upd();
-  $('sheetBg').classList.add('open'); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
+  $('sheetBg').classList.add('open'); TPB.layer.open('sheet',closeSheet); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
 }
-function closeSheet(){ $('sheetBg').classList.remove('open') }
+function closeSheet(){ $('sheetBg').classList.remove('open'); TPB.layer.close('sheet') }
 $('sClose').addEventListener('click',closeSheet);
 $('sDoneClose').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
@@ -527,7 +608,7 @@ $('sheet').addEventListener('submit',async e=>{
     good:picks.good||[], bad:picks.bad||[], answer:(g.question&&(picks.answer||[])[0])||null, free:free.value.trim(), is_dev:dev.checked, client_id:CLIENT};
   const btn=$('sheet').querySelector('button[type=submit]'); btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
   try{
-    const {error}=await sb.from('feedback').insert(payload);
+    const {error}=await sbc().from('feedback').insert(payload);
     if(!error){
       sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
       const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb.fbb'); if(lab) lab.lastChild.textContent='送った';
@@ -548,8 +629,19 @@ $('sheet').addEventListener('submit',async e=>{
 });
 // まとめ・作品ページの「感想を送る」から来たら、その作品を出して感想シートを開く
 const m=location.hash.match(/^#fb-([a-z0-9-]+)$/);
-resumePending();
-if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>openSheet(g),300) } history.replaceState(null,'',location.pathname) }
+ready.then(()=>{
+  resumePending();
+  if(m){ const g=GAMES.find(x=>x.slug===m[1]); const s=document.querySelector('.slide[data-slug="'+m[1]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>wantFeedback(g),300) } history.replaceState(null,'',location.pathname+location.search) }
+});
+// 作品ページの「▶ 遊ぶ」から来たとき（?g=作品ID&play=1）は、その作品のプレイヤーを自動で開く（R18は年齢の確認が先）
+if(startSlug && new URLSearchParams(location.search).get('play')==='1'){
+  const g=GAMES.find(x=>x.slug===startSlug);
+  history.replaceState(null,'',location.pathname+'?g='+encodeURIComponent(startSlug));
+  if(g) setTimeout(()=>play(g),0);
+}
+// 数字と作者の情報は、画面を出したあとで取りにいく。届いたら、ラベルと名前だけ直す（並びは入れ替えない）
+loadStats().then(o=>{ if(!o) return; STATS=o; statsKnown=true; store.set('statsCache',o); GAMES.forEach(g=>refreshChips(g.slug)) });
+TPB.liveCreators().then(live=>{ live=live||{}; if(!Object.keys(live).length&&Object.keys(LIVE).length) return; LIVE=live; store.set('liveCache',live); refreshCreators() });
 })();
 </script>
 </body>
