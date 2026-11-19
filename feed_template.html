@@ -75,6 +75,17 @@ button{font:inherit;color:inherit}
 .why button.x{border:0;background:none;text-align:center;color:var(--muted);font-size:12px;padding:4px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;gap:10px;align-items:center;max-width:calc(100% - 24px);box-shadow:0 8px 30px #0008;font-size:14px}
 .toast.show{display:flex}
+.toast{width:max-content}
+.toast>span{flex:1;min-width:0;line-height:1.5}
+.toast>a,.toast>button{flex:none}
+.pcnav{position:fixed;right:max(16px,calc(50% - 360px));top:50%;transform:translateY(-50%);z-index:15;display:none;gap:10px}
+.pcnav button{width:44px;height:44px;border-radius:50%;border:1px solid #ffffff30;background:#ffffff14;cursor:pointer;font-size:16px}
+.pcnav button:hover{background:#ffffff30}
+.pcnav button:disabled{opacity:.3;cursor:default}
+@media (hover:hover) and (pointer:fine) and (min-width:900px){.pcnav{display:grid}}
+.intro{position:fixed;left:50%;transform:translateX(-50%);top:calc(60px + env(safe-area-inset-top));z-index:18;width:min(528px,calc(100% - 24px));background:#151a22f2;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.6;box-shadow:0 8px 30px #0008}
+.intro b{display:block;font-size:14px}
+.intro button{flex:none;border:0;border-radius:999px;padding:8px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
 [hidden]{display:none!important}
 .agecover{position:absolute;inset:0;z-index:6;background:#120d10;display:grid;place-items:center;padding:24px;text-align:center}
 .agecover .box{display:grid;gap:10px;max-width:320px}
@@ -125,6 +136,8 @@ textarea{min-height:72px;resize:vertical}
 <button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
 <button type="button" class="x" data-r="">やめる</button></div>
 <main class="feed" id="feed" aria-label="作品フィード"></main>
+<div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
+<div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>登録なし・無料。<span style="color:var(--accent)">▶ 遊ぶ</span> を押すと、この画面のまま始まります。</span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
@@ -251,11 +264,10 @@ order.forEach((g,idx)=>{
     g.rating==='r15'||g.rating==='r18'?el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()):null,
     !played.has(g.slug)&&canPlay(g)?el('span',{class:'chip new'},'まだ遊んでない'):null,
     META[g.slug]&&META[g.slug].s.feedbacks===0?el('span',{class:'chip check'},'感想まだ0件・最初の1人に'):null,
-    g.platform?el('span',{class:'chip'+(canPlay(g)?'':' warn')},canPlay(g)?PLAT[g.platform]:(g.platform==='pc'?'PCで遊べます':'スマホで遊べます')):null,
-    g.sample?el('span',{class:'chip'},'運営サンプル'):null,
+    g.platform&&!canPlay(g)?el('span',{class:'chip warn'},g.platform==='pc'?'PCで遊べます':'スマホで遊べます'):null,
+    g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null,
+    g.genre?el('span',{class:'chip'},g.genre):null,
     (g.updates||[]).length?el('span',{class:'chip check'},'感想でアップデート'):null,
-    g.stage?el('span',{class:'chip'},g.stage):null,
-    g.minutes?el('span',{class:'chip'},g.minutes):null,
     g.check?el('span',{class:'chip check'},'確かめたい：'+g.check):null);
   const r = reacts[g.slug]||'';
   const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),'いいね');
@@ -274,12 +286,29 @@ order.forEach((g,idx)=>{
       likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>openSheet(g)},el('span',{class:'ic'},'💬'),sent.has(g.slug)?'送った':'感想'),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>TPB.openMenu(e.currentTarget,g.slug,{inFeed:true})},el('span',{class:'ic',style:'font-weight:800'},'⋮'),'メニュー')),
-    idx===0?el('div',{class:'hint'},'↑ 上にスワイプで次の作品'):null,
+    idx===0?el('div',{class:'hint'},DEVICE==='sp'?'↑ 上にスワイプで次の作品':'↓キー か ホイールで次の作品'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
 feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordとXでお知らせします。'),el('a',{href:DISCORD_DEFAULT},'Discordに参加する'),el('a',{href:'list.html'},'まとめで見る'))));
 
+// PC：↑↓キーと右のボタンで前後の作品へ
+function slideStep(d){
+  const all=[...feed.querySelectorAll('.slide')], i=Math.round(feed.scrollTop/feed.clientHeight), n=all[Math.max(0,Math.min(all.length-1,i+d))];
+  if(n) n.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+}
+$('navUp').addEventListener('click',()=>slideStep(-1)); $('navDown').addEventListener('click',()=>slideStep(1));
+feed.addEventListener('scroll',()=>{ const i=Math.round(feed.scrollTop/feed.clientHeight); $('navUp').disabled=i<=0; $('navDown').disabled=i>=feed.children.length-1 },{passive:true}); $('navUp').disabled=true;
+document.addEventListener('keydown',e=>{
+  if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
+  if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
+  if(document.getElementById('tpbOv')||$('player').classList.contains('open')||$('sheetBg').classList.contains('open')||$('loginBg').classList.contains('open')||whyFor) return;
+  if(e.key==='ArrowDown'||e.key==='PageDown'||e.key==='j'){ e.preventDefault(); slideStep(1) }
+  if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='k'){ e.preventDefault(); slideStep(-1) }
+});
+// 初めて来た人にだけ、ここが何の場所かを一度だけ出す
+if(!store.get('introSeen',false)&&!startSlug){ $('intro').hidden=false; const done=()=>{ $('intro').hidden=true; store.set('introSeen',true) };
+  $('introX').addEventListener('click',done); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) done() },{passive:true}) }
 // 画面に入った動画だけ再生
 const io = new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
