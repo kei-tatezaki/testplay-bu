@@ -50,7 +50,7 @@
 
 ## サンプル作品の動画を撮り直す
 
-`clips/<slug>.mp4` と `shots/<slug>.png` は、Playwrightでじっさいに遊んで録画したもの（8〜9秒・無音）。
+`clips/<slug>.mp4` と `shots/<slug>.png` は、Playwrightでじっさいに遊んで録画したもの（8〜9秒・無音・幅776〜840px・1本1MB以下。画面の2倍の細かさで撮るため、Chromeを `--force-device-scale-factor=2` で起動し、CDPのスクリーンキャストでコマを集めてffmpegでH.264にしている）。
 録画用のスクリプトは `scripts/record_clips.py`（`python3 scripts/record_clips.py jump` のように作品を選べる）。
 
 ## データベース（Supabase）
