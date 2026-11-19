@@ -2,7 +2,7 @@
   {
     "slug": "jump",
     "title": "ワンタップ・ジャンプ",
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -30,7 +30,7 @@
   {
     "slug": "color",
     "title": "いろタッチ30",
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -64,7 +64,7 @@
   {
     "slug": "lights",
     "title": "ひかりけし",
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -90,7 +90,7 @@
     "creator": "unei"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -118,7 +118,7 @@
     "clip": "clips/stack.mp4"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -146,7 +146,7 @@
     "clip": "clips/stars.mp4"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -174,7 +174,7 @@
     "clip": "clips/memo.mp4"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -202,7 +202,7 @@
     "clip": "clips/houkago.mp4"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",
@@ -230,7 +230,7 @@
     "clip": "clips/calc.mp4"
   },
   {
-    "author": "テストプレイ部 運営",
+    "author": "テストプレイ部",
     "x": "",
     "sample": true,
     "stage": "プロトタイプ",

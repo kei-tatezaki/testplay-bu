@@ -22,6 +22,7 @@
 <body>
 <div class="wrap">
 <header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span><a class="btn" href="./submit.html">作品を応募する</a></div>
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
@@ -34,7 +35,7 @@
 <ol class="steps">
 <li><b>遊べるURLを作る</b><br>ブラウザで開いてすぐ遊べるURLを用意します。作り方は<a href="#url">下の「遊べるURLの作り方」</a>へ。</li>
 <li><b>URLを運営にわたす</b><br><a href="./submit.html">応募フォーム</a>に、作品名・URL・一言の3つを書いて送るだけ。Discordで運営に声をかけてもOK。</li>
-<li><b>運営が遊んで、作品ページを作る</b><br>運営がかならず遊んでから載せます。載ったらDiscordの「新作とおすすめ」に流れます。</li>
+<li><b>運営が遊んで、作品ページを作る</b><br>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。載ったらDiscordの「新作とおすすめ」に流れます。</li>
 <li><b>数字と感想を見る</b><br>ログインすると、<a href="./dev.html">開発者ページ</a>で遊んだ人の数・遊んだ時間・感想が見られます。<a href="./me.html">マイページ</a>でプロフィールも作れます。</li>
 </ol>
 </div></section>
@@ -43,7 +44,7 @@
 <h2>こんな人に使ってほしい</h2>
 <ul class="checks">
 <li>ゲームは作ったけど、ポートフォリオに載せるにはちょっと薄いと感じている人</li>
-<li>機能をひとつずつ文章で説明するのがダルい人</li>
+<li>機能をひとつずつ説明するのが大変な人</li>
 <li>作ったゲームが、誰にも遊ばれないまま眠っている人</li>
 <li>面接で「ユーザーの声を聞いて改善した経験」を話せるようにしたい人</li>
 </ul>
@@ -80,7 +81,7 @@
 </div></section>
 
 <section class="card" id="url"><div class="body">
-<h2>遊べるURLの作り方</h2>
+<details class="fold" id="urlFold"><summary>遊べるURLの作り方<small>タップでひらく</small></summary>
 <p>「ダウンロードして遊ぶ」ではなく、<b>ブラウザで開いてすぐ遊べるURL</b>がおすすめです。遊ぶ人の数がまるで変わります。どれも無料です。</p>
 <div class="ways">
 <div class="way"><b>unityroom</b><span class="muted">Unityで作った人に。日本語でかんたん</span>
@@ -90,7 +91,7 @@
 <div class="way"><b>GitHub Pages</b><span class="muted">JavaScriptで作った人、GitHubを使っている人に</span>
 <ol><li>index.html が入ったフォルダを、公開リポジトリにプッシュ</li><li>リポジトリの Settings → Pages を開く</li><li>「Deploy from a branch」で main を選んで保存</li><li>1〜2分待つと https://ユーザー名.github.io/リポジトリ名/ で遊べる</li></ol></div>
 <div class="way"><b>そのほか</b><span class="muted">すでに置いてある人はそのURLでOK</span>
-<ol><li>ふりーむ！・PLiCy・ゲームアツマール系・自分のサイトなど、ブラウザで遊べればどこでもOK</li><li>RPGツクールやティラノは「ブラウザ向け」に書き出す</li><li>Scratchは作品ページのURLをそのまま</li></ol></div>
+<ol><li>ふりーむ！・PLiCy・自分のサイトなど、ブラウザで遊べればどこでもOK</li><li>RPGツクールやティラノは「ブラウザ向け」に書き出す</li><li>Scratchは作品ページのURLをそのまま</li></ol></div>
 </div>
 <h3>うまくいかないとき</h3>
 <ul>
@@ -103,6 +104,7 @@
 <h3>URLの渡し方</h3>
 <p>URLができたら、<a href="./submit.html">応募フォーム</a>に貼って送ってください。Discordの人は、運営にURLを送るだけでも大丈夫です。</p>
 <div class="row"><a class="btn" href="./submit.html">作品を応募する</a></div>
+</details>
 </div></section>
 
 <section class="card"><div class="body">
@@ -126,8 +128,11 @@
 </div></section>
 
 <section class="card"><div class="body">
-<h2>運営の約束</h2>
-<p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
+<h2>運営について</h2>
+<p><b>運営者：たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）</p>
+<p>連絡先は<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>です。応募のこと、直したいところ、消してほしいときなど、なんでもここで声をかけてください。</p>
+<h3>運営の約束</h3>
+<p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
 <footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
@@ -144,6 +149,13 @@
 .shots figcaption{font-size:12px;color:var(--muted)}
 .shots .widefig{grid-column:1/-1}
 </style>
+<script>
+(function(){var d=document.getElementById('urlFold');if(!d)return;
+ function openIf(){if(location.hash==='#url'){d.open=true;d.scrollIntoView()}}
+ openIf();addEventListener('hashchange',openIf);
+ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href="#url"]');if(a){d.open=true;setTimeout(function(){d.scrollIntoView({behavior:'smooth'})},0)}});
+})();
+</script>
 <script>
 document.addEventListener('click',function(ev){
  var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;

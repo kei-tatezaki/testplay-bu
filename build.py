@@ -114,6 +114,15 @@ def make_og(game, out):
 RATING = {"r15": "R15", "r18": "R18"}
 
 
+def all_sample(games):
+    """作品が全部、運営のお試し（sample:true）かどうか。そうなら、正直にそう書く。"""
+    return bool(games) and all(g.get("sample") for g in games)
+
+
+NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span>'
+               '<a class="btn" href="{p}submit.html">作品を応募する</a></div>')
+
+
 def is_r18(g):
     return g.get("rating") == "r18"
 
@@ -222,13 +231,14 @@ header p{margin:4px 0 0;color:var(--muted)}
 .wide .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
 .wide .filters::-webkit-scrollbar{display:none}
 .wide .filters button{white-space:nowrap;flex:none}
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{min-height:40px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.brand{min-height:44px;min-width:0;display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.04em}
 .brand img{border-radius:50%}
 .bar .btn{padding:7px 14px;font-size:14px}
 .bar-r{display:flex;gap:8px;align-items:center;flex:none}
 .brand,.ghost-link,.bar .btn{white-space:nowrap}
-@media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:1;padding:10px 4px;font-size:13px}}
+@media (max-width:480px){.hide-sm{display:none!important}}
+@media (max-width:420px){.bar,.bar-r{gap:6px}.brand{font-size:14px;gap:6px;letter-spacing:0}.brand img{width:28px;height:28px}.ghost-link,.bar .btn{padding:6px 8px;font-size:12px}.tabs{gap:0}.tabs button{flex:0 0 auto;padding:10px 8px;font-size:13px}}
 .ghost-link{color:var(--ink);font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .lead{margin:-8px 0 0;color:var(--muted);font-size:13px}
 .filters button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
@@ -246,7 +256,7 @@ video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:44
 .body h2{margin:0;font-size:21px;line-height:1.4}
 .one{margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
+.chip{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
 .chip.check{border-color:var(--accent);color:var(--accent)}
 .chip.plat{border-color:var(--ink);color:var(--ink)}
 .chip.sample{background:var(--soft);border-color:transparent;color:var(--accent)}
@@ -314,6 +324,12 @@ button.btn:disabled{opacity:.6}
 .msg{font-size:13px;color:var(--muted);min-height:1.2em;margin:0}
 .msg.err{color:#d2553f}
 .muted{color:var(--muted)}
+.notice{background:var(--soft);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6;display:flex;gap:6px 12px;align-items:center;flex-wrap:wrap}
+.notice b{color:var(--accent)}
+.notice a.btn{padding:6px 14px;font-size:14px}
+.fbitem .fbh{display:block}
+details.fold>summary{cursor:pointer;font-size:21px;font-weight:700;line-height:1.4;min-height:44px;display:flex;align-items:center}
+details.fold>summary small{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px}
 .steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
 .steps li{counter-increment:s;padding-left:38px;position:relative}
 .steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:14px;display:grid;place-items:center}
@@ -388,6 +404,14 @@ def page(title, desc, url, image, body, prefix):
 """
 
 
+def play_btn(g):
+    """作品ページの「遊ぶ」。このサイトの中のゲームは、枠つきのプレイヤーを開くトップへ。外のサイトのゲームは別タブで開く。"""
+    label = f"▶ 遊ぶ{'（' + e(g['minutes']) + '）' if g.get('minutes') else ''}"
+    if re.match(r"https?:", g.get("play", "")):
+        return f'<a class="btn big" data-play="{e(g["slug"])}" href="{e(g["play"])}" target="_blank" rel="noopener">{label}</a>'
+    return f'<a class="btn big" href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
+
+
 def discord_link(g, prefix=""):
     # 感想はサイトの感想シートで送る（フィードの該当作品を開いてシートを出す）
     return f'<a class="btn ghost" href="{prefix}./#fb-{e(g["slug"])}">💬 感想を送る</a>'
@@ -431,7 +455,7 @@ def build():
 <div class="meta2"><h2 style="flex:1">{e(g['title'])}</h2><button class="tpb-kebab" type="button" data-menu="{e(g['slug'])}" data-in-page aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button></div>
 <div class="byrow">{by_html(g, '../../', 32, "by-chip")}{f' <a class="by" href="https://x.com/{e(g["x"].lstrip("@"))}">@{e(g["x"].lstrip("@"))}</a>' if g.get('x') else ''}</div>
 <p class="one">{e(g['oneliner'])}</p>
-<div class="row"><a class="btn big" data-play="{e(g['slug'])}" href="../../{e(g['play'])}">▶ 遊ぶ{f"（{e(g['minutes'])}）" if g.get('minutes') else ''}</a>{discord_link(g, '../../')}<a class="btn ghost" href="../../?g={e(g['slug'])}">ショートで見る</a></div>
+<div class="row">{play_btn(g)}{discord_link(g, '../../')}<a class="btn ghost" href="../../?g={e(g['slug'])}">ショートで見る</a></div>
 <div class="chips">{chips_html(g)}</div>
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
 {f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
@@ -447,7 +471,7 @@ def build():
  const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
  // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
  fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
-  .then(r=>r.ok?r.json():[]).then(rows=>{{const x=(rows||[]).find(r=>r.game_slug==='{g['slug']}'); if(!x) return;
+  .then(r=>r.ok?r.json():[]).then(rows=>{{const x=(rows||[]).find(r=>r.game_slug==='{g['slug']}'); if(!x||(x.plays||0)+(x.feedbacks||0)<10) return;
    const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
    const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
    if(why.length) t.push('🤔 '+why.join('、'));
@@ -459,7 +483,7 @@ def build():
   if(!Array.isArray(rows)||!rows.length){{box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
   sum.textContent=rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
-  box.innerHTML=rows.map(x=>'<div class="fbitem">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
+  box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問：'+esc(x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
  }}catch(e){{box.textContent='感想を読み込めませんでした'}}
 }})();
 </script>"""
@@ -472,8 +496,9 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">確かめたい：{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
+{NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <nav class="filters" aria-label="絞り込み">{filters}</nav>
 <nav class="filters" aria-label="端末で絞り込み"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav>
 <main id="list" class="grid">
@@ -486,7 +511,7 @@ def build():
 let F='',P='';
 // 遊んだ人・感想の数（YouTubeの再生回数のように表示）
 fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
- .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
+ .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
 function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&okP;c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
@@ -502,6 +527,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./list.html"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+{NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
@@ -514,7 +540,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <ol class="steps">
 <li><b>遊べるURLを作る</b><br>ブラウザで開いてすぐ遊べるURLを用意します。作り方は<a href="#url">下の「遊べるURLの作り方」</a>へ。</li>
 <li><b>URLを運営にわたす</b><br><a href="./submit.html">応募フォーム</a>に、作品名・URL・一言の3つを書いて送るだけ。Discordで運営に声をかけてもOK。</li>
-<li><b>運営が遊んで、作品ページを作る</b><br>運営がかならず遊んでから載せます。載ったらDiscordの「新作とおすすめ」に流れます。</li>
+<li><b>運営が遊んで、作品ページを作る</b><br>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。載ったらDiscordの「新作とおすすめ」に流れます。</li>
 <li><b>数字と感想を見る</b><br>ログインすると、<a href="./dev.html">開発者ページ</a>で遊んだ人の数・遊んだ時間・感想が見られます。<a href="./me.html">マイページ</a>でプロフィールも作れます。</li>
 </ol>
 </div></section>
@@ -523,7 +549,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h2>こんな人に使ってほしい</h2>
 <ul class="checks">
 <li>ゲームは作ったけど、ポートフォリオに載せるにはちょっと薄いと感じている人</li>
-<li>機能をひとつずつ文章で説明するのがダルい人</li>
+<li>機能をひとつずつ説明するのが大変な人</li>
 <li>作ったゲームが、誰にも遊ばれないまま眠っている人</li>
 <li>面接で「ユーザーの声を聞いて改善した経験」を話せるようにしたい人</li>
 </ul>
@@ -560,7 +586,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </div></section>
 
 <section class="card" id="url"><div class="body">
-<h2>遊べるURLの作り方</h2>
+<details class="fold" id="urlFold"><summary>遊べるURLの作り方<small>タップでひらく</small></summary>
 <p>「ダウンロードして遊ぶ」ではなく、<b>ブラウザで開いてすぐ遊べるURL</b>がおすすめです。遊ぶ人の数がまるで変わります。どれも無料です。</p>
 <div class="ways">
 <div class="way"><b>unityroom</b><span class="muted">Unityで作った人に。日本語でかんたん</span>
@@ -570,7 +596,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <div class="way"><b>GitHub Pages</b><span class="muted">JavaScriptで作った人、GitHubを使っている人に</span>
 <ol><li>index.html が入ったフォルダを、公開リポジトリにプッシュ</li><li>リポジトリの Settings → Pages を開く</li><li>「Deploy from a branch」で main を選んで保存</li><li>1〜2分待つと https://ユーザー名.github.io/リポジトリ名/ で遊べる</li></ol></div>
 <div class="way"><b>そのほか</b><span class="muted">すでに置いてある人はそのURLでOK</span>
-<ol><li>ふりーむ！・PLiCy・ゲームアツマール系・自分のサイトなど、ブラウザで遊べればどこでもOK</li><li>RPGツクールやティラノは「ブラウザ向け」に書き出す</li><li>Scratchは作品ページのURLをそのまま</li></ol></div>
+<ol><li>ふりーむ！・PLiCy・自分のサイトなど、ブラウザで遊べればどこでもOK</li><li>RPGツクールやティラノは「ブラウザ向け」に書き出す</li><li>Scratchは作品ページのURLをそのまま</li></ol></div>
 </div>
 <h3>うまくいかないとき</h3>
 <ul>
@@ -583,6 +609,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h3>URLの渡し方</h3>
 <p>URLができたら、<a href="./submit.html">応募フォーム</a>に貼って送ってください。Discordの人は、運営にURLを送るだけでも大丈夫です。</p>
 <div class="row"><a class="btn" href="./submit.html">作品を応募する</a></div>
+</details>
 </div></section>
 
 <section class="card"><div class="body">
@@ -606,8 +633,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </div></section>
 
 <section class="card"><div class="body">
-<h2>運営の約束</h2>
-<p>載せた作品は、運営が必ず全部遊んで感想を書きます。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
+<h2>運営について</h2>
+<p><b>運営者：たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）</p>
+<p>連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。応募のこと、直したいところ、消してほしいときなど、なんでもここで声をかけてください。</p>
+<h3>運営の約束</h3>
+<p>応募を受け取ったら、運営が全部遊んでから載せます。運営がひとりで見ているので、少し時間がかかることがあります。感想は、遊んだ人がログインして送るものだけが届きます。作品をけなすだけの感想や、遊ばずに書いた感想は運営が消します。</p>
 </div></section>
 <footer><a href="./list.html">← まとめに戻る</a> ・ <a href="./submit.html">作品を応募する</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./dev.html">開発者ページ</a></footer>
 </div>
@@ -623,7 +653,14 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 .shots img{{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}}
 .shots figcaption{{font-size:12px;color:var(--muted)}}
 .shots .widefig{{grid-column:1/-1}}
-</style>"""
+</style>
+<script>
+(function(){{var d=document.getElementById('urlFold');if(!d)return;
+ function openIf(){{if(location.hash==='#url'){{d.open=true;d.scrollIntoView()}}}}
+ openIf();addEventListener('hashchange',openIf);
+ document.addEventListener('click',function(e){{var a=e.target.closest&&e.target.closest('a[href="#url"]');if(a){{d.open=true;setTimeout(function(){{d.scrollIntoView({{behavior:'smooth'}})}},0)}}}});
+}})();
+</script>"""
     (ROOT / "creators.html").write_text(page("作品を載せたい人へ｜テストプレイ部",
                                              "説明するより、遊んでもらおう。小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録が残る作品ページができます。",
                                              f"{BASE}/creators.html", f"{BASE}/og/site.png", creators, ""), encoding="utf-8")
@@ -634,6 +671,8 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
+<h2>運営者と連絡先</h2>
+<p>運営者：たざろす（ゲーム企画を目指す学生。テストプレイ部の発起人）。連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。</p>
 <h2>集めるもの</h2>
 <ul>
 <li><b>端末ごとのID</b>：ブラウザに保存するランダムな文字列です。名前やメールアドレスとはつながっていません</li>
@@ -673,12 +712,12 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     # トップはショート風のフィード
     feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube", "cover"))} for g in games]
     # どのページでも使うデータ（プロフィール・マイページ・メニュー用）
-    shared = json.dumps({"base": BASE, "sbUrl": SB_URL, "sbKey": SB_KEY, "discord": DISCORD_INVITE, "games": feed_games, "creators": CREATORS},
+    shared = json.dumps({"base": BASE, "sbUrl": SB_URL, "sbKey": SB_KEY, "discord": DISCORD_INVITE, "allSample": all_sample(games), "games": feed_games, "creators": CREATORS},
                         ensure_ascii=False).replace("</", "<\\/")
     (ROOT / "assets/data.js").write_text("window.TPB_DATA=" + shared + ";\n", encoding="utf-8")
     data = json.dumps(feed_games, ensure_ascii=False).replace("</", "<\\/")
     feed = (ROOT / "feed_template.html").read_text(encoding="utf-8")
-    feed = feed.replace("__GAMES__", data).replace("__BASE__", BASE).replace("__SB_URL__", SB_URL).replace("__SB_KEY__", SB_KEY).replace(
+    feed = feed.replace("__ALLSAMPLE__", "true" if all_sample(games) else "false").replace("__GAMES__", data).replace("__BASE__", BASE).replace("__SB_URL__", SB_URL).replace("__SB_KEY__", SB_KEY).replace(
         "__DISCORD__", DISCORD_INVITE or "https://discord.com/channels/1572684471348498582/1572684778858348624")
     (ROOT / "index.html").write_text(feed, encoding="utf-8")
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
