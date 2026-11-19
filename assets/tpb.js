@@ -377,6 +377,24 @@
   // メールの文面に番号（{{ .Token }}）を入れるには、Supabaseで自前のメール送信（SMTP）の設定が要る。
   // 設定が終わるまでは番号が届かないので、番号の欄は出さない。終わったら true にする。
   T.OTP_ENABLED = false;
+  // ログインの説明の文は、ここ1か所で作る（OTP_ENABLED に合わせて切り替える）
+  T.loginText = function () {
+    return T.OTP_ENABLED ? "メールに、リンクと6けたの番号が届きます。どちらでもログインできます。"
+      : "メールにログイン用のリンクが届きます。このページを開いたのと同じブラウザで開いてね。";
+  };
+  T.loginSentText = function () {
+    return T.OTP_ENABLED ? "メールを送ったよ。メールのリンクを開くか、届いた6けたの番号を下に入れてね（迷惑メールも確認してね）"
+      : "メールを送ったよ。メールのリンクを、このページを開いたのと同じブラウザで開いてね（迷惑メールも確認してね）";
+  };
+  // X・Instagram・LINE などのアプリの中のブラウザか
+  T.inAppBrowser = function () { return /Twitter|Instagram|Line\/|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Snapchat/i.test(navigator.userAgent || "") };
+  T.inAppText = "アプリの中のブラウザだと、ログインできないことがあります。右上のメニューから「ブラウザで開く」を選んでね。";
+  // ログインの説明（と、アプリ内ブラウザの注意）を入れた要素を返す。style は任意
+  T.loginNote = function (cls, style) {
+    var d = el("div", { class: "loginnote", style: "display:grid;gap:6px" }, el("p", { class: cls || "muted", style: style || "margin:0;font-size:12px;line-height:1.5" }, T.loginText()));
+    if (T.inAppBrowser()) d.append(el("p", { class: cls || "muted", role: "note", style: "margin:0;font-size:12px;line-height:1.5;color:#e0a030;font-weight:700" }, T.inAppText));
+    return d;
+  };
   T.otpBlock = function (o) {
     o = o || {};
     var email = "";
@@ -403,6 +421,29 @@
   };
 })();
 
+// 入力のまちがいを、その欄のすぐ下に出す。欄を赤い枠にして、そこまでスクロールして、フォーカスする
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el;
+  T.clearFieldErr = function (form) {
+    form.querySelectorAll(".ferr").forEach(function (n) { n.remove() });
+    form.querySelectorAll("[aria-invalid]").forEach(function (n) { n.removeAttribute("aria-invalid"); n.removeAttribute("aria-describedby") });
+  };
+  T.fieldErr = function (form, input, text) {
+    T.clearFieldErr(form);
+    var id = "ferr-" + Date.now();
+    var p = el("p", { class: "ferr", id: id, role: "alert" }, text);
+    var anchor = input.closest("label") || input;
+    anchor.insertAdjacentElement("afterend", p);
+    input.setAttribute("aria-invalid", "true"); input.setAttribute("aria-describedby", id);
+    var clear = function () { p.remove(); input.removeAttribute("aria-invalid"); input.removeAttribute("aria-describedby"); input.removeEventListener("input", clear) };
+    input.addEventListener("input", clear);
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    input.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    try { input.focus({ preventScroll: true }) } catch (e) { input.focus() }
+  };
+})();
+
 // ログインの箱（マイページ・応募フォーム用）。使えるログイン方法だけボタンを出す
 (function () {
   "use strict";
@@ -414,7 +455,7 @@
     var send = el("button", { class: "btn", type: "submit" }, "メールでログイン");
     var back = location.origin + location.pathname + location.search;
     var otp = T.otpBlock({ btnClass: "btn", onDone: function () { location.reload() } });
-    var form = el("form", { class: "form", novalidate: true }, email, send, el("p", { class: "muted", style: "margin:-6px 0 0;font-size:12px" }, "メールに、リンクと6けたの番号が届きます。どちらでもログインできます。"));
+    var form = el("form", { class: "form", novalidate: true }, email, send, T.loginNote("muted", "margin:-6px 0 0;font-size:12px"));
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var v = email.value.trim();
@@ -423,7 +464,7 @@
       var r = await T.sb().auth.signInWithOtp({ email: v, options: { emailRedirectTo: back } });
       send.disabled = false;
       if (r.error) { msg.className = "msg err"; msg.textContent = "送れなかった…時間をおいてもう一度試してね" }
-      else { msg.textContent = "メールを送ったよ。メールのリンクを開くか、届いた6けたの番号を下に入れてね（迷惑メールも確認してね）"; otp.open(v) }
+      else { msg.textContent = T.loginSentText(); otp.open(v) }
     });
     fetch(T.SB_URL + "/auth/v1/settings", { headers: { apikey: T.SB_KEY } }).then(function (r) { return r.json() }).then(function (st) {
       var ext = (st && st.external) || {};

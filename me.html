@@ -176,12 +176,14 @@ function paneEdit(pane){
     el('p',{class:'note'},'ここに書いたものは、だれでも見られます。本名・学校名・住所などは書かないでね。'),
     msg, save);
   form.addEventListener('submit',async e=>{
-    e.preventDefault(); msg.className='msg'; msg.textContent='';
+    e.preventDefault(); msg.className='msg'; msg.textContent=''; T.clearFieldErr(form);
     const h=handle.value.trim().toLowerCase().replace(/^@/,'');
-    if(!name.value.trim()){ msg.className='msg err'; msg.textContent='名前を入れてね'; name.focus(); return }
-    if(!/^[a-z0-9_]{3,20}$/.test(h)){ msg.className='msg err'; msg.textContent=ERR.bad_handle; handle.focus(); return }
+    if(!name.value.trim()){ T.fieldErr(form,name,'名前を入れてね'); return }
+    if(!/^[a-z0-9_]{3,20}$/.test(h)){ T.fieldErr(form,handle,ERR.bad_handle); return }
     const ls=links.map(i=>i.value.trim()).filter(Boolean);
-    if(ls.some(l=>!/^https:\/\/\S+$/.test(l))){ msg.className='msg err'; msg.textContent=ERR.bad_links; return }
+    const badL=links.find(i=>i.value.trim()&&!/^https:\/\/\S+$/.test(i.value.trim()));
+    if(badL){ T.fieldErr(form,badL,ERR.bad_links); return }
+    if(video.value.trim()&&!/^https:\/\/\S+$/.test(video.value.trim())){ T.fieldErr(form,video,'紹介動画は https:// から始まるURLにしてね'); return }
     save.disabled=true; msg.textContent='保存中…';
     try{
       if(newBlob){
@@ -196,7 +198,7 @@ function paneEdit(pane){
       if(error) throw error;
       PROFILE=data; T.store.set('me',{name:data.name,avatar_url:data.avatar_url||'',handle:data.handle});
       TAB='edit'; render(); T.toast('保存したよ');
-    }catch(err){ msg.className='msg err'; msg.textContent=ERR[(err&&err.message)||'']||'保存できなかった…時間をおいてもう一度試してね'; save.disabled=false }
+    }catch(err){ save.disabled=false; const m=err&&err.message; if(m==='handle_taken'||m==='bad_handle'){ T.fieldErr(form,handle,ERR[m]); return } msg.className='msg err'; msg.textContent=ERR[m||'']||'保存できなかった…時間をおいてもう一度試してね' }
   });
   pane.append(form);
 }

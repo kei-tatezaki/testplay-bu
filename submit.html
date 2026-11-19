@@ -62,7 +62,7 @@ function editForm(){
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'「'+g.title+'」の作品ページで直したいところを書いてください。運営が確かめて直します。'),
     el('label',null,el('span',null,'直したいところ ',el('span',{class:'req'},'必須')),note), msg, btn);
   form.addEventListener('submit',async e=>{ e.preventDefault();
-    if(!note.value.trim()){ msg.className='msg err'; msg.textContent=ERR.need_note; note.focus(); return }
+    if(!note.value.trim()){ T.fieldErr(form,note,ERR.need_note); return }
     if(await send('edit',editSlug,{note:note.value.trim()},btn,msg)) done('運営が確かめて、作品ページを直します。') });
   main.replaceChildren(form);
 }
@@ -112,9 +112,12 @@ function newForm(){
   form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
   form.addEventListener('submit',async e=>{ e.preventDefault();
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
-    if(!d.title||!d.play_url||!d.oneliner){ msg.className='msg err'; msg.textContent=ERR.need_title; (!d.title?f.title:!d.play_url?f.play_url:f.oneliner).focus(); return }
-    if(!/^https:\/\/\S+$/.test(d.play_url||'')){ msg.className='msg err'; msg.textContent='遊べるURLは https:// から始まるものを入れてね'; f.play_url.focus(); return }
-    if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ msg.className='msg err'; msg.textContent=ERR.bad_url; f.image_url.focus(); return }
+    T.clearFieldErr(form); msg.textContent='';
+    if(!d.title){ T.fieldErr(form,f.title,'作品名を入れてね'); return }
+    if(!d.play_url){ T.fieldErr(form,f.play_url,'遊べるURLを入れてね'); return }
+    if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
+    if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
+    if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
     if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });
   form.insertBefore(pv,form.querySelector('label'));  // 「こう見えます」は、スマホでも気づけるよう、作品名の欄の上に置く
   main.replaceChildren(form);
