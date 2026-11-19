@@ -35,8 +35,24 @@
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
-  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
-let SES=null;
+  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります'};
+let SES=null, PTS=null;  // PTS：自分のポイント（my_points）。取れなかったら null のまま（ポイントなしの今までどおりに動く）
+const ptBox=el('section',{class:'card',id:'ptBox',hidden:true});
+async function loadPts(){ try{ const r=await sb.rpc('my_points'); PTS=r.error?null:(r.data||null) }catch(e){ PTS=null } }
+const NEWBTN=[];  // 「応募する」ボタン（ポイントが足りないときは押せなくする）
+function lacking(){ return !!PTS&&!PTS.is_admin&&PTS.balance<PTS.submit_cost }
+function drawPts(){
+  ptBox.hidden=!PTS||!!editSlug; ptBox.replaceChildren();
+  if(!PTS||editSlug){ NEWBTN.forEach(b=>b.disabled=false); return }
+  const short=lacking();
+  ptBox.append(el('div',{class:'body',style:'display:grid;gap:8px'},
+    PTS.is_admin?el('p',{style:'margin:0'},el('b',null,'運営はポイントなしで応募できます。'))
+      :el('p',{style:'margin:0;font-size:16px'},el('b',null,'投稿には '+PTS.submit_cost+'pt 要ります。'),' いま ',el('b',{style:'color:var(--accent)'},PTS.balance+'pt'),'。'),
+    short?el('p',{style:'margin:0;font-size:14px'},'あと '+(PTS.submit_cost-PTS.balance)+'pt です。感想の少ない作品に40字以上の感想を書くと貯まります。'):null,
+    short?el('div',{class:'row'},el('a',{class:'btn',href:'./'},'▶ ショートで感想を書く'),el('a',{class:'btn ghost',href:'./me.html#pt'},'ポイントのしくみ')):null));
+  NEWBTN.forEach(b=>{ b.disabled=short; b.title=short?'ポイントが足りません':'' });
+  const m=document.getElementById('ptShort'); if(m) m.textContent=short?'ポイントがたまると、応募できます。':'';
+}
 function sel(opts,val){ const s=el('select',null,opts.map(o=>el('option',{value:Array.isArray(o)?o[0]:o},Array.isArray(o)?o[1]:o))); if(val) s.value=val; return s }
 function done(text){
   main.replaceChildren(el('section',{class:'card'},el('div',{class:'body',style:'text-align:center'},
@@ -50,7 +66,7 @@ async function send(kind,slug,data,btn,msg){
   btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
   const {error}=await sb.rpc('submission_send',{p_kind:kind,p_slug:slug||null,p_data:data});
   btn.disabled=false;
-  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; return false }
+  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; if(error.message==='not_enough_points') loadPts().then(()=>drawPts()); return false }
   return true;
 }
 function editForm(){
@@ -84,7 +100,7 @@ function newForm(){
     note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと、プレイ動画のURLなど（なければ空でOK）'})
   };
   const L=(t,req,hint,input)=>el('label',null,el('span',null,t+' ',req?el('span',{class:'req'},'必須'):null,hint?el('small',null,hint):null),input);
-  const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit'},'応募する');
+  const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit','aria-describedby':'ptShort'},'応募する'); NEWBTN.length=0; NEWBTN.push(btn);
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
@@ -99,7 +115,7 @@ function newForm(){
     L('画像のURL',false,'任意。なければ運営が作ります',f.image_url),
     L('メモ',false,'プレイ動画は運営が撮ります。自分で用意したときは、ここにURLを書いてね（任意）',f.note),
     el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
-    msg, btn);
+    msg, btn, el('p',{class:'msg err',id:'ptShort','aria-live':'polite'}));
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
   // 見本：押せるものではないと分かるよう、うすくして「見本」の印をつける。スマホでは畳んでおく
   const pv=el('details',{class:'card pv'}); const pvBody=el('div',{class:'body pvbody','aria-hidden':'true'});
@@ -123,9 +139,9 @@ function newForm(){
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
-    if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });
+    if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。'+(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':'')) });
   form.insertBefore(pv,form.querySelector('label'));  // 見本は、作品名の欄の上に置く（スマホでは畳んでおく）
-  main.replaceChildren(form);
+  main.replaceChildren(ptBox,form); drawPts();
 }
 async function start(){
   SES=sb?await T.session():null;
@@ -135,8 +151,11 @@ async function start(){
         el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'プレイ動画は、運営が撮ります（自分で用意してもOK）')),
       el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
+  if(!editSlug) await loadPts();
   editSlug?editForm():newForm();
 }
+// ほかのタブでポイントがたまったとき、戻ってきたら見直す
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&SES&&!editSlug&&PTS) loadPts().then(drawPts) });
 if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN'&&!SES) start() });
 start();
 })();

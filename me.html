@@ -26,6 +26,8 @@
 .st{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent)}
 .st.ng{background:#d2553f22;color:#d2553f}
 .note{font-size:13px;color:var(--muted);margin:0}
+.ptbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ptbig b{font-size:34px;line-height:1.1;color:var(--accent)}
+.ptlist{display:grid;gap:0;margin:0;padding:0;list-style:none}.ptlist li{display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.ptlist li:first-child{border-top:0}.ptlist .d{font-weight:700;white-space:nowrap}.ptlist .d.minus{color:#d2553f}.ptlist small{display:block;color:var(--muted);font-size:12px}
 .callout{border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;display:grid;gap:8px;justify-items:center}
 </style>
 </head>
@@ -61,7 +63,7 @@ async function start(){
   PROFILE=p; MINE=mine||[]; STATS={}; (stats||[]).forEach(r=>STATS[r.game_slug]=r);
   if(p) T.store.set('me',{name:p.name,avatar_url:p.avatar_url||'',handle:p.handle});
   if(location.hash==='#edit'||!PROFILE) TAB='edit';
-  if(location.hash==='#fb') TAB='fb'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
+  if(location.hash==='#fb') TAB='fb'; if(location.hash==='#pt') TAB='pt'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
   render();
 }
 // ログインしていない人にも、この端末で遊んだ作品は見せる
@@ -71,7 +73,7 @@ function playedOnly(){
   return el('section',{style:'display:grid;gap:12px'},el('h2',{style:'margin:8px 0 0;font-size:16px'},'この端末で遊んだ作品'),el('div',{class:'grid'},games.map(g=>T.tile(g,null))));
 }
 function render(){
-  const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['edit','プロフィール']];
+  const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['pt','ポイント'],['edit','プロフィール']];
   const pane=el('div',{class:'pane',id:'pane',role:'tabpanel'});
   const head=el('section',{class:'card'},el('div',{class:'body mehead'},
     T.avatar({name:nameOf(),avatar:PROFILE&&PROFILE.avatar_url},64),
@@ -87,7 +89,7 @@ function render(){
     if(e.key==='ArrowRight') i=(i+1)%ks.length; else if(e.key==='ArrowLeft') i=(i-1+ks.length)%ks.length; else if(e.key==='Home') i=0; else if(e.key==='End') i=ks.length-1; else return;
     e.preventDefault(); TAB=ks[i]; history.replaceState(null,'','#'+TAB); render(); const b=document.getElementById('tab-'+TAB); if(b) b.focus() });
   main.replaceChildren(head,bar,pane);
-  ({games:paneGames,played:panePlayed,fb:paneFb,edit:paneEdit})[TAB](pane);
+  ({games:paneGames,played:panePlayed,fb:paneFb,pt:panePoints,edit:paneEdit})[TAB](pane);
 }
 
 // ---- 自分の作品 ----
@@ -139,6 +141,31 @@ async function paneFb(pane){
       el('div',{class:'by'},new Date(f.created_at).toLocaleDateString('ja-JP')))) });
   pane.append(list);
 }
+// ---- ポイント ----
+async function panePoints(pane){
+  pane.append(el('p',{class:'empty'},'読み込み中…'));
+  let d=null; try{ const r=await sb.rpc('my_points'); d=r.data||null }catch(e){}
+  await T.ptRule();
+  pane.replaceChildren();
+  if(!d){ pane.append(el('div',{class:'callout'},el('b',null,'ポイントを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>render()},'もう一度'))); pane.append(howCard()); return }
+  const need=Math.max(0,d.submit_cost-d.balance);
+  pane.append(el('section',{class:'card'},el('div',{class:'body',style:'display:grid;gap:10px'},
+    el('div',{class:'ptbig'},el('b',null,d.balance+'pt'),el('span',{class:'note'},'いま持っているポイント')),
+    el('p',{class:'note',style:'margin:0'},'今日もらった分：'+d.today+' / '+d.daily_cap+'pt'),
+    d.is_admin?el('p',{class:'note',style:'margin:0'},'運営は、応募にポイントはいりません。')
+      :d.balance>=d.submit_cost?el('p',{style:'margin:0'},'作品を応募できます（'+d.submit_cost+'pt つかいます）。')
+      :el('p',{style:'margin:0'},'作品の応募には '+d.submit_cost+'pt いります。あと '+need+'pt です。'),
+    el('div',{class:'acts',style:'display:flex;gap:8px;flex-wrap:wrap'},
+      el('a',{class:'btn',href:'./'},'▶ 感想を書いてためる'),
+      el('a',{class:'btn ghost',href:'./submit.html'},'作品を応募する')))));
+  const rec=d.recent||[];
+  const list=el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'margin:0 0 6px;font-size:16px'},'最近の記録'),
+    rec.length?el('ul',{class:'ptlist'},rec.map(x=>el('li',null,el('div',null,T.ptReasonText(x),el('small',null,new Date(x.created_at).toLocaleDateString('ja-JP'))),
+      el('span',{class:'d'+(x.delta<0?' minus':'')},(x.delta>0?'+':'')+x.delta+'pt'))))
+      :el('p',{class:'note',style:'margin:0'},'まだ記録はありません。遊んだ作品に40字以上の感想を書くと、ここに出ます。')));
+  pane.append(list,howCard());
+}
+function howCard(){ return el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'margin:0 0 6px;font-size:16px'},'ポイントのしくみ'),T.ptHowTo())) }
 // ---- プロフィール編集 ----
 // 画像は、送る前にブラウザの中で 256×256 に小さくする（撮った場所などの情報もここで消える）
 function shrink(file){
