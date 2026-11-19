@@ -8,6 +8,8 @@ os.makedirs(ROOT+"/clips",exist_ok=True); os.makedirs(ROOT+"/shots",exist_ok=Tru
 W,H=420,720
 DSF=2   # 画面の2倍の細かさで録画する（幅840px。ショートで大きく出しても粗くならない）
 MAXKB=1000
+# ゲームのページの上の部分（「運営サンプル」の印・題名・説明文・操作の説明・ベスト記録）は、動画に写さない。遊んでいる画面だけを大きく撮る
+HIDE="body>.tag,body>h1,body>p,.guide,#rule,.small{display:none!important}"
 EV="""
 window.__key=(type,code)=>window.dispatchEvent(new KeyboardEvent(type,{code,key:code==='Space'?' ':code,bubbles:true}));
 window.__ptr=(type,x)=>{const c=document.getElementById('c'),r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent(type,{clientX:r.left+x/c.width*r.width,clientY:r.top+r.height*.8,pointerType:'mouse',buttons:1,pressure:.5,bubbles:true,cancelable:true,pointerId:1}))};
@@ -109,13 +111,14 @@ try:
         cdp.on("Page.screencastFrame",on_frame)
         cdp.send("Page.startScreencast",{"format":"jpeg","quality":92,"maxWidth":W*DSF,"maxHeight":H*DSF,"everyNthFrame":1})
         t0=time.time()
-        pg.goto(f"http://localhost:8766/play/{slug}/"); pg.wait_for_timeout(500)
+        pg.goto(f"http://localhost:8766/play/{slug}/"); pg.add_style_tag(content=HIDE+("#card{min-height:440px;align-content:start}" if slug=="houkago" else "")); pg.wait_for_timeout(500)
         load=time.time()-t0
-        box={"x":0,"y":70,"width":420,"height":580} if sel=="fixed" else pg.locator(sel).bounding_box()
+        box=pg.locator("#card").bounding_box() if sel=="fixed" else pg.locator(sel).bounding_box()
+        if sel=="fixed": box={"x":0,"y":max(0,box["y"]-12),"width":W,"height":min(H,box["y"]+box["height"]+12)-max(0,box["y"]-12)}
         if sel=="body":
             # 上のタグとランキングなどは切って、遊ぶところだけ
             box=pg.evaluate("""()=>{const els=[...document.body.children].filter(e=>!['SCRIPT','STYLE'].includes(e.tagName)&&!e.hidden&&!e.classList.contains('panel')&&!e.classList.contains('small')&&e.offsetHeight>0);
-              const t=Math.min(...els.map(e=>e.getBoundingClientRect().top)),bm=Math.max(...els.map(e=>e.getBoundingClientRect().bottom));return {x:0,y:Math.max(0,t-10),width:innerWidth,height:Math.min(innerHeight,bm+12)-Math.max(0,t-10)}}""")
+              const t=Math.min(...els.map(e=>e.getBoundingClientRect().top)),bm=Math.max(...els.map(e=>e.getBoundingClientRect().bottom));return {x:0,y:Math.max(0,t-16),width:innerWidth,height:Math.min(innerHeight,bm+16)-Math.max(0,t-16)}}""")
         if js: pg.evaluate(js)
         import threading
         st=time.time()
