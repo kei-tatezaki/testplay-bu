@@ -687,6 +687,11 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
         "background_color": "#0b0e13", "theme_color": "#1f6f6a",
         "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
                   {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
+    # 検索エンジン向けの一覧（R18の作品ページは入れない）
+    urls = ["", "list.html", "creators.html", "privacy.html"] + [f"profile.html?u={h}" for h in CREATORS] + [f"games/{g['slug']}/" for g in games if not is_r18(g)]
+    (ROOT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                                      + "".join(f"<url><loc>{e(BASE)}/{e(u)}</loc></url>\n" for u in urls) + "</urlset>\n", encoding="utf-8")
+    (ROOT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n", encoding="utf-8")
     print(f"built {len(games)} games -> {ROOT}")
 
 

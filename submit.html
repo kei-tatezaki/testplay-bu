@@ -98,13 +98,24 @@ function newForm(){
     L('メモ',false,'',f.note),
     el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
     msg, btn);
+  // 書いた内容が、作品ページでどう見えるかをその場で見せる
+  const pv=el('section',{class:'card','aria-label':'見本'}); const PL={both:'PC・スマホ',pc:'PCのみ',sp:'スマホのみ'};
+  function drawPv(){ const v=k=>f[k].value.trim();
+    pv.replaceChildren(el('div',{class:'body'},el('div',{class:'by',style:'font-weight:700;color:var(--accent)'},'作品ページでは、こう見えます'),
+      el('h2',null,v('title')||'（作品名）'),
+      el('p',{class:'one'},v('oneliner')||'（一言）'),
+      el('div',{class:'row'},el('span',{class:'btn',style:'opacity:.85'},'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
+      el('div',{class:'chips'},v('rating')?el('span',{class:'chip rate-'+v('rating')},v('rating').toUpperCase()):null,el('span',{class:'chip plat'},PL[v('platform')]),el('span',{class:'chip'},v('stage')),v('genre')?el('span',{class:'chip'},v('genre')):null,el('span',{class:'chip check'},'確かめたい：'+v('check'))),
+      v('controls')?el('div',{class:'by'},'操作：'+v('controls')):null,
+      v('question')?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),v('question')):null)) }
+  form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
   form.addEventListener('submit',async e=>{ e.preventDefault();
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
     if(!d.title||!d.oneliner){ msg.className='msg err'; msg.textContent=ERR.need_title; (d.title?f.oneliner:f.title).focus(); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ msg.className='msg err'; msg.textContent='遊べるURLは https:// から始まるものを入れてね'; f.play_url.focus(); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ msg.className='msg err'; msg.textContent=ERR.bad_url; f.image_url.focus(); return }
     if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });
-  main.replaceChildren(form);
+  main.replaceChildren(form,pv);
 }
 async function start(){
   SES=sb?await T.session():null;
