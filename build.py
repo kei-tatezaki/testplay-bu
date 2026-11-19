@@ -351,6 +351,7 @@ details.fold>summary small{font-size:13px;font-weight:400;color:var(--muted);mar
 .way{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;align-content:start;font-size:14px}
 .way b{font-size:15px}
 .way ol{margin:0;padding-left:1.3em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 [hidden]{display:none!important}
 .btn.ghost.weak{border-color:transparent;color:var(--muted);font-weight:400;text-decoration:underline;padding:10px 12px;min-height:44px}
 dialog.np{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:18px;width:min(380px,calc(100% - 32px));display:none;gap:12px}
@@ -565,6 +566,7 @@ def build():
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
@@ -790,6 +792,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </ul>
 <h2>保存する場所</h2>
 <p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
+<p>プロフィールの動画はYouTubeから読み込みます（押したときだけ）。</p>
 <h2>消してほしいとき</h2>
 <p>自分の感想やアカウントの情報を消してほしいときは、<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>

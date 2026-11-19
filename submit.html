@@ -116,7 +116,8 @@ function newForm(){
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ msg.className='msg err'; msg.textContent='遊べるURLは https:// から始まるものを入れてね'; f.play_url.focus(); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ msg.className='msg err'; msg.textContent=ERR.bad_url; f.image_url.focus(); return }
     if(await send('new',null,d,btn,msg)) done('運営が遊んで確かめてから、作品ページを作ります。') });
-  main.replaceChildren(form,pv);
+  form.insertBefore(pv,form.querySelector('label'));  // 「こう見えます」は、スマホでも気づけるよう、作品名の欄の上に置く
+  main.replaceChildren(form);
 }
 async function start(){
   SES=sb?await T.session():null;

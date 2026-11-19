@@ -126,6 +126,7 @@ details.fold>summary small{font-size:13px;font-weight:400;color:var(--muted);mar
 .way{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;align-content:start;font-size:14px}
 .way b{font-size:15px}
 .way ol{margin:0;padding-left:1.3em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 [hidden]{display:none!important}
 .btn.ghost.weak{border-color:transparent;color:var(--muted);font-weight:400;text-decoration:underline;padding:10px 12px;min-height:44px}
 dialog.np{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:18px;width:min(380px,calc(100% - 32px));display:none;gap:12px}

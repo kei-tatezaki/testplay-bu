@@ -59,6 +59,7 @@ button,select,input{font:inherit}
   <b>ログイン</b>
   <p class="muted" style="margin:0">自分の作品の数字と、届いた感想が見られます。作品を載せたときと同じアカウントでログインしてください。</p>
   <div id="providers" style="display:grid;gap:8px"></div>
+  <label for="email">メールアドレス</label>
   <input id="email" type="email" placeholder="メールアドレス" autocomplete="email">
   <button class="primary" id="sendLink">メールでログイン（リンクが届きます）</button>
   <div id="loginMsg" class="muted"></div>
@@ -73,7 +74,7 @@ button,select,input{font:inherit}
 
 <section id="app" hidden>
   <div class="tools" style="margin-bottom:12px">
-    <select id="game"></select>
+    <select id="game" aria-label="作品"></select>
     <span class="tools" id="period">
       <button data-d="7">7日</button><button data-d="30" aria-pressed="true">30日</button><button data-d="3650">ぜんぶ</button>
     </span>
@@ -131,9 +132,8 @@ const fmtSec=s=>s==null?'—':(s<60?Math.round(s)+'秒':Math.floor(s/60)+'分'+S
 const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
 
 function bars(id, pairs, cls){
-  const max=Math.max(1,...pairs.map(p=>p[1]));
   const total=pairs.reduce((a,p)=>a+p[1],0);
-  $(id).innerHTML = total ? pairs.map(([k,v,c])=>`<div class="brow"><span>${esc(k)}</span><div class="track"><div class="fill ${c||cls||''}" style="width:${v/max*100}%"></div></div><span class="n">${v}${total?'（'+pct(v,total)+'）':''}</span></div>`).join('')
+  $(id).innerHTML = total ? pairs.map(([k,v,c])=>`<div class="brow"><span>${esc(k)}</span><div class="track"><div class="fill ${c||cls||''}" style="width:${v/total*100}%"></div></div><span class="n">${v}${total?'（'+pct(v,total)+'）':''}</span></div>`).join('')
                           : '<span class="muted">まだデータがありません</span>';
 }
 function objBars(id, obj, order, cls, label){ const keys=order||Object.keys(obj||{}).sort((a,b)=>(obj[b]-obj[a])); bars(id, keys.map(k=>[label?label(k):k,(obj||{})[k]||0]), cls) }
@@ -144,7 +144,9 @@ async function start(){
   const {data:{session}}=await sb.auth.getSession();
   $('logout').hidden=!session;
   if(!session){ $('who').textContent=''; $('adminLink').hidden=true; show('loginBox'); return }
-  const m=session.user.user_metadata||{}; $('who').textContent=(m.full_name||m.name||session.user.email||'')+' でログイン中';
+  // 表示する名前：プロフィールの名前 → なければメールの@より前（メールアドレスそのものは出さない）
+  const m=session.user.user_metadata||{}; let pname=''; try{ const pr=(await sb.rpc('my_profile')).data; pname=(pr&&pr.name)||'' }catch(e){}
+  $('who').textContent=(pname||m.full_name||m.name||(session.user.email||'').split('@')[0]||'あなた')+' でログイン中';
   try{ const g=await (await fetch('games.json?'+Date.now())).json(); GAMES={}; g.forEach(x=>GAMES[x.slug]=x) }catch(e){}
   const mine=(await rpc('dev_games')).map(r=>r.game_slug);
   const admin=await rpc('is_admin').catch(()=>false);
