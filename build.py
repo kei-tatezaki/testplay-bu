@@ -56,7 +56,7 @@ def make_og(game, out):
     """1200x630のプレビュー画像。タイトル・一言・タグだけのシンプルなカード。"""
     W, H = 1200, 630
     bg = game.get("bg") or "#14181f"
-    accent = game.get("color") or "#7fe0c9"
+    accent = game.get("color") or "#C8401F"
     ink = (240, 243, 247) if is_dark(bg) else (30, 28, 25)
     muted = (150, 160, 175) if is_dark(bg) else (110, 104, 95)
     im = Image.new("RGB", (W, H), hex_rgb(bg))
@@ -145,13 +145,13 @@ def make_r18_og(game, out):
 
 def make_site_og(out):
     W, H = 1200, 630
-    im = Image.new("RGB", (W, H), (16, 20, 28))
+    im = Image.new("RGB", (W, H), (246, 241, 231))
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, 24, H], fill=(127, 224, 201))
-    d.text((80, 180), "テストプレイ部", font=font(FONT_BOLD, 96), fill=(240, 243, 247))
-    d.text((80, 330), "学生のゲームを、", font=font(FONT_REG, 44), fill=(200, 208, 220))
-    d.text((80, 385), "5分でつまみ食い。", font=font(FONT_REG, 44), fill=(200, 208, 220))
-    d.text((80, 470), "遊んで、一言感想を送り合う場所", font=font(FONT_REG, 32), fill=(150, 160, 175))
+    d.rectangle([0, 0, 24, H], fill=(200, 64, 31))
+    d.text((80, 180), "テストプレイ部", font=font(FONT_BOLD, 96), fill=(42, 36, 30))
+    d.text((80, 330), "学生のゲームを、", font=font(FONT_REG, 44), fill=(42, 36, 30))
+    d.text((80, 385), "5分でつまみ食い。", font=font(FONT_REG, 44), fill=(42, 36, 30))
+    d.text((80, 470), "遊んで、一言感想を送り合う場所", font=font(FONT_REG, 32), fill=(107, 97, 88))
     icon = ROOT / "assets/icon-512.png"
     if icon.exists():
         ic = Image.open(icon).convert("RGB").resize((360, 360))
@@ -224,11 +224,10 @@ NEED_PLAY_HTML = """<dialog id="needPlay" class="np" aria-labelledby="npT"><h2 i
 <div class="row"><button class="btn" type="button" data-a="play">▶ 遊ぶ</button><button class="btn ghost" type="button" data-a="write">それでも書く</button><button class="btn ghost" type="button" data-a="">やめる</button></div></dialog>"""
 
 CSS = """
-:root{--bg:#f3f4f1;--card:#fff;--ink:#1d2430;--muted:#5d6675;--line:#d9ddd8;--accent:#1f6f6a;--accent-ink:#fff;--soft:#e7efee;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b2129;--ink:#e7eaee;--muted:#9aa3ae;--line:#2c343e;--accent:#4fb3aa;--accent-ink:#0d1714;--soft:#1f2e2d;color-scheme:dark}}
+:root{--paper:#F6F1E7;--paper-2:#EFE6D3;--card:#FFFDF8;--ink:#2A241E;--muted:#6B6158;--line:#DCCFB8;--shu:#C8401F;--shu-ink:#A5311A;--shu-soft:#F6D5C9;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--ao:#2F5D9B;--ao-soft:#D7E2F1;--bg:var(--paper);--accent:var(--shu);--accent-ink:#fff;--soft:var(--paper-2);--f-round:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-hand:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:light}
 *{box-sizing:border-box}html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
-a{color:var(--accent)}
+body{background:var(--paper) var(--noise);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
+a{color:var(--ao)}
 .wrap{max-width:640px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:20px}
 .wrap>main{display:grid;gap:20px;min-width:0}
 header h1{margin:0;font-size:30px;letter-spacing:.04em}
@@ -269,11 +268,11 @@ video.media{object-fit:contain;background:#0b0e13;aspect-ratio:4/3;max-height:44
 .one{margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted)}
-.chip.check{border-color:var(--accent);color:var(--accent)}
+.chip.check{border-color:var(--accent);color:var(--shu-ink)}
 .chip.plat{border-color:var(--ink);color:var(--ink)}
-.chip.sample{background:var(--soft);border-color:transparent;color:var(--accent)}
+.chip.sample{background:var(--soft);border-color:transparent;color:var(--shu-ink)}
 .q{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px}
-.q b{display:block;font-size:12px;color:var(--accent)}
+.q b{display:block;font-size:12px;color:var(--shu-ink)}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:10px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
 .btn.big{padding:12px 26px;font-size:17px}
@@ -304,7 +303,7 @@ footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .grid .btn{padding:8px 14px;font-size:14px}
 .fblist{display:grid;gap:10px}
 .upd{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:14px}
-.upd b{display:block;font-size:12px;color:var(--accent)}
+.upd b{display:block;font-size:12px;color:var(--shu-ink)}
 .fbitem{border-top:1px solid var(--line);padding-top:10px;font-size:14px;display:grid;gap:2px}
 .fbitem p{margin:4px 0 0;white-space:pre-wrap}
 .tpb-av{display:inline-grid;place-items:center;border-radius:50%;object-fit:cover;color:#fff;font-weight:800;flex:none;line-height:1;background:var(--accent)}
@@ -325,7 +324,7 @@ a.by-chip:hover{text-decoration:underline}
 .phead h1{margin:0;font-size:22px;line-height:1.3}
 .phead .handle{color:var(--muted);font-size:13px;margin-top:-6px}
 .phead .bio{margin:0;max-width:520px;white-space:pre-wrap;font-size:14px}
-.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--accent);vertical-align:middle}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--soft);color:var(--shu-ink);vertical-align:middle}
 .pstats{display:flex;gap:18px;justify-content:center;font-size:13px;color:var(--muted)}
 .pstats b{display:block;color:var(--ink);font-size:17px;line-height:1.3}
 .links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
@@ -344,7 +343,7 @@ button.btn:disabled{opacity:.6}
 .msg.err{color:#d2553f}
 .muted{color:var(--muted)}
 .notice{background:var(--soft);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6;display:flex;gap:6px 12px;align-items:center;flex-wrap:wrap}
-.notice b{color:var(--accent)}
+.notice b{color:var(--shu-ink)}
 .notice a.btn{padding:6px 14px;font-size:14px}
 .fbitem .fbh{display:block}
 details.fold>summary{cursor:pointer;font-size:21px;font-weight:700;line-height:1.4;min-height:44px;display:flex;align-items:center}
@@ -372,7 +371,7 @@ dialog.np .btn{min-height:44px;font-size:15px}
 @media (max-width:560px){
  .fbar{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
  .ftoggle{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
- .fsum{font-size:12px;color:var(--accent);min-width:0;flex:1 1 12em}.fsum:empty{display:none}
+ .fsum{font-size:12px;color:var(--shu-ink);min-width:0;flex:1 1 12em}.fsum:empty{display:none}
  .fwrap:not(.open){display:none}
  .fwrap{display:grid;gap:6px}
 }
@@ -385,6 +384,99 @@ footer>span{padding:0 6px;min-height:44px;display:inline-flex;align-items:center
 .meta .by a.by-link{display:inline-flex;align-items:center;min-height:44px;margin:-13px 0;position:relative}
 .notice a.btn{min-height:44px;display:inline-flex;align-items:center}
 .pl a,.links a{display:inline-flex;align-items:center;min-height:44px}
+/* ===== 部室の紙：掲示板に紙を貼ったような見た目（色は :root の紙の配色。光やグラデーションは使わない） ===== */
+:focus-visible{outline:2px solid var(--ao);outline-offset:2px}
+h1,h2,h3,.brand,.btn,button.btn,.ftoggle,.flabel,.tabs button,details.fold>summary,.badge,.rate,.dur{font-family:var(--f-round)}
+h1,h2,h3{font-weight:800}
+.brand{font-weight:800}
+.hand,.brand-tag,.empty,.lead.hand{font-family:var(--f-hand);font-weight:600}
+header.bar{padding:6px 10px;margin:-6px -10px 0;border-radius:4px;background-image:linear-gradient(rgba(220,207,184,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(220,207,184,.35) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+.brand-tag{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transform:rotate(-1deg);margin-left:-4px}
+@media (max-width:700px){.brand-tag{display:none}}
+.bar:has(.brand-tag) .brand{flex:none}
+.ghost-link{border:1px solid var(--line);border-radius:6px;background:var(--card);font-family:var(--f-round);font-weight:700;color:var(--ink)}
+/* 見出しラベル：マスキングテープ */
+.card>.body>h2,.card>.body>section>h2,h2.flow-h,.sec h2,.tape{display:block;width:fit-content;justify-self:start;max-width:100%;position:relative;background:rgba(226,169,59,.85);color:var(--ink);padding:3px 20px;font-size:17px;line-height:1.5;transform:rotate(-1.5deg);margin-left:-6px;clip-path:polygon(0 0,100% 0,98.5% 12.5%,100% 25%,98.5% 37.5%,100% 50%,98.5% 62.5%,100% 75%,98.5% 87.5%,100% 100%,0 100%,1.5% 87.5%,0 75%,1.5% 62.5%,0 50%,1.5% 37.5%,0 25%,1.5% 12.5%)}
+.grid .card .body>h2{display:-webkit-box;background:none;padding:0;transform:none;margin:0;clip-path:none;font-size:17px}
+h2.flow-h{margin:6px 0 -2px 0}
+.sec h2{margin:0 0 0 -4px}
+/* 紙（カード）。作品のポラロイドは .tile と .grid .card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 0 var(--line),0 6px 14px rgba(60,40,20,.08)}
+.tile,.grid .card{position:relative;background:var(--card);padding:8px 8px 12px;border:0;border-radius:4px;box-shadow:0 1px 0 var(--line),0 8px 18px rgba(60,40,20,.12);transition:transform .18s ease,box-shadow .18s ease}
+.grid .card{padding:8px 8px 12px;overflow:visible}
+.tile::before,.grid .card::before{content:"";position:absolute;z-index:2;left:50%;top:-9px;width:58px;height:18px;margin-left:-29px;background:rgba(226,169,59,.72);transform:rotate(-3deg);clip-path:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%);pointer-events:none}
+.tile:nth-child(2n)::before,.grid .card:nth-child(2n)::before{background:rgba(215,226,241,.9);transform:rotate(2.5deg)}
+.tile:nth-child(3n)::before,.grid .card:nth-child(3n)::before{transform:rotate(-1deg)}
+.tile:nth-child(3n+1),.grid .card:nth-child(3n+1){transform:rotate(-.8deg)}
+.tile:nth-child(3n+2),.grid .card:nth-child(3n+2){transform:rotate(.5deg)}
+.tile:hover,.tile:focus-within,.grid .card:hover,.grid .card:focus-within{transform:rotate(0) translateY(-3px);box-shadow:0 1px 0 var(--line),0 14px 24px rgba(60,40,20,.16)}
+@media (prefers-reduced-motion:reduce){.tile,.grid .card{transition:none}.tile:hover,.tile:focus-within,.grid .card:hover,.grid .card:focus-within{transform:none}.tile:nth-child(3n+1):hover,.grid .card:nth-child(3n+1):hover{transform:rotate(-.8deg)}.tile:nth-child(3n+2):hover,.grid .card:nth-child(3n+2):hover{transform:rotate(.5deg)}}
+.tile .media{border-radius:2px}
+@media (max-width:560px){.tile .meta2 .tpb-kebab{margin:-10px -14px 0 -8px}.tile,.grid .card{padding:6px 6px 10px}}
+.tile .media.shot{outline:1px solid rgba(42,36,30,.12);outline-offset:-1px}
+.tile .meta2{padding:2px 2px 0}
+.grid .card .media{border-radius:2px}
+.tile .thumb video.hov,.thumb video.hov{border-radius:2px}
+.rate{background:var(--karashi);color:var(--ink);border-radius:3px;top:8px;left:8px}
+.rate.rate-r18{background:#B3243F;color:#fff}
+.dur{border-radius:3px}
+/* ボタン：ハンコ（主）とスタンプ枠（副） */
+.btn{border-radius:6px;background:var(--shu);color:#fff;font-weight:800;box-shadow:0 3px 0 #8E2C14;transition:transform .08s ease,box-shadow .08s ease;margin-bottom:3px}
+.btn:hover{background:#B83A1A}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 #8E2C14}
+.btn.ghost,button.btn.ghost{background:transparent;color:var(--shu-ink);border:2px solid var(--shu);font-weight:700;box-shadow:none}
+.btn.ghost:hover{background:var(--shu-soft)}
+.btn.ghost:active{transform:none}
+.btn.ghost.weak,button.btn.ghost.weak{border-color:transparent;color:var(--muted);font-weight:400}
+.btn.ghost.weak:hover{background:transparent}
+.btn.discord{background:#4752C4;box-shadow:0 3px 0 #2F3880}
+.btn:disabled,button.btn:disabled{opacity:.55;box-shadow:none;transform:none}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+/* フィルター：付箋 */
+.filters button,.ftoggle{border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--karashi-soft);color:var(--ink);box-shadow:0 1px 0 rgba(42,36,30,.18);font-weight:700}
+.fgroup:nth-child(2) .filters button:not([aria-pressed="true"]){background:var(--ao-soft)}
+.fgroup:nth-child(3) .filters button:not([aria-pressed="true"]){background:var(--shu-soft)}
+.filters button[aria-pressed="true"],.fgroup .filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.filters button:nth-child(odd){transform:rotate(-.5deg)}.filters button:nth-child(even){transform:rotate(.4deg)}
+.ftoggle{background:var(--ao-soft)}
+.flabel{font-family:var(--f-round);color:var(--ink)}
+/* 付箋のチップ */
+.chip{border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--paper-2);color:var(--ink)}
+.chip.check{background:var(--shu-soft);border-color:transparent;color:var(--ink)}
+.chip.plat{background:var(--ao-soft);border-color:transparent;color:var(--ink)}
+.chip.sample{background:var(--karashi-soft);border-color:transparent;color:var(--ink)}
+.chip.rate-r15{background:var(--karashi);border-color:transparent;color:var(--ink)}
+.chip.rate-r18{background:#B3243F;border-color:transparent;color:#fff;font-weight:700}
+.badge{border-radius:3px;background:var(--shu-soft);color:var(--shu-ink)}
+.st{border-radius:3px;background:var(--shu-soft);color:var(--shu-ink)}
+.q{background:var(--ao-soft);border-radius:3px;border-left:4px solid var(--ao);color:var(--ink)}
+.q b{color:var(--ao)}
+.upd{border:1px dashed var(--shu);border-radius:3px;background:var(--card)}
+.upd b{color:var(--shu-ink)}
+.way,.need,.callout,.sub{border-radius:4px}
+/* 帯・お知らせ：付箋（テープ付き） */
+.notice,.lfbox,.lfhero{position:relative;background:var(--karashi-soft);border:0;border-radius:2px;transform:rotate(-.6deg);box-shadow:0 1px 0 rgba(42,36,30,.12),0 6px 12px rgba(60,40,20,.12);padding:14px 16px 10px;color:var(--ink)}
+.notice::before,.lfbox::before,.lfhero::before{content:"";position:absolute;left:24px;top:-8px;width:56px;height:16px;background:rgba(215,226,241,.92);transform:rotate(-3deg);clip-path:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%);pointer-events:none}
+.notice b,.lfbox h2,.lfhero b{color:var(--ink)}
+.lfbox h2{font-family:var(--f-round)}
+.lfp{background:var(--karashi-soft);border-radius:3px;color:var(--ink)}
+/* 入力欄 */
+.form input[type=text],.form input[type=url],.form input[type=email],.form textarea,.form select{background:var(--paper-2);border:0;border-bottom:2px solid var(--ink);border-radius:4px 4px 0 0;color:var(--ink)}
+.form input:focus,.form textarea:focus,.form select:focus,dialog.np textarea:focus{outline:2px solid var(--ao);outline-offset:0;border-bottom-color:var(--ao)}
+.tabs{border-bottom:2px solid var(--ink)}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--shu)}
+dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px rgba(42,36,30,.35)}
+.msg.err,.ferr{color:#B0301B}
+.ferr,[aria-invalid=true]{--e:1}
+.ptlist .d.minus,.st.ng{color:#B0301B}
+.empty{font-size:17px;color:var(--ink)}
+.tpb-av{background:var(--shu)}
+.links a{border-radius:4px;font-family:var(--f-round);font-weight:700}
+.thumb{outline:0}
+/* 業務の画面（開発者ページ）は、読みやすさ優先で回転・テープなし */
+.biz .card>.body>h2,.biz .tape{transform:none;clip-path:none;margin-left:0;background:var(--karashi-soft)}
+.biz .notice,.biz .lfbox,.biz .tile,.biz .filters button{transform:none}
+.biz .notice::before,.biz .lfbox::before,.biz .tile::before{display:none}
 """
 
 
@@ -433,11 +525,14 @@ def page(title, desc, url, image, body, prefix):
 <meta property="og:url" content="{e(url)}">
 <meta property="og:image" content="{e(image)}">
 <meta name="twitter:card" content="summary_large_image">{'<meta name="robots" content="noindex">' if 'id="ageGate"' in body else ''}
-<meta name="theme-color" content="#1f6f6a">
+<meta name="theme-color" content="#F6F1E7">
 <link rel="icon" type="image/png" sizes="32x32" href="{prefix}assets/icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="{prefix}assets/icon-192.png">
 <link rel="apple-touch-icon" href="{prefix}assets/icon-180.png">
 <link rel="manifest" href="{prefix}manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{prefix}assets/style.css">
 </head>
 <body>
@@ -519,7 +614,7 @@ def build():
         (make_r18_og if is_r18(g) else make_og)(g, ROOT / f"og/{g['slug']}.png")
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = (AGE_GATE if is_r18(g) else "") + f"""<div class="wrap">
-<header class="bar"><a class="brand" href="../../"><img src="../../assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link" href="../../list.html">ほかの作品を見る</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="../../"><img src="../../assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="../../list.html">ほかの作品を見る</a><span data-me></span></span></header>
 <main>
 <p class="lead site-lead">学生のゲームを5分でつまみ食い。遊ぶのは登録なし</p>
 <article class="card">
@@ -593,7 +688,7 @@ def build():
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
@@ -634,7 +729,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample = next((g for g in games if g.get("updates")), games[0] if games else None)
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <main>
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
@@ -729,17 +824,17 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <style>
 .hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 8px}}
 .hero-c .body{{display:grid;gap:14px}}.hero-c p{{margin:0}}.lead2{{color:var(--muted)}}
-.lfhero{{border:2px solid var(--accent);background:var(--soft);border-radius:12px;padding:10px 14px;display:grid;gap:2px}}.lfhero b{{font-size:20px;color:var(--accent)}}.lfhero span{{font-size:14px}}
-.need{{display:grid;gap:2px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}}.need b{{font-size:16px}}.need small{{color:var(--muted);font-size:13px}}
+.lfhero{{display:grid;gap:2px}}.lfhero b{{font-size:20px;font-family:var(--f-round)}}.lfhero span{{font-size:14px}}
+.need{{display:grid;gap:2px;border:1px dashed var(--muted);border-radius:4px;padding:10px 14px;background:var(--paper)}}.need b{{font-size:16px}}.need small{{color:var(--muted);font-size:13px}}
 .flow-h{{font-size:16px;margin:2px 0 -4px}}
-.lfp{{background:var(--soft);border-radius:10px;padding:8px 12px}}
-details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:700;font-size:14px}}
+.lfp{{padding:8px 12px}}
+details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--shu-ink);font-weight:700;font-size:14px}}
 .folds details.fold{{border-top:1px solid var(--line)}}.folds details.fold:first-child{{border-top:0}}
 .folds details.fold>summary{{font-size:17px;min-height:52px}}
-.eyebrow{{color:var(--accent);font-weight:700;font-size:13px;margin:0;letter-spacing:.06em}}
+.eyebrow{{color:var(--shu-ink);font-weight:700;font-size:13px;margin:0;letter-spacing:.06em}}
 .checks{{list-style:none;padding:0;margin:0;display:grid;gap:10px}}
 .checks li{{padding-left:26px;position:relative}}
-.checks li::before{{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}}
+.checks li::before{{content:"✓";position:absolute;left:0;color:var(--shu-ink);font-weight:800}}
 .wrap h3{{font-size:15px;margin:16px 0 6px}}
 .shots{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
 .shots figure{{margin:0;display:grid;gap:4px}}
@@ -776,7 +871,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 
     # プライバシーの説明
     privacy = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><a class="btn" href="./">▶ ショート</a></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn" href="./">▶ ショート</a></header>
 <main>
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
@@ -810,6 +905,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <h2>保存する場所</h2>
 <p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
 <p>プロフィールの動画はYouTubeから読み込みます（押したときだけ）。</p>
+<p>文字のデザイン（フォント）はGoogle Fontsから読み込みます。このとき、Googleにアクセス元の情報（IPアドレスなど）が送られます。</p>
 <h2>消してほしいとき</h2>
 <p>自分の感想やアカウントの情報を消してほしいときは、<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
@@ -836,7 +932,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
     (ROOT / "manifest.webmanifest").write_text(json.dumps({
         "name": "テストプレイ部", "short_name": "テストプレイ部", "start_url": "./", "display": "standalone",
-        "background_color": "#0b0e13", "theme_color": "#1f6f6a",
+        "background_color": "#F6F1E7", "theme_color": "#C8401F",
         "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
                   {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
     # 検索エンジン向けの一覧（R18の作品ページは入れない）

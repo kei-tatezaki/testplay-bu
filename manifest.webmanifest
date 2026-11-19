@@ -3,8 +3,8 @@
   "short_name": "テストプレイ部",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b0e13",
-  "theme_color": "#1f6f6a",
+  "background_color": "#F6F1E7",
+  "theme_color": "#C8401F",
   "icons": [
     {
       "src": "assets/icon-192.png",
