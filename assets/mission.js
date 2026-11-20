@@ -11,9 +11,9 @@
   var el = T.el, S = T.store, BASE = T.base;
   var M = T.mission = {};
   var KINDS = {
-    play1: ["作品を1本遊ぶ", "サイトの中で20秒以上。別のタブで開いた作品も、戻ってきたときに20秒以上ならOK。ダウンロード型は公開ページを開けばOK。"],
-    fresh: ["まだ遊んでいない作品を1本", "遊んだことのない作品を20秒以上。ダウンロード型は公開ページを開けばOK。"],
-    "new": ["新作（14日以内）を1本", "公開から14日以内の作品を20秒以上。ダウンロード型は公開ページを開けばOK。"]
+    play1: ["作品を1本遊ぶ", "作品を開いて20秒以上遊ぶ"],
+    fresh: ["まだ遊んでいない作品を1本", "遊んだことのない作品を20秒以上遊ぶ"],
+    "new": ["新作（14日以内）を1本", "公開から14日以内の作品を20秒以上遊ぶ"]
   };
 
   // ---- 日付（日本時間の朝5時はじまり） ----
@@ -128,12 +128,12 @@
         slot(shown, "c", c.c, "感想が少ない作品に感想を1件", logged ? "他の人の感想が" + r.tier1_max + "件以下の作品です（「感想まだ0件」の印が目印）。" : needLogin, pt(st && st.c, 5))),
       el("div", { class: "ms-bonus" + (allDone ? " done" + (allDone === "pop" ? " pop" : "") : "") },
         el("span", { class: "ms-ring sm", "aria-hidden": "true" }, allDone ? el("span", { class: "ms-stamp" }, "OK") : null),
-        el("div", { class: "ms-tx" }, el("b", null, "3つぜんぶそろうと ボーナス ", pt(st && st.all, 5), el("span", { class: "ms-sr" }, allDone ? "（達成）" : "（まだ）")),
-          el("small", null, st && st.all && st.all.need_play ? "感想の2つはできました。今日はまだ作品を遊んでいないので、1本遊ぶとボーナスがつきます。" : "感想の2つをそろえて、今日遊んでいると、ボーナスがつきます。")))
+        el("div", { class: "ms-tx" }, el("b", null, "感想2つでボーナス ", pt(st && st.all, 5), el("span", { class: "ms-sr" }, allDone ? "（達成）" : "（まだ）")),
+          el("small", null, "感想のミッション2つがそろうと、ボーナス +5pt。")))
     ];
     if (st) kids.push(el("p", { class: "ms-pts" }, "いまのポイント ", el("b", null, st.balance + "pt"), "　今日もらった分 " + st.points_today + " / " + st.daily_cap + "pt（ミッションも上限に含みます）"));
     if (unknown) kids.push(el("p", { class: "ms-note" }, M.err ? "感想のミッションの結果を読み込めませんでした。時間をおいて開きなおしてね。" : "確認しています…"));
-    if (!logged) kids.push(el("p", { class: "ms-note" }, "ログインしなくても、(a) のハンコは集められます（この端末に残ります）。"));
+    if (!logged) kids.push(el("p", { class: "ms-note" }, "「"+K[0]+"」のハンコは、ログインしなくても集められます（この端末に残ります）。"));
     var act = el("div", { class: "ms-acts" },
       !logged ? el("a", { class: "tpb-btn", href: BASE + "me.html" }, "ログインする") : null,
       o.onGo ? el("button", { class: "tpb-btn" + (logged ? "" : " ghost"), type: "button", onclick: o.onGo }, "▶ 作品を遊ぶ") : el("a", { class: "tpb-btn" + (logged ? "" : " ghost"), href: BASE }, "▶ ショートで遊ぶ"),
