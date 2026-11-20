@@ -180,7 +180,7 @@
   }, true);
 
   // メニューの線画アイコン（14px・currentColor）。絵文字は使わない
-  var LI = { play: "M8 5l11 7-11 7z", doc: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7", cal: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5", user: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c1-4 4-6 8-6s7 2 8 6", link: "M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1", chart: "M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-8", pen: "M4 20l1-5L16 4l4 4L9 19zM14 6l4 4", info: "M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v6M12 7.5v.5", flag: "M5 21V4M5 4h12l-2 4 2 4H5" };
+  var LI = { play: "M8 5l11 7-11 7z", app: "M12 4v11M8 11l4 4 4-4M5 20h14", pclist: "M3 5h18v11H3zM8 20h8M12 16v4", doc: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7", cal: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5", user: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c1-4 4-6 8-6s7 2 8 6", link: "M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1", chart: "M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-8", pen: "M4 20l1-5L16 4l4 4L9 19zM14 6l4 4", info: "M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v6M12 7.5v.5", flag: "M5 21V4M5 4h12l-2 4 2 4H5" };
   function li(k) { var s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("width", "14"); s.setAttribute("height", "14"); s.setAttribute("aria-hidden", "true"); s.setAttribute("fill", k === "play" ? "currentColor" : "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "2"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round"); var p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", LI[k]); s.appendChild(p); return s }
   function mi(icon, label, o) {
     var kids = [el("span", { class: "tpb-ic", "aria-hidden": "true" }, icon), el("span", null, label)];
@@ -206,6 +206,11 @@
       mi(li("chart"), "数字と感想を見る", { href: BASE + "dev.html?g=" + slug }),
       mi(li("pen"), "直したいところを運営に送る", { href: BASE + "submit.html?edit=" + slug }));
     box.append(own);
+    if (T.device === "sp" && T.platOf(g) !== "sp" && T.pcl) {
+      var inList = T.pcl.has(slug);
+      box.append(mi(li("pclist"), inList ? "PCで遊ぶリストから外す" : "PCで遊ぶリストに入れる", { onclick: function () { closeOverlay(); T.pcl.toggle(g).then(function () { document.dispatchEvent(new CustomEvent("tpb:pclist", { detail: { slug: slug } })) }) } }));
+    }
+    if (T.pwa && !T.pwa.standalone() && !T.store.get("pwa", {}).installed) box.append(mi(li("app"), "アプリとして使う", { onclick: function () { closeOverlay(); T.pwa.openGuide(true) } }));
     box.append(mi(li("info"), "運営について", { href: BASE + "list.html#about" }));
     box.append(mi(li("flag"), "報告する", { cls: "warn", onclick: function () { T.report("game", slug, g.title, btn) } }));
     box.append(el("button", { class: "tpb-mi tpb-mx", type: "button", onclick: closeOverlay }, "とじる"));
@@ -288,7 +293,7 @@
   var PLAT = { pc: "PCのみ", sp: "スマホのみ", both: "PC・スマホ" };
   T.tile = function (g, stat, o) {
     o = o || {};
-    var subParts = [PLAT[g.platform] || "", g.genre || ""].filter(Boolean), sub = [];
+    var subParts = [PLAT[g.platform] || "", g.genre || "", T.sizeText(g), T.isFast(g) ? "すぐ遊べる" : ""].filter(Boolean), sub = [];
     subParts.forEach(function (x, i) { if (i) sub.push(" ・ "); sub.push(el("span", { style: "white-space:nowrap" }, x)) });  // ジャンルは途中で切らず、折り返す
     var st = []; if (stat && (stat.plays || 0) + (stat.feedbacks || 0) >= 10) { if (stat.plays) st.push("遊んだ人 " + stat.plays + "人"); if (stat.feedbacks) st.push("感想 " + stat.feedbacks + "件") }
     var r18 = g.rating === "r18";
@@ -879,4 +884,157 @@ T.linkLabel = function (url) {
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { F.mountNav() }); else F.mountNav();
+})();
+
+
+// ---- 端末・重さの目印・「PCで遊ぶ」リスト・第一印象・先読みの設定（共通） ----
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el, S = T.store;
+
+  // スマホ（タッチで短い辺が820px未満）か PC か
+  T.device = (matchMedia("(pointer:coarse)").matches && Math.min(screen.width, screen.height) < 820) ? "sp" : "pc";
+  T.platOf = function (g) { return g.platform || (g.play_kind === "download" ? "pc" : "both") };
+
+  // 重さの目印：games.json の size_mb（数字）。無い作品は何も出さない
+  T.sizeText = function (g) {
+    var mb = g && typeof g.size_mb === "number" && g.size_mb > 0 ? g.size_mb : 0; if (!mb) return "";
+    if (mb >= 1000) return "約" + (Math.round(mb / 100) / 10) + "GB";
+    return mb < 1 ? "約1MB未満" : "約" + Math.round(mb) + "MB";
+  };
+  // 10MB以下で、スマホで遊べる作品（ダウンロード型は除く）
+  T.isFast = function (g) { return !!(g && typeof g.size_mb === "number" && g.size_mb > 0 && g.size_mb <= 10 && g.play_kind !== "download" && (T.platOf(g) === "both" || T.platOf(g) === "sp")) };
+
+  async function authed() { if (!T.maybeLoggedIn()) return null; var s = await T.session(); return s && T.sb() ? T.sb() : null }
+
+  // ---- PCで遊ぶリスト ----
+  // 未ログインは端末（tpb:pcList = [{slug, at}] 新しい順）。ログイン中はアカウントの pc_list。ログインしたとき、端末の分を pclist_import で引き継ぐ。
+  // どの通信も、失敗しても画面は止めない（データベースに表がまだ無いときなどは、端末に残す）
+  var L = T.pcl = {}, MAX = 200;
+  L.local = function () { var a = S.get("pcList", []); return Array.isArray(a) ? a.filter(function (x) { return x && typeof x.slug === "string" }) : [] };
+  function saveLocal(a) { S.set("pcList", a.slice(0, MAX)) }
+  function remote() { var c = S.get("pcRemote", null); return c && Array.isArray(c.slugs) ? c.slugs : [] }
+  function setRemote(a) { S.set("pcRemote", { t: Date.now(), slugs: a.slice(0, MAX) }) }
+  // 入っているか（同期。端末の分＋最後に読んだアカウントの分）
+  L.has = function (slug) { return L.local().some(function (x) { return x.slug === slug }) || (T.maybeLoggedIn() && remote().indexOf(slug) >= 0) };
+  // 新しい順の slug
+  L.list = async function () {
+    var out = L.local().map(function (x) { return x.slug }), sb = await authed();
+    if (sb) {
+      try {
+        var r = await sb.from("pc_list").select("game_slug,created_at").order("created_at", { ascending: false }).limit(MAX);
+        if (r.error) throw r.error;
+        var rs = (r.data || []).map(function (x) { return x.game_slug }); setRemote(rs);
+        out = out.concat(rs.filter(function (s) { return out.indexOf(s) < 0 }));
+      } catch (e) { out = out.concat(remote().filter(function (s) { return out.indexOf(s) < 0 })) }
+    }
+    return out;
+  };
+  // 入れる：'ok' / 'full' / 'error'
+  L.add = async function (slug) {
+    if (!/^[a-z0-9-]{1,40}$/.test(slug)) return "error";
+    var sb = await authed();
+    if (sb) {
+      try {
+        var r = await sb.from("pc_list").insert({ game_slug: slug });
+        if (r.error && r.error.code !== "23505") { if (/pc_list_full/.test(r.error.message || "")) return "full"; throw r.error }
+        var rs = remote().filter(function (s) { return s !== slug }); rs.unshift(slug); setRemote(rs); return "ok";
+      } catch (e) { /* 通信できない・表がまだ無い：端末に残して、あとで引き継ぐ */ }
+    }
+    var a = L.local().filter(function (x) { return x.slug !== slug });
+    if (a.length >= MAX) return "full";
+    a.unshift({ slug: slug, at: Date.now() }); saveLocal(a); return "ok";
+  };
+  L.remove = async function (slug) {
+    var had = L.has(slug);
+    saveLocal(L.local().filter(function (x) { return x.slug !== slug }));
+    setRemote(remote().filter(function (s) { return s !== slug }));
+    if (!had) return;
+    var sb = await authed();
+    if (sb) { try { await sb.from("pc_list").delete().eq("game_slug", slug) } catch (e) {} }
+  };
+  // 遊んだら外す（遊べる端末の PC のとき）
+  L.played = function (slug) { if (T.device === "pc" && L.has(slug)) L.remove(slug) };
+  // まだ遊んでいないものだけ（PC で遊べる作品に限る）
+  L.pending = async function () {
+    var played = S.get("played", []) || [], list = await L.list();
+    return list.filter(function (s) { var g = T.game(s); return g && played.indexOf(s) < 0 && (T.platOf(g) === "both" || T.platOf(g) === "pc") });
+  };
+  var importing = false;
+  L.importOnce = async function () {
+    var loc = L.local(); if (importing || !loc.length) return; importing = true;
+    try {
+      var sb = await authed(); if (!sb) return;
+      var slugs = loc.slice().reverse().map(function (x) { return x.slug }).filter(function (x) { return /^[a-z0-9-]{1,40}$/.test(x) }).slice(0, MAX);   // 古い順に送る
+      var r = await sb.rpc("pclist_import", { p_slugs: slugs });
+      if (!r.error) { saveLocal([]); L.list() }
+    } catch (e) {} finally { importing = false }
+  };
+  function watch() {
+    var sb = T.sb(); if (!sb) return;
+    if (T.maybeLoggedIn()) L.importOnce();
+    sb.auth.onAuthStateChange(function (ev, ses) { if (ses && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) setTimeout(L.importOnce, 100) });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch); else watch();
+  L.errText = function (r) { return r === "full" ? "リストがいっぱいです（200本まで）。遊んだ作品を外してね" : "入れられませんでした。時間をおいてもう一度試してね" };
+  // 「PCで遊ぶリストに入れる／外す」を、メニューの項目として使える形にする。o.onDone：押したあと
+  L.toggle = async function (g) {
+    if (L.has(g.slug)) { await L.remove(g.slug); T.toast("PCで遊ぶリストから外したよ", 1800); return false }
+    var r = await L.add(g.slug);
+    if (r === "ok") { T.toast("PCで遊ぶリストに入れたよ。PCで開くと、ここに出ます", 2600); return true }
+    T.toast(L.errText(r), 3400); return false;
+  };
+
+  // ---- 第一印象（動画を見て思ったこと。遊んでいなくても送れる。感想とは別） ----
+  // level：3＝遊びたい ／ 2＝少し気になる ／ 1＝今はいいかな。ひとことは100字まで。同じ人・同じ作品は1日1回（上書き）
+  var FI = T.fi = {};
+  FI.LEVELS = [[3, "遊びたい"], [2, "少し気になる"], [1, "今はいいかな"]];
+  FI.ERR = { banned: "この端末からは送れなくなっています", banned_word: "使えない言葉が入っているみたい。言い方を変えてみてね", too_long: "ひとことは100字までです", too_many: "今日はもう送れません（1日40作品まで）", bad_client: "送れませんでした。ページを開き直してね" };
+  FI.day = function () { return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10) };
+  FI.sentToday = function (slug) { var o = S.get("fiSent", {}); return o && o[slug] && o[slug].day === FI.day() ? o[slug] : null };
+  FI.send = async function (slug, level, note) {
+    var headers = { apikey: T.SB_KEY, "Content-Type": "application/json" };
+    var s = T.maybeLoggedIn() ? await T.session() : null; if (s) headers.Authorization = "Bearer " + s.access_token;
+    try {
+      var ctl = new AbortController(), t = setTimeout(function () { ctl.abort() }, 8000);
+      var r = await fetch(T.SB_URL + "/rest/v1/rpc/first_impression_send", { method: "POST", headers: headers, signal: ctl.signal, body: JSON.stringify({ p_slug: slug, p_client: T.cid(), p_level: level, p_note: note || null }) });
+      clearTimeout(t);
+      if (!r.ok) { var j = {}; try { j = await r.json() } catch (e) {} return { ok: false, error: (j && j.message) || "" } }
+      var o = S.get("fiSent", {}) || {}; o[slug] = { day: FI.day(), level: level, note: note || "" }; S.set("fiSent", o);
+      return { ok: true };
+    } catch (e) { return { ok: false, error: "net" } }
+  };
+  FI.errText = function (e) { return FI.ERR[e] || (e === "net" ? "通信できなかった…電波のいいところでもう一度試してね" : "送れなかった…時間をおいてもう一度試してね") };
+  // 作品ページ・開発者ページの表示用。{want, maybe, no, total, recent:[{level, note, at}]} または null
+  FI.public = function (slug) { return T.pub("first_impression_public", { p_slug: slug }) };
+  // 集計の表示（3段階の数と、最近のひとこと）。d が null／total 0 なら null を返す
+  FI.summaryEl = function (d, o) {
+    o = o || {};
+    if (!d || typeof d.total !== "number") return null;
+    var box = el("div", { class: "fi-sum" });
+    if (!d.total) { box.append(el("p", { class: "note" }, "まだありません。")); return box }
+    box.append(el("p", { class: "fi-n" }, "遊びたい ", el("b", null, d.want || 0), "　少し気になる ", el("b", null, d.maybe || 0), "　今はいいかな ", el("b", null, d.no || 0)));
+    var rec = (d.recent || []).filter(function (x) { return x && x.note });
+    if (rec.length) {
+      var LAB = { 3: "遊びたい", 2: "少し気になる", 1: "今はいいかな" };
+      box.append(el("ul", { class: "fi-rec" }, rec.slice(0, o.max || 5).map(function (x) { return el("li", null, el("span", { class: "fi-lv" }, LAB[x.level] || ""), " ", x.note) })));
+    }
+    return box;
+  };
+
+  // ---- 先読み（通信量を使う）の設定：既定は、通信量を節約していない4gのとき（Wi-Fiっぽいとき）だけオン ----
+  T.prefetch = {
+    wifiish: function () { var c = navigator.connection; return !!c && c.saveData === false && c.effectiveType === "4g" },
+    on: function () { var v = S.get("prefetch", null); return v === null ? T.prefetch.wifiish() : !!v },
+    set: function (b) { S.set("prefetch", !!b) },
+    // 作品がサイトの中のプレイヤーで開くもの（自前 play/…・埋め込み）なら、preconnect と prefetch（HTML だけ）を入れる
+    hint: function (g) {
+      if (!g || !T.prefetch.on() || g.play_kind === "download" || g.rating === "r18") return;
+      var u = g.inpage || (/^https?:/i.test(g.play || "") ? "" : g.play); if (!u) return;
+      var abs; try { abs = new URL(u, location.href) } catch (e) { return }
+      var key = "tpbPf:" + abs.href; if (document.getElementById(key)) return;
+      if (abs.origin !== location.origin) { var pc = el("link", { rel: "preconnect", href: abs.origin, crossorigin: "" }); pc.id = key + ":c"; document.head.append(pc) }
+      var pf = el("link", { rel: "prefetch", href: abs.href, as: "document" }); pf.id = key; document.head.append(pf);
+    }
+  };
 })();

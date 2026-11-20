@@ -666,3 +666,17 @@ button.mk:hover{background:var(--paper-2)}
 /* 作者のお願い（ほしい感想・目標）：からしの細い左線1本だけ */
 .ask{border-left:3px solid var(--karashi);padding:2px 0 2px 12px;display:grid;gap:4px;font-size:14px;line-height:1.6;color:var(--ink)}
 .ask p{margin:0}.ask b{display:block;font-size:12px;color:var(--muted)}
+/* 重さの目印（約25MB）と「すぐ遊べる」。からしは目印の色 */
+.by.marks{display:flex;flex-wrap:wrap;gap:4px 6px;font-size:12px;color:var(--ink)}
+.mk-sz,.mk-fast{display:inline-block;font-size:12px;line-height:1.4;padding:0 6px;border-radius:2px;border:1px solid rgba(42,36,30,.2);color:var(--ink);background:transparent}
+.mk-fast,.chip.fast{background:var(--karashi-soft);border-color:transparent;color:var(--ink)}
+.chip.sz{background:transparent;border:1px solid rgba(42,36,30,.25);color:var(--ink)}
+/* スマホで「PCで遊ぶ」に入れた作品の帯（PC） */
+.pclband{display:block;width:100%;text-align:left;font:inherit;font-size:14px;font-weight:700;min-height:44px;padding:8px 14px;margin:0 0 10px;border:0;border-left:4px solid var(--karashi);border-radius:2px;background:var(--karashi-soft);color:var(--ink);cursor:pointer}
+.pclband[hidden]{display:none}
+.pclband:hover{background:#F3DC98}
+.fi-sum{display:grid;gap:6px}.fi-sum p{margin:0}
+.fi-n b{font-size:18px}
+.fi-rec{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:14px}
+.fi-lv{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:0 6px}
+.pwa-link{font:inherit;color:var(--ao);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;min-height:44px}

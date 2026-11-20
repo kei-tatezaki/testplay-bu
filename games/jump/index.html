@@ -17,6 +17,11 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png">
 <link rel="apple-touch-icon" href="../../assets/icon-180.png">
 <link rel="manifest" href="../../manifest.webmanifest">
+<meta name="application-name" content="テストプレイ部">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="テストプレイ部">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -45,6 +50,7 @@
 
 </div>
 </article>
+<section class="card" id="fiCard" hidden><div class="body"><h2>第一印象（動画を見た人）</h2><p class="by">遊ぶ前に、ショートの動画を見て「遊んでみたい？」に答えた人の数です。感想とは別のものです。</p><div id="fiBox"></div></div></section>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
 </main>
 <footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
@@ -65,6 +71,7 @@
   if(a==='play'&&play) play.click(); else if(a==='write') location.href=fb.getAttribute('href').replace('#fb-','#fbf-');
  });
 })();
+addEventListener('load',()=>{ if(!window.TPB||!TPB.fi) return; TPB.fi.public('jump').then(d=>{ if(!d||!d.total) return; const x=TPB.fi.summaryEl(d); if(!x) return; document.getElementById('fiBox').append(x); document.getElementById('fiCard').hidden=false }) });
 (async function(){
  const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
  // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
@@ -107,6 +114,7 @@ document.addEventListener('click',function(ev){
   if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
   var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'), fresh=played.indexOf(a.dataset.play)<0; if(fresh){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
   // 今日のミッション：ダウンロード型は公開ページを開いたら達成。ほかの外のタブは、戻ってきて20秒以上たっていたら
+  if(window.TPB&&TPB.pcl) TPB.pcl.played(a.dataset.play);
   var M=window.TPB&&TPB.mission; if(M){ if(a.dataset.dl) M.dlOpened(a.dataset.play,fresh); else M.externalStart(a.dataset.play,fresh) }
   fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
  }catch(e){}
@@ -115,6 +123,7 @@ document.addEventListener('click',function(ev){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="../../assets/data.js" defer></script>
 <script src="../../assets/tpb.js" defer></script>
+<script src="../../assets/pwa.js" defer></script>
 <script src="../../assets/mission.js" defer></script>
 </body>
 </html>

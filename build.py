@@ -10,6 +10,7 @@
 - games/<slug>/       作品ごとのページ（Discordに貼るとこのページの画像とタイトルが出る）
 - og/<slug>.png       Discordのプレビュー用の画像（自動で作る）
 """
+import hashlib
 import html
 import json
 import os
@@ -301,6 +302,24 @@ def by_html(g, prefix, size=0, cls="by-link", noname=False):
     return f'<span {attrs}>{inner}</span>'
 
 
+def size_text(g):
+    """重さの目印：「約25MB」。games.json の size_mb（数字）が無ければ空"""
+    mb = g.get("size_mb")
+    if not isinstance(mb, (int, float)) or isinstance(mb, bool) or mb <= 0:
+        return ""
+    if mb >= 1000:
+        return f"約{round(mb / 100) / 10:g}GB"
+    return "約1MB未満" if mb < 1 else f"約{round(mb)}MB"
+
+
+def is_fast(g):
+    """「すぐ遊べる」：10MB以下で、スマホで遊べる（both／sp）ブラウザの作品"""
+    mb = g.get("size_mb")
+    if not isinstance(mb, (int, float)) or isinstance(mb, bool) or mb <= 0 or mb > 10 or is_download(g):
+        return False
+    return (g.get("platform") or "both") in ("both", "sp")
+
+
 FB_STYLE = {"gentle": "やさしめに言ってほしい（良いところも知りたい）", "honest": "正直に言ってほしい（厳しくてもOK）", "both": "良いところも、厳しいことも聞きたい"}
 
 
@@ -321,6 +340,10 @@ def chips_html(g):
         out.append(f'<span class="chip dl">{e(dl_label(g))}</span>')
     if g.get("platform") in PLATFORM:
         out.append(f'<span class="chip plat">{PLATFORM[g["platform"]]}</span>')
+    if size_text(g):
+        out.append(f'<span class="chip sz">{e(size_text(g))}</span>')
+    if is_fast(g):
+        out.append('<span class="chip fast">すぐ遊べる</span>')
     if g.get("sample"):
         out.append('<span class="chip sample">運営のお試し作品</span>')
     for k in ("stage", "genre", "minutes"):
@@ -762,6 +785,7 @@ document.addEventListener('click',function(ev){
   if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
   var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'), fresh=played.indexOf(a.dataset.play)<0; if(fresh){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
   // 今日のミッション：ダウンロード型は公開ページを開いたら達成。ほかの外のタブは、戻ってきて20秒以上たっていたら
+  if(window.TPB&&TPB.pcl) TPB.pcl.played(a.dataset.play);
   var M=window.TPB&&TPB.mission; if(M){ if(a.dataset.dl) M.dlOpened(a.dataset.play,fresh); else M.externalStart(a.dataset.play,fresh) }
   fetch('""" + SB_URL + """/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'""" + SB_KEY + """','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
  }catch(e){}
@@ -785,6 +809,34 @@ document.getElementById('ageYes').onclick=function(){try{localStorage.setItem('t
 """
 
 
+OFFLINE_HTML = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F6F1E7">
+<meta name="robots" content="noindex">
+<title>つながっていません｜テストプレイ部</title>
+<style>
+html,body{margin:0;height:100%}
+body{display:grid;place-items:center;padding:24px;background:#F6F1E7;color:#2A241E;font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;line-height:1.7}
+main{max-width:380px;display:grid;gap:14px;text-align:center;justify-items:center}
+h1{margin:0;font-size:20px}p{margin:0;font-size:15px}
+button{font:inherit;font-size:16px;font-weight:700;min-height:48px;padding:8px 28px;border:0;border-radius:6px;background:#C8401F;color:#fff;box-shadow:0 3px 0 #8E2C14;cursor:pointer}
+button:active{transform:translateY(3px);box-shadow:none}
+</style>
+</head>
+<body>
+<main>
+<h1>つながっていません</h1>
+<p>電波のいいところで、もう一度ひらいてね。</p>
+<button type="button" onclick="location.reload()">再読み込み</button>
+</main>
+</body>
+</html>
+"""
+
+
 def page(title, desc, url, image, body, prefix):
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -805,6 +857,11 @@ def page(title, desc, url, image, body, prefix):
 <link rel="icon" type="image/png" sizes="192x192" href="{prefix}assets/icon-192.png">
 <link rel="apple-touch-icon" href="{prefix}assets/icon-180.png">
 <link rel="manifest" href="{prefix}manifest.webmanifest">
+<meta name="application-name" content="テストプレイ部">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="テストプレイ部">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -817,6 +874,7 @@ def page(title, desc, url, image, body, prefix):
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="{prefix}assets/data.js" defer></script>
 <script src="{prefix}assets/tpb.js" defer></script>
+<script src="{prefix}assets/pwa.js" defer></script>
 <script src="{prefix}assets/mission.js" defer></script>
 </body>
 </html>
@@ -864,10 +922,11 @@ def card(g, prefix):
     slug = e(g["slug"])
     sub = " ・ ".join(x for x in (g.get("genre", ""), PLATFORM.get(g.get("platform"), "")) if x)
     subhtml = ' ・ '.join(f'<span style="white-space:nowrap">{e(x)}</span>' for x in (g.get("genre", ""), PLATFORM.get(g.get("platform"), "")) if x)
+    marks = ''.join(x for x in (f'<span class="mk-sz">{e(size_text(g))}</span>' if size_text(g) else '', '<span class="mk-fast">すぐ遊べる</span>' if is_fast(g) else '') if x)
     thumb = g.get("thumb")
     img = (f'<img class="media shot" style="--tb:{e(g.get("bg") or "#0b0e13")}" src="{prefix}{e(thumb)}" alt="" loading="lazy">' if thumb
            else f'<img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">')
-    return f"""<article class="tile" data-added="{e(g.get('added',''))}" data-slug="{slug}" data-genre="{e(g.get('genre',''))}" data-min="{minute_bucket(g.get('minutes'))}" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
+    return f"""<article class="tile" data-added="{e(g.get('added',''))}" data-slug="{slug}" data-genre="{e(g.get('genre',''))}" data-min="{minute_bucket(g.get('minutes'))}" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}" data-fast="{1 if is_fast(g) else 0}">
 <a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{prefix}{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}>{img}{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
 <div class="meta2">
 {by_html(g, prefix, 36, "av-link", True)}
@@ -875,6 +934,7 @@ def card(g, prefix):
 <a class="t" href="{prefix}games/{slug}/">{e(g['title'])}</a>
 <div class="by byl">{by_html(g, prefix)}</div>
 <div class="by sub">{subhtml}</div>
+{f'<div class="by marks">{marks}</div>' if marks else ''}
 <div class="by" data-stats="{slug}"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="{slug}" aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button>
@@ -947,6 +1007,7 @@ def build():
 {''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
 </div>
 </article>
+<section class="card" id="fiCard" hidden><div class="body"><h2>第一印象（動画を見た人）</h2><p class="by">遊ぶ前に、ショートの動画を見て「遊んでみたい？」に答えた人の数です。感想とは別のものです。</p><div id="fiBox"></div></div></section>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
 </main>
 <footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
@@ -967,6 +1028,7 @@ def build():
   if(a==='play'&&play) play.click(); else if(a==='write') location.href=fb.getAttribute('href').replace('#fb-','#fbf-');
  }});
 }})();
+addEventListener('load',()=>{{ if(!window.TPB||!TPB.fi) return; TPB.fi.public('{g['slug']}').then(d=>{{ if(!d||!d.total) return; const x=TPB.fi.summaryEl(d); if(!x) return; document.getElementById('fiBox').append(x); document.getElementById('fiCard').hidden=false }}) }});
 (async function(){{
  const box=document.getElementById('fb'), sum=document.getElementById('fbsum');
  // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
@@ -1018,10 +1080,12 @@ def build():
 </div>
 </section>
 <div class="infobar" role="note"><div data-ms-band></div>{recruit}</div>
+<button type="button" class="pclband" id="pclBand" aria-pressed="false" hidden></button>
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">
 <div class="fgroup fg-g"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
 <button type="button" class="fol-chip" id="fFol" aria-pressed="false" hidden>フォロー中の作者</button>
+<button type="button" class="fol-chip" id="fFast" aria-pressed="false">スマホですぐ遊べる</button>
 <div class="fmore"><button type="button" id="fMore" aria-expanded="false" aria-controls="fpop" aria-haspopup="true">絞り込み <span class="fn" id="fN" aria-hidden="true"></span><span aria-hidden="true">▾</span></button>
 <div class="fpop" id="fpop" role="group" aria-label="絞り込み">
 <div class="fgroup fg-m"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
@@ -1039,15 +1103,15 @@ def build():
 <footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
-let F='',P='',G='',M='',FOL=false,FOLSET=null;
+let F='',P='',G='',M='',FOL=false,FOLSET=null,FAST=false,PCL=null;
 // 遊んだ人・感想の数（YouTubeの再生回数のように表示）
 fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
  .then(r=>r.ok?r.json():[]).then(rows=>{{(rows||[]).forEach(x=>{{const el=document.querySelector('[data-stats="'+x.game_slug+'"]');if(!el)return;if((x.plays||0)+(x.feedbacks||0)<10)return;const t=[];if(x.plays)t.push('遊んだ人 '+x.plays+'人');if(x.feedbacks)t.push('感想 '+x.feedbacks+'件');el.textContent=t.join(' ・ ')}})}}).catch(()=>{{}});
-function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&(!G||c.dataset.genre===G)&&(!M||c.dataset.min===M)&&okP&&(!FOL||(FOLSET&&FOLSET.has(c.dataset.slug)));c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
+function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{const pl=c.dataset.plat;const okP=!P||pl==='both'||pl===P;const show=(!F||c.dataset.check===F)&&(!G||c.dataset.genre===G)&&(!M||c.dataset.min===M)&&okP&&(!FOL||(FOLSET&&FOLSET.has(c.dataset.slug)))&&(!FAST||c.dataset.fast==='1')&&(!PCL||PCL.has(c.dataset.slug));c.hidden=!show;if(show)n++;}});document.getElementById('empty').hidden=n>0;}}
 document.querySelectorAll('.filters').forEach(n=>{{const f=()=>{{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')}};n.addEventListener('scroll',f,{{passive:true}});addEventListener('resize',f);f()}});
 const fT=document.getElementById('fToggle'),fW=document.getElementById('fwrap');
 fT.addEventListener('click',()=>{{const o=fW.classList.toggle('open');fT.setAttribute('aria-expanded',String(o));fT.lastElementChild.textContent=o?'▴':'▾'}});
-function sumF(){{const t=[];if(FOL)t.push('フォロー中の作者');document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)}});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):'';drawChips()}}
+function sumF(){{const t=[];if(FOL)t.push('フォロー中の作者');if(FAST)t.push('スマホですぐ遊べる');if(PCL)t.push('スマホで入れた作品');document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)}});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):'';drawChips()}}
 // PC：選んでいる条件を小さなチップで並べる。×（チップ）を押すとその条件だけ外す。「絞り込み」ボタンには、ポップオーバーの中で選んでいる数を出す
 function drawChips(){{const box=document.getElementById('fChips');box.replaceChildren();let k=0;
  document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;
@@ -1062,7 +1126,7 @@ fM.addEventListener('click',e=>{{e.stopPropagation();popSet(!fP.classList.contai
 document.addEventListener('click',e=>{{if(fP.classList.contains('open')&&!e.target.closest('.fmore'))popSet(false)}});
 document.addEventListener('keydown',e=>{{if(e.key==='Escape'&&fP.classList.contains('open')){{popSet(false);fM.focus()}}}});
 document.getElementById('fPopReset').addEventListener('click',()=>document.getElementById('fReset').click());
-document.getElementById('fReset').addEventListener('click',()=>{{F=G=M=P='';FOL=false;document.getElementById('fFol').setAttribute('aria-pressed','false');document.querySelectorAll('.filters').forEach(n=>{{n.querySelectorAll('button').forEach(x=>{{const v=x.dataset.f!==undefined?x.dataset.f:x.dataset.g!==undefined?x.dataset.g:x.dataset.m!==undefined?x.dataset.m:x.dataset.p;x.setAttribute('aria-pressed',String(v===''))}})}});apply();sumF()}});
+document.getElementById('fReset').addEventListener('click',()=>{{F=G=M=P='';FOL=false;FAST=false;PCL=null;document.getElementById('fFol').setAttribute('aria-pressed','false');document.getElementById('fFast').setAttribute('aria-pressed','false');pclBand();document.querySelectorAll('.filters').forEach(n=>{{n.querySelectorAll('button').forEach(x=>{{const v=x.dataset.f!==undefined?x.dataset.f:x.dataset.g!==undefined?x.dataset.g:x.dataset.m!==undefined?x.dataset.m:x.dataset.p;x.setAttribute('aria-pressed',String(v===''))}})}});apply();sumF()}});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply(); sumF();
@@ -1070,6 +1134,13 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 // フォロー中の作者の作品だけ（ログイン中で、1人以上フォローしているときだけチップを出す）
 const fFol=document.getElementById('fFol');
 fFol.addEventListener('click',()=>{{FOL=!FOL;fFol.setAttribute('aria-pressed',String(FOL));apply();sumF()}});
+const fFast=document.getElementById('fFast');
+fFast.addEventListener('click',()=>{{FAST=!FAST;fFast.setAttribute('aria-pressed',String(FAST));apply();sumF()}});
+// PC：スマホで「PCで遊ぶ」に入れた作品が、まだ遊んでいないまま残っているとき、帯を出す。押すとその作品だけ並べる
+let PCN=[];
+function pclBand(){{const b=document.getElementById('pclBand');if(!b)return;b.hidden=!(PCN.length||PCL);b.textContent=PCL?'スマホで入れた作品だけ表示中（すべての作品にもどる）':'スマホで入れた作品 '+PCN.length+'本';b.setAttribute('aria-pressed',String(!!PCL))}}
+document.getElementById('pclBand').addEventListener('click',()=>{{PCL=PCL?null:new Set(PCN);apply();sumF();pclBand()}});
+addEventListener('load',()=>{{if(!(window.TPB&&TPB.pcl&&TPB.device==='pc'))return;TPB.pcl.pending().then(l=>{{PCN=l;pclBand()}})}});
 addEventListener('load',()=>{{if(!(window.TPB&&TPB.follow))return;TPB.follow.mine().then(rows=>{{if(!rows||!rows.length)return;FOLSET=new Set(rows.map(r=>r.game_slug));fFol.hidden=false}})}});
 </script>""" + LIST_JS.replace("__SB__", SB_URL).replace("__KEY__", SB_KEY).replace("__PICKS__", pick_data)
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
@@ -1329,10 +1400,20 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
     (ROOT / "index.html").write_text(feed, encoding="utf-8")
     (ROOT / ".nojekyll").write_text("", encoding="utf-8")
     (ROOT / "manifest.webmanifest").write_text(json.dumps({
-        "name": "テストプレイ部", "short_name": "テストプレイ部", "start_url": "./", "display": "standalone",
-        "background_color": "#F6F1E7", "theme_color": "#C8401F",
-        "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
-                  {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
+        "name": "テストプレイ部", "short_name": "テストプレイ部", "lang": "ja", "dir": "ltr",
+        "description": "学生のゲームを、学生が遊ぶ部室。5分でつまみ食いして、感想を送れます。",
+        "id": "./", "start_url": "./?source=pwa", "scope": "./", "display": "standalone", "orientation": "portrait-primary",
+        "background_color": "#F6F1E7", "theme_color": "#2A241E", "categories": ["games", "entertainment"],
+        "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+                  {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+                  {"src": "assets/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+                  {"src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ROOT / "offline.html").write_text(OFFLINE_HTML, encoding="utf-8")
+    # service worker：中身（HTML・JS・CSS・マニフェスト）のハッシュをバージョンにする。変わったら古いキャッシュは全部消える
+    h = hashlib.sha1()
+    for f in sorted(list(ROOT.glob("*.html")) + list(ROOT.glob("games/*/index.html")) + list(ROOT.glob("assets/*.js")) + list(ROOT.glob("assets/*.css")) + [ROOT / "manifest.webmanifest", ROOT / "src/sw.js"]):
+        h.update(f.name.encode() + f.read_bytes())
+    (ROOT / "sw.js").write_text((ROOT / "src/sw.js").read_text(encoding="utf-8").replace("__VERSION__", h.hexdigest()[:10]), encoding="utf-8")
     # 検索エンジン向けの一覧（R18の作品ページは入れない）
     urls = ["", "list.html", "creators.html", "privacy.html"] + [f"profile.html?u={h}" for h in CREATORS] + [f"games/{g['slug']}/" for g in games if not is_r18(g)]
     (ROOT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

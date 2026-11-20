@@ -17,6 +17,11 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
+<meta name="application-name" content="テストプレイ部">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="テストプレイ部">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="assets/side.css">
 <style>
 :root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#C8401F;--accent-ink:#fff;--shu-ink:#FF9A7E;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;--paper:#F6F1E7;--paper-2:#EFE6D3;--shu:#C8401F;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--ao:#2F5D9B;--ao-soft:#D7E2F1;--shu-soft:#F6D5C9;--f-round:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;--f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;--f-rd:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-klee:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--f-hand:var(--f-body);--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:dark}
@@ -558,6 +563,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 <script src="assets/rank.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
+<script src="assets/pwa.js"></script>
 <script src="assets/mission.js"></script>
 <script src="assets/coach.js"></script>
 <script>
@@ -895,7 +901,7 @@ async function share(g,btn){
 
 // ---- 遊ぶ ----
 let current=null, timer=0;
-function markPlayed(g){played.add(g.slug);store.set('played',[...played]);refreshChips(g.slug)}
+function markPlayed(g){played.add(g.slug);store.set('played',[...played]);refreshChips(g.slug);if(window.TPB&&TPB.pwa) setTimeout(TPB.pwa.check,2000)}
 // プレイヤー：iframe は開くたびに作り、閉じるときに取りはずす（src を書きかえると「戻る」の履歴が1つ増えてしまうため）。
 // 開いたら iframe にフォーカスを渡す（スペースキーなどがゲームに届き、「閉じる」が押されない）。閉じるのは Esc と「閉じる」のクリックだけ。
 let playerOpener=null;
@@ -1170,7 +1176,7 @@ $('sheet').addEventListener('submit',async e=>{
   try{
     const {error}=await sbc().from('feedback').insert(payload);
     if(!error){
-      sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
+      sent.add(g.slug); store.set('sent',[...sent]); msg.textContent=''; if(window.TPB&&TPB.pwa) setTimeout(TPB.pwa.check,4000);
       const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb.fbb'); if(lab) lab.lastChild.textContent='送った';
       $('ptDone').textContent=''; $('msDone').textContent=''; $('sheet').classList.add('done'); $('sheet').scrollTop=0; showPtResult(g); showMissionResult();
     } else {
