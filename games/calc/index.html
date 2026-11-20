@@ -78,7 +78,7 @@
  try{
   const r=await fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.calc&order=created_at.desc&limit=100',{headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u'}});
   const rows=await r.json();
-  if(!Array.isArray(rows)||!rows.length){box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}
+  if(!Array.isArray(rows)||!rows.length){box.innerHTML='<div class="eb"><img class="eb-img" src="../../assets/art/empty_board.webp" alt="" width="180" height="180" loading="lazy"><p class="eb-t">まだ感想はありません。最初の感想を貼ってみよう！</p></div>';return}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
   sum.textContent=rows.length<5?rows.length+'件（5件たまると、割合も出します）':rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
   box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');

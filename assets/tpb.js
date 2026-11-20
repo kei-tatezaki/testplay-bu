@@ -202,6 +202,7 @@
       mi("📊", "数字と感想を見る", { href: BASE + "dev.html?g=" + slug }),
       mi("✏️", "直したいところを運営に送る", { href: BASE + "submit.html?edit=" + slug }));
     box.append(own);
+    box.append(mi("ℹ️", "運営について", { href: BASE + "list.html#about" }));
     box.append(mi("🚩", "報告する", { cls: "warn", onclick: function () { T.report("game", slug, g.title, btn) } }));
     box.append(el("button", { class: "tpb-mi tpb-mx", type: "button", onclick: closeOverlay }, "とじる"));
     var ov = overlay("menu", box, btn);
@@ -388,7 +389,7 @@
         el("hr"),
         item("creators", BASE + "creators.html", "作品を載せたい人へ"), item("submit", BASE + "submit.html", "作品を応募する"),
         disc ? item("discord", disc, "Discordに参加する", true) : null),
-      el("div", { class: "sd-foot" }, el("p", null, "学生のゲームを、", el("br"), "学生が遊ぶ部室。"), el("a", { href: BASE + "privacy.html" }, "集める情報と使い道")));
+      el("div", { class: "sd-foot" }, el("img", { class: "sd-desk", src: BASE + "assets/art/desk.webp", alt: "", width: 140, height: 140, loading: "lazy" }), el("p", null, "学生のゲームを、", el("br"), "学生が遊ぶ部室。"), el("a", { href: BASE + "list.html#about" }, "運営について"), el("a", { href: BASE + "privacy.html" }, "集める情報と使い道")));
     var first = b.firstElementChild; if (first && first.classList.contains("skip")) first.after(side); else b.prepend(side);
     // 右上の自分のアイコン：ページに置いていないときは、PCだけで出す（スマホの見た目は変えない）
     var hd = document.querySelector("header.bar");
@@ -399,6 +400,45 @@
     }
   };
   T.chrome();
+})();
+
+
+// ---- 空の状態の絵（assets/art/empty_board.webp）と、サイト共通の「運営について」 ----
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el, BASE = T.base, NS = "http://www.w3.org/2000/svg";
+  T.ebImg = function () { return el("img", { class: "eb-img", src: BASE + "assets/art/empty_board.webp", alt: "", width: 180, height: 180, loading: "lazy" }) };
+  T.emptyBoard = function (text, more) { return el("div", { class: "eb" }, T.ebImg(), el("p", { class: "eb-t" }, text), more || null) };
+  var IC = {
+    mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+    x: '<path d="M5 4.5l14 15M19 4.5l-14 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+    yt: '<rect x="3" y="6" width="18" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.2 9.4v5.2l4.6-2.6z" fill="currentColor"/>',
+    dc: '<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.5" cy="11" r="1.2" fill="currentColor"/><circle cx="12" cy="11" r="1.2" fill="currentColor"/><circle cx="15.5" cy="11" r="1.2" fill="currentColor"/>',
+    doc: '<path d="M6 3.5h8l4 4v13H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12h6M9 15.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+  };
+  function ic(k) { var s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ic"); s.setAttribute("aria-hidden", "true"); s.innerHTML = IC[k]; return s }
+  function link(k, href, label, val, ext) {
+    return el("li", null, el("a", { href: href, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, ic(k), el("span", { class: "ab-l" }, label), el("span", { class: "ab-v" }, val)));
+  }
+  T.about = function () {
+    if (document.getElementById("about") || document.body.hasAttribute("data-nofoot")) return;
+    var p = location.pathname.replace(/index\.html$/, ""), base = ""; try { base = new URL(BASE, location.href).pathname } catch (e) {}
+    if (p === base || (!base && p === "/")) return;   // ショートは、サイドバー・メニューのリンクだけ
+    var disc = (window.TPB_DATA && window.TPB_DATA.discord) || "";
+    var box = el("aside", { class: "about", id: "about", "aria-labelledby": "abT" },
+      el("div", { class: "about-card" },
+        el("h2", { id: "abT" }, "運営について"),
+        el("p", { class: "ab-who" }, el("b", null, "テストプレイ部"), el("span", null, "運営：舘崎 慶")),
+        el("ul", { class: "ab-links" },
+          link("mail", "mailto:tatekei170+tpb@gmail.com", "連絡", "tatekei170+tpb@gmail.com"),
+          link("x", "https://x.com/tazarosu", "X", "@tazarosu", true),
+          link("yt", "https://www.youtube.com/@tazarosu", "YouTube", "@tazarosu", true),
+          disc ? link("dc", disc, "Discord", "部室に参加する", true) : null),
+        el("a", { class: "ab-priv", href: BASE + "privacy.html" }, ic("doc"), "集める情報と使い道"),
+        el("p", { class: "ab-cr" }, "イラスト：Google AI Studio で作成")));
+    var w = document.querySelector(".wrap"); (w || document.body).append(box);
+  };
+  T.about();
 })();
 
 // 置いてあるだけで動く部品： data-me（右上の自分のアイコン）、data-by（作った人の名前とアイコンを、管理ページで決めた作者に差し替える）

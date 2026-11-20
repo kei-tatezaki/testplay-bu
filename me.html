@@ -124,7 +124,7 @@ function paneStamp(pane){ pane.append(stampBox()) }
 async function paneGames(pane){
   const games=MINE.map(T.game).filter(Boolean);
   pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:el('a',{class:'by',href:'./dev.html?g='+g.slug,style:'color:var(--shu-ink)'},'📊 数字と感想を見る')})))
-    :el('div',{class:'callout'},el('b',null,'まだあなたの作品はありません'),
+    :el('div',{class:'callout eb'},T.ebImg(),el('b',{class:'eb-t'},'まだあなたの作品はありません'),
       el('p',{class:'note'},'ブラウザで遊べるURLがあれば、ここから応募できます。運営が確かめてから載せます。'),
       el('a',{class:'btn',href:'./submit.html'},'作品を応募する'),
       el('a',{class:'by',href:'./creators.html#url'},'遊べるURLの作り方を見る')));
@@ -149,14 +149,14 @@ function panePlayed(pane){
   const games=T.store.get('played',[]).map(T.game).filter(Boolean).reverse();
   pane.append(el('p',{class:'note'},'この端末で「遊ぶ」を押した作品です。ほかの端末で遊んだ作品は出ません。'));
   pane.append(games.length?el('div',{class:'grid'},games.map(g=>T.tile(g,STATS[g.slug],{extra:sent.has(g.slug)?el('span',{class:'by'},'✅ 感想を送った'):el('a',{class:'by',href:'./#fb-'+g.slug,style:'color:var(--shu-ink)'},'💬 感想を送る')})))
-    :el('div',{class:'callout'},el('b',null,'まだ遊んだ作品はありません'),el('a',{class:'btn',href:'./'},'▶ ショートで探す')));
+    :el('div',{class:'callout eb'},T.ebImg(),el('b',{class:'eb-t'},'まだ遊んだ作品はありません'),el('a',{class:'btn',href:'./'},'▶ ショートで探す')));
 }
 // ---- 送った感想 ----
 async function paneFb(pane){
   pane.append(el('p',{class:'empty'},'読み込み中…'));
   let rows=[]; try{ rows=(await sb.rpc('my_feedback')).data||[] }catch(e){}
   pane.replaceChildren();
-  if(!rows.length){ pane.append(el('div',{class:'callout'},el('b',null,'まだ感想を送っていません'),el('p',{class:'note'},'遊んだあとに💬を押すと、選ぶだけで1分で送れます。'),el('a',{class:'btn',href:'./'},'▶ ショートで探す'))); return }
+  if(!rows.length){ pane.append(el('div',{class:'callout eb'},T.ebImg(),el('b',{class:'eb-t'},'まだ感想を送っていません'),el('p',{class:'note'},'遊んだあとに💬を押すと、選ぶだけで1分で送れます。'),el('a',{class:'btn',href:'./'},'▶ ショートで探す'))); return }
   pane.append(el('p',{class:'note'},rows.length+'件の感想を送りました。作った人には、だれが書いたかは見えません。'));
   const list=el('section',{class:'card'},el('div',{class:'body fblist'}));
   rows.forEach(f=>{ const g=T.game(f.game_slug);

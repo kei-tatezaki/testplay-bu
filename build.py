@@ -144,20 +144,37 @@ def make_r18_og(game, out):
 
 
 def make_site_og(out):
+    """サイト共通のOG：紙色の背景、左に名前と一言、右に部室の写真（白フチ・傾き・テープ）"""
+    from PIL import ImageFilter
     W, H = 1200, 630
     im = Image.new("RGB", (W, H), (246, 241, 231))
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, 24, H], fill=(200, 64, 31))
-    d.text((80, 180), "テストプレイ部", font=font(FONT_BOLD, 96), fill=(42, 36, 30))
-    d.text((80, 330), "学生のゲームを、", font=font(FONT_REG, 44), fill=(42, 36, 30))
-    d.text((80, 385), "5分でつまみ食い。", font=font(FONT_REG, 44), fill=(42, 36, 30))
-    d.text((80, 470), "遊んで、一言感想を送り合う場所", font=font(FONT_REG, 32), fill=(107, 97, 88))
-    icon = ROOT / "assets/icon-512.png"
-    if icon.exists():
-        ic = Image.open(icon).convert("RGB").resize((360, 360))
-        mask = Image.new("L", (360, 360), 0)
-        ImageDraw.Draw(mask).ellipse((0, 0, 359, 359), fill=255)
-        im.paste(ic, (W - 360 - 70, (H - 360) // 2), mask)
+    d.rectangle([0, 0, 18, H], fill=(200, 64, 31))
+    ink, muted, shu = (42, 36, 30), (107, 97, 88), (200, 64, 31)
+    d.text((70, 165), "テストプレイ部", font=font(FONT_BOLD, 76), fill=ink)
+    f2 = font(FONT_BOLD, 42)
+    d.text((70, 285), "学生のゲームを、", font=f2, fill=ink)
+    d.text((70, 340), "学生が遊ぶ部室。", font=f2, fill=ink)
+    w = d.textlength("学生のゲームを、", font=f2)
+    d.line([(70, 396), (70 + w * 0.5, 390), (70 + w, 396)], fill=shu, width=5, joint="curve")
+    d.text((70, 450), "スワイプして、遊んで、ひとこと感想。", font=font(FONT_REG, 26), fill=muted)
+    art = ROOT / "assets/art/clubroom.webp"
+    if art.exists():
+        ph = Image.open(art).convert("RGB").resize((450, 343))
+        frame = Image.new("RGB", (450 + 28, 343 + 40), (255, 253, 248))
+        frame.paste(ph, (14, 14))
+        fa = frame.convert("RGBA")
+        tape = Image.new("RGBA", (130, 36), (226, 169, 59, 215))
+        fa.alpha_composite(tape, (fa.width // 2 - 65, -0)) if False else None
+        sh = Image.new("RGBA", (fa.width + 80, fa.height + 80), (0, 0, 0, 0))
+        m = Image.new("L", fa.size, 150)
+        sh.paste((60, 40, 20, 255), (40, 52), m)
+        sh = sh.filter(ImageFilter.GaussianBlur(14))
+        sh.alpha_composite(fa, (40, 40))
+        tp = Image.new("RGBA", (130, 38), (226, 169, 59, 225))
+        sh.alpha_composite(tp.rotate(3, expand=True, resample=Image.BICUBIC), (40 + fa.width // 2 - 65, 28))
+        sh = sh.rotate(2, expand=True, resample=Image.BICUBIC)
+        im.paste(sh, (W - sh.width - 20, (H - sh.height) // 2 + 6), sh)
     out.parent.mkdir(parents=True, exist_ok=True)
     im.save(out, optimize=True)
 
@@ -587,6 +604,88 @@ dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px 
  body:not([data-noside]) .gamepage>section.card{position:sticky;top:16px}
 }
 @media (min-width:1200px){ body:not([data-noside]) .wrap>main.cols.wideside{grid-template-columns:360px minmax(0,1fr)} }
+
+/* ===== 仕上げ（部室の手触り）：段階をそろえる・手描きの下線・ハンコの押し心地・絵 ===== */
+:root{--ul-shu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M2 6.5C28 2.5 52 8.5 88 4.5S160 8 198 3.5' fill='none' stroke='%23C8401F' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");--ul-kara:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M3 4C34 8 60 2.5 96 6S168 3 197 7' fill='none' stroke='%23E2A93B' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");--tape-clip:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%)}
+.hu,.hu-k{background:var(--ul-shu) no-repeat 0 100%/100% .32em;padding-bottom:.26em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hu-k{background-image:var(--ul-kara)}
+.body p,.prose p,.prose li,.body li{max-width:38em}
+.hero-c .body p,.callout p,.notice p{max-width:none}
+/* ハンコ：押すと沈む。キーボードのフォーカスも同じ見え方に */
+.btn:focus-visible,button.btn:focus-visible,.tpb-btn:focus-visible{outline:3px solid var(--ao);outline-offset:3px}
+.btn.ghost:active,button.btn.ghost:active{transform:translateY(2px);background:var(--shu-soft)}
+.tpb-btn{transition:transform .08s ease,box-shadow .08s ease}
+.tpb-btn:active{transform:translateY(2px)}
+.ghost-link:active,.filters button:active,.ftoggle:active{transform:translateY(1px)}
+/* カードの変化：傾き・影・テープを少しずつちがえる */
+.maincol>.card:nth-child(even),.wrap>main>.card:nth-of-type(even){transform:rotate(.25deg)}
+.maincol>.card:nth-child(3n+1),.wrap>main>.card:nth-of-type(3n+1){box-shadow:0 1px 0 var(--line),0 10px 20px rgba(60,40,20,.1)}
+.maincol>.card:nth-child(3n),.wrap>main>.card:nth-of-type(3n){border-radius:3px;box-shadow:0 1px 0 var(--line),0 3px 6px rgba(60,40,20,.12)}
+.maincol>.card:nth-child(3n+2),.wrap>main>.card:nth-of-type(3n+2){position:relative}
+.maincol>.card:nth-child(3n+2)::after,.wrap>main>.card:nth-of-type(3n+2)::after{content:"";position:absolute;right:22px;top:-8px;width:50px;height:16px;background:rgba(215,226,241,.9);transform:rotate(3deg);clip-path:var(--tape-clip);pointer-events:none}
+@media (prefers-reduced-motion:reduce){.btn,.tpb-btn{transition:none}}
+/* 部室の一言と写真 */
+.club-hero{display:grid;gap:14px;padding:6px 0 4px}
+.ch-photo{margin:0;position:relative}
+.ch-photo::before{content:"";position:absolute;z-index:2;left:50%;top:-9px;width:64px;height:18px;margin-left:-32px;background:rgba(226,169,59,.82);transform:rotate(-3deg);clip-path:var(--tape-clip)}
+.ch-photo img{display:block;width:100%;height:clamp(130px,18svh,164px);object-fit:cover;object-position:50% 62%;border:6px solid var(--card);border-bottom-width:8px;border-radius:2px;background:var(--card);box-shadow:0 1px 0 var(--line),0 10px 20px rgba(60,40,20,.2);transform:rotate(-1.2deg)}
+.ch-text{display:grid;gap:8px;justify-items:start}
+.ch-big{margin:0;font:800 clamp(25px,7.2vw,30px)/1.35 var(--f-round);letter-spacing:.02em}
+.ch-sub{margin:0;font:600 15px/1.7 var(--f-hand);color:var(--muted);max-width:26em}
+.ch-text .row{gap:10px;margin-top:4px}
+.ch-text .btn{min-height:44px}
+@media (max-width:420px){.ch-text .btn.big{padding:10px 18px;font-size:16px}.ch-text .btn{font-size:15px}}
+@media (min-width:768px){
+ .club-hero{grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:40px;align-items:center;padding:10px 4px 6px}
+ .ch-photo{order:2;max-width:520px;justify-self:end;width:100%}
+ .ch-photo img{height:auto;aspect-ratio:1100/839;transform:rotate(-2deg);border-width:10px 10px 14px}
+ .ch-big{font-size:clamp(30px,3.3vw,44px);line-height:1.3}
+ .ch-sub{font-size:17px}
+}
+/* 作る人ページ：別の切り取り（掲示板のところ）を、反対に傾けて小さめに */
+.hero-c .ch-photo{margin:0 0 6px}
+.hero-c .ch-photo::before{left:auto;right:24px;margin:0;background:rgba(215,226,241,.92);transform:rotate(4deg)}
+.hero-c .ch-photo img{height:120px;object-position:50% 14%;transform:rotate(1.4deg);border-width:5px 5px 7px}
+@media (min-width:768px){
+ .hero-c .body{grid-template-columns:minmax(0,1fr) 230px;column-gap:28px;align-items:start}
+ .hero-c .body>*{grid-column:1}
+ .hero-c .body>.ch-photo{grid-column:2;grid-row:1/span 4;order:0;margin:8px 0 0;max-width:none}
+ .hero-c .ch-photo img{height:auto;aspect-ratio:1/1.05;object-position:62% 10%;transform:rotate(1.8deg)}
+}
+/* 空の状態：コルクボードの絵と一言 */
+.eb[hidden]{display:none}
+.eb,.empty.eb{display:grid;justify-items:center;gap:6px;text-align:center;padding:12px 8px 8px}
+.eb-img{width:180px;height:auto;max-width:56%;margin:-12px 0 -10px}
+.eb-t{margin:0;font:600 16px/1.7 var(--f-hand);color:var(--ink);max-width:24em}
+.eb .btn,.eb .by{margin-top:6px}
+.callout.eb{border:1px dashed var(--line);border-radius:6px;padding:14px 16px;background:transparent}
+/* 迷子（404）・応募完了 */
+.art-top{display:block;margin:-8px auto -2px;height:auto}
+.art-lost{width:min(240px,66%)}
+.art-cheer{width:min(300px,80%)}
+/* 運営について：紙に貼った名刺 */
+.about{margin:18px 0 0;display:flex;justify-content:center}
+.about-card{position:relative;width:min(100%,520px);background:var(--card);border-radius:3px;padding:26px 24px 16px;transform:rotate(-.5deg);box-shadow:0 1px 0 var(--line),0 8px 16px rgba(60,40,20,.12);color:var(--ink);display:grid;gap:10px}
+.about-card::before{content:"";position:absolute;left:50%;top:-9px;width:60px;height:18px;margin-left:-30px;background:rgba(226,169,59,.8);transform:rotate(2deg);clip-path:var(--tape-clip)}
+.about-card h2{margin:0;font-size:13px;letter-spacing:.14em;color:var(--shu-ink)}
+.ab-who{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;max-width:none}
+.ab-who b{font:800 22px/1.3 var(--f-round);letter-spacing:.04em}
+.ab-who span{font:600 15px/1.5 var(--f-hand)}
+.ab-links{list-style:none;margin:0;padding:8px 0 0;border-top:1px dashed #C9B994;display:grid;gap:0}
+.ab-links a,.ab-priv{display:flex;align-items:center;gap:10px;min-height:44px;color:var(--ink);text-decoration:none;font-size:14px;border-radius:3px}
+.ab-links a:hover,.ab-priv:hover{background:var(--paper-2)}
+.about .ic{width:20px;height:20px;flex:none;color:var(--shu-ink)}
+.ab-l{font-family:var(--f-round);font-weight:800;min-width:5.2em}
+.ab-v{color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.ab-priv{border-top:1px dashed #C9B994;border-radius:0;padding-top:4px;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.ab-cr{margin:0;font-size:11.5px;color:var(--muted);text-align:right;max-width:none}
+@media (min-width:768px){.about{justify-content:flex-start}}
+/* ページの左右（PCの本文の外）だけ、ごく薄いコルクの繊維 */
+@media (min-width:1100px){
+ html{background:#EBE2CD}
+ body:not([data-noside]){background-color:#EBE2CD;background-image:var(--noise),radial-gradient(rgba(120,80,40,.09) .9px,transparent 1.3px),radial-gradient(rgba(120,80,40,.07) .8px,transparent 1.2px);background-size:180px 180px,7px 7px,11px 13px;background-position:0 0,0 0,3px 5px}
+ body:not([data-noside]) .wrap{background:var(--paper) var(--noise);min-height:100vh;box-shadow:0 0 0 1px rgba(220,207,184,.9),0 0 28px rgba(60,40,20,.1)}
+}
 """
 
 
@@ -808,7 +907,7 @@ def build():
  try{{
   const r=await fetch('{SB_URL}/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.{g['slug']}&order=created_at.desc&limit=100',{{headers:{{apikey:'{SB_KEY}'}}}});
   const rows=await r.json();
-  if(!Array.isArray(rows)||!rows.length){{box.textContent='まだ感想はありません。最初の感想を送ってみよう！';return}}
+  if(!Array.isArray(rows)||!rows.length){{box.innerHTML='<div class="eb"><img class="eb-img" src="../../assets/art/empty_board.webp" alt="" width="180" height="180" loading="lazy"><p class="eb-t">まだ感想はありません。最初の感想を貼ってみよう！</p></div>';return}}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
   sum.textContent=rows.length<5?rows.length+'件（5件たまると、割合も出します）':rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
   box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({{'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
@@ -831,8 +930,13 @@ def build():
     cards = "\n".join(card(g, "") for g in reversed(games))
     body = f"""<div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
-<h1 class="sr">作品一覧</h1>
-<p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
+<section class="club-hero" aria-label="テストプレイ部について">
+<figure class="ch-photo"><img src="assets/art/clubroom.webp" alt="ホワイトボードとコルクボードのある部室で、3人がゲームを試している" width="1100" height="839" fetchpriority="high"></figure>
+<div class="ch-text"><h1 class="ch-big"><span class="hu">学生のゲームを、</span><br>学生が遊ぶ部室。</h1>
+<p class="ch-sub">スワイプして、気になったら遊んで、ひとこと感想。</p>
+<div class="row"><a class="btn big" href="./">▶ ショートで遊ぶ</a><a class="btn ghost" href="./submit.html">作品を載せる</a></div></div>
+</section>
+<h2 class="sr">作品</h2>
 <div data-ms-band></div>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
@@ -850,7 +954,7 @@ def build():
 <main id="list" class="grid">
 {cards}
 </main>
-<div class="empty" id="empty" hidden><p style="margin:0 0 12px">この条件の作品はまだありません。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
+<div class="empty eb" id="empty" hidden><img class="eb-img" src="assets/art/empty_board.webp" alt="" width="640" height="640" loading="lazy"><p class="eb-t">この条件の作品は、まだ貼られていません。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
 <footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
@@ -894,8 +998,9 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <main class="cols rside"><div class="maincol">
 <section class="card hero-c"><div class="body">
+<figure class="ch-photo"><img src="assets/art/clubroom.webp" alt="コルクボードにゲームの写真が貼られた部室" width="1100" height="839" loading="lazy"></figure>
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
-<h1>説明するより、<br>遊んでもらおう。</h1>
+<h1><span class="hu-k">説明するより、</span><br>遊んでもらおう。</h1>
 <p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
 <div class="lfhero"><b>最初の1本は投稿無料</b><span>はじめての応募は、ポイントなしで送れます。2本目からは30ポイント（感想を書くとたまります）。</span></div>
 <div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small><small>ショートに出す動画か画像（動画60秒・50MBまで・任意。なければ運営が撮ります）</small></div>
