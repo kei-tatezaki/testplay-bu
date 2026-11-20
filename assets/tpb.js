@@ -655,6 +655,49 @@
   };
 
 
+  // ---- いいね・履歴（この端末 tpb:history ＋ ログイン中はアカウント user_likes / user_history） ----
+  // 端末の記録：[{slug, kind:'view'|'play', seconds:数 または null, at:ミリ秒}]（新しい順、200件まで）。ログインしていなくても残す。
+  // どの通信も、失敗しても何も出さない（画面は止めない）。ログインした瞬間に、まだ引き継いでいない端末の記録を import_local で1回だけ送る（tpb:imported）。
+  var H = T.hist = {};
+  var HMAX = 200, VIEW_GAP = 30 * 60 * 1000;
+  H.local = function () { var a = T.store.get("history", []); return Array.isArray(a) ? a : [] };
+  H.clearLocal = function () { T.store.set("history", []) };
+  H.localLikes = function () { var r = T.store.get("reacts", {}), o = []; for (var k in r) if (r[k] === "like") o.push(k); return o };
+  H.unlikeLocal = function (slug) { var r = T.store.get("reacts", {}); if (r[slug] === "like") { r[slug] = ""; T.store.set("reacts", r) } };
+  async function authed() { if (!T.maybeLoggedIn()) return null; var s = await T.session(); return s && T.sb() ? T.sb() : null }
+  H.add = function (slug, kind, seconds, at) {
+    try {
+      at = at || Date.now(); var a = H.local();
+      if (kind === "view") for (var i = 0; i < a.length; i++) if (a[i].slug === slug && a[i].kind === "view" && Math.abs(a[i].at - at) < VIEW_GAP) return;
+      a.unshift({ slug: slug, kind: kind, seconds: typeof seconds === "number" ? seconds : null, at: at });
+      a.sort(function (x, y) { return y.at - x.at }); T.store.set("history", a.slice(0, HMAX));
+      authed().then(function (sb) { if (!sb) return; return sb.from("user_history").insert({ game_slug: slug, kind: kind, seconds: typeof seconds === "number" ? Math.min(86400, Math.max(0, Math.round(seconds))) : null, created_at: new Date(at).toISOString() }) }).catch(function () {});
+    } catch (e) {}
+  };
+  H.like = function (slug, on) {
+    authed().then(function (sb) { if (!sb) return; return on ? sb.from("user_likes").insert({ game_slug: slug }) : sb.from("user_likes").delete().eq("game_slug", slug) }).catch(function () {});
+  };
+  var importing = false;
+  H.importOnce = async function () {
+    if (importing || T.store.get("imported", false)) return; importing = true;
+    try {
+      var sb = await authed(); if (!sb) return;
+      var likes = H.localLikes().filter(function (x) { return /^[a-z0-9-]{1,40}$/.test(x) }).slice(0, 200);
+      var hist = H.local().slice(0, 200).map(function (x) { return { slug: x.slug, kind: x.kind, seconds: x.seconds, at: x.at } });
+      var r = await sb.rpc("import_local", { p_likes: likes, p_history: hist });
+      if (!r.error) T.store.set("imported", true);
+    } catch (e) {} finally { importing = false }
+  };
+  // ログインを見つけたら（開いたとき・ログインして戻ってきたとき）引き継ぐ
+  function watchLogin() {
+    var sb = T.sb(); if (!sb) return;
+    if (T.maybeLoggedIn()) H.importOnce();
+    sb.auth.onAuthStateChange(function (ev, ses) { if (ses && (ev === "SIGNED_IN" || ev === "INITIAL_SESSION")) setTimeout(H.importOnce, 0) });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watchLogin); else watchLogin();
+  // 履歴の表示用：秒 →「45秒」「3分」「1時間5分」
+  H.secText = function (n) { if (typeof n !== "number") return ""; if (n < 60) return Math.max(1, Math.round(n)) + "秒"; var m = Math.round(n / 60); return m < 60 ? m + "分" : Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") };
+
   // ---- 訪問の記録（1つの端末につき1日1回） ----
   // サイトのどこかを開いたら、その日のうち最初の1回だけ site_visits に書く（端末のIDと日付だけ。日付はDBが日本時間で入れる）。
   // 同じ日にもう送ったかは localStorage（tpb:visitDay）に覚えて、2回目からは送らない。

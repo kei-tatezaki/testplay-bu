@@ -774,6 +774,7 @@ function leaveView(){
   const slug=viewing, dwell=Date.now()-viewStart; viewing=null;
   const v=seen[slug]||{n:0,quick:0}; v.n++; if(dwell<2000 && !played.has(slug)) v.quick++; else if(dwell>=2000) v.quick=Math.max(0,v.quick-1);
   seen[slug]=v; store.set('seen',seen);
+  if(dwell>=2000 && window.TPB&&TPB.hist) TPB.hist.add(slug,'view',null,Date.now()-dwell);   // 2秒以上見た作品は履歴に残す
 }
 const vio = new IntersectionObserver(es=>es.forEach(e=>{const slug=e.target.dataset.slug; if(!slug) return;
   if(e.isIntersecting){ if(viewing!==slug){ leaveView(); viewing=slug; viewStart=Date.now(); savePos(slug) } } else if(viewing===slug) leaveView();
@@ -813,8 +814,9 @@ function react(g,kind,btn){
   setReact(g,kind,btn,'');
 }
 function setReact(g,kind,btn,reason){
-  const cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
+  const prev=reacts[g.slug]||'', cur = reacts[g.slug]===kind ? '' : kind; reacts[g.slug]=cur; store.set('reacts',reacts);
   if(cur) track(g,cur,reason);
+  if(window.TPB&&TPB.hist&&(cur==='like')!==(prev==='like')) TPB.hist.like(g.slug,cur==='like');   // ログイン中は、アカウントのいいねにも入れる・外す
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
   if(cur==='like') TPB.toast('作った人に届けたよ',1500);
@@ -857,7 +859,7 @@ function play(g){
   const wasFresh=!played.has(g.slug);
   markPlayed(g); track(g,'play'); current=g;
   // ダウンロード型：新しいタブで公開ページを開く。「どうだった？」は出さない（遊べたかは、次にサイトを開いたときに聞く）。公開ページを開いたら、今日のミッションの(a)は達成
-  if(isDl(g)){ window.open(g.play,'_blank','noopener'); if(window.TPB&&TPB.mission) TPB.mission.dlOpened(g.slug,wasFresh); return }
+  if(isDl(g)){ if(window.TPB&&TPB.hist) TPB.hist.add(g.slug,'play',null); window.open(g.play,'_blank','noopener'); if(window.TPB&&TPB.mission) TPB.mission.dlOpened(g.slug,wasFresh); return }
   // 埋め込める作品（itch.io の embed／作者の *.github.io）は、サイトの中のプレイヤーで開く（g.inpage は build.py が決める）
   const ext=!isLocal(g.play)&&!g.inpage;
   playing={slug:g.slug,t:Date.now(),external:ext,fresh:wasFresh};
@@ -871,6 +873,7 @@ function endPlay(){
   if(!playing) return;
   const sec=Math.round((Date.now()-playing.t)/1000), slug=playing.slug, fresh=playing.fresh; playing=null;
   if(sec<3||sec>21600) return;  // 3秒より短いものは、まちがってひらいたものとして送らない
+  if(window.TPB&&TPB.hist) TPB.hist.add(slug,'play',sec,Date.now()-sec*1000);   // 遊んだ時間つきで履歴に残す
   if(sec>=20&&window.TPB&&TPB.mission) TPB.mission.markA(slug,fresh);   // 今日のミッション(a)：20秒以上遊んだ
   try{ fetch(SB_URL+'/rest/v1/play_sessions',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:slug,client_id:CLIENT,seconds:sec,device:DEVICE})}).catch(()=>{}) }catch(e){}
 }
