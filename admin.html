@@ -655,7 +655,7 @@ function renderFb(){
   $('fbRows').innerHTML = rows.map(f => {
     const title = GAMES[f.game_slug]?.title || f.game_slug;
     const reps = repsOf(f), repOpen = reps.some(r => !r.done);
-    const ans = [f.again, f.reach, f.stop_at && ('止まった所：' + f.stop_at), f.answer && ('質問への答え：' + ({'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}[f.answer] || f.answer)),
+    const ans = [f.again, f.reach, f.stop_at && ('止まった所：' + f.stop_at), f.answer && ('質問への答え：' + ({'◎ できた':'はい（前の形式）','○ だいたい':'まあまあ（前の形式）','△ いまいち':'いいえ（前の形式）'}[f.answer] || f.answer)),
                  (f.good||[]).length && ('良い：' + f.good.join('・')), (f.bad||[]).length && ('気になる：' + f.bad.join('・'))].filter(Boolean);
     return `<tr class="${f.hidden?'hidden':''}">
       <td class="sel">${f.hidden ? '' : `<input type="checkbox" data-sel="${f.id}" aria-label="この感想を選ぶ（${esc(title)}）" ${SEL.has(f.id) ? 'checked' : ''}>`}</td>

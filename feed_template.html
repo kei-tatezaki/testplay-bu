@@ -427,6 +427,7 @@ fieldset.err{outline:2px solid #B0301B}
 .sheet h3{background:none;clip-path:none;transform:none;margin:0;padding:0 0 6px;border-bottom:1px solid var(--line);width:auto;font-size:18px}
 .opt,.chip,.chip.k-bad,.chip.k-idea,fieldset[data-k=reach] .opt,fieldset[data-k=answer] .opt,fieldset[data-k=bad] .opt{background:#FFFDF8;border:1px solid #CDBF9F;box-shadow:none;border-radius:4px;color:var(--ink);font-weight:700}
 .opt[aria-pressed="true"],.chip[aria-pressed=true]{background:var(--shu)!important;color:#fff;border-color:var(--shu)}
+fieldset[data-k=answer] .opt[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper);border-color:var(--ink)}
 .sheet .chips.c2 .chip,.sheet .chips.c2 .chip:nth-child(even){transform:none;border-top:1px solid #CDBF9F;background:#FFFDF8}
 .sheet .chips.c2 .chip[aria-pressed=true]{background:var(--shu)}
 .chip.hot{outline:2px dashed var(--ink);outline-offset:1px}
@@ -1026,8 +1027,8 @@ const OPTS = {
   reach:['最後まで','途中でやめた'],
   good:['操作が気持ちいい','見た目','音','アイデアが新しい','ちょうどいい難しさ','その他'],
   bad:['何をすればいいかわからない','難しすぎ','簡単すぎ','操作しづらい','バグっぽい','その他'],
-  // 保存する値はデータベースの決まり（◎・○・△）のまま。画面には「はい／まあまあ／いいえ」を出す
-  answer:[['◎ できた','はい'],['○ だいたい','まあまあ'],['△ いまいち','いいえ']]
+  // 作者の質問の答えは「はい／いいえ」の2択（保存値もそのまま。前の ◎ できた／○ だいたい／△ いまいち は、データベースに残っているだけ）
+  answer:['はい','いいえ']
 };
 const EMO = ['バグ','違和感','楽しかった','やめたくなった'];
 const picks = {};
