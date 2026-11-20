@@ -167,7 +167,7 @@ function newForm(){
   const mSet=el('fieldset',{class:'mset',id:'mediaSet'},el('legend',null,'ショートに出すもの ',el('small',{style:'font-weight:400;color:var(--muted);font-size:12px'},'任意')),
     el('div',{class:'mopts',role:'presentation'},radios),mDesc,mPanel);
   function mReset(keepErr){ if(media.url) URL.revokeObjectURL(media.url); media.file=null; media.url=''; media.dur=0; fileIn.value=''; mPrev.replaceChildren(); mPrev.hidden=true; mInfo.textContent=''; pvMedia.replaceChildren(); if(!keepErr){ mErr.textContent=''; mTip.hidden=true; mTip.replaceChildren() } mRemove.hidden=true }
-  function mBig(){ mErr.textContent=BIGMSG; mTip.replaceChildren('縮めかた：',el('ul',null,el('li',null,'スマホの編集で、60秒以内に切る'),el('li',null,'書き出しを 720p（解像度を下げる）にする'),el('li',null,'画像は、サイズを小さくして jpg で書き出す'))); mTip.hidden=false }
+  function mBig(){ mErr.textContent=BIGMSG; mTip.replaceChildren('縮めかた：',el('ul',null,el('li',null,'スマホの編集で、60秒以内に切る'),el('li',null,'書き出しを 720p（解像度を下げる）にする'),el('li',null,'画像は、サイズを小さくして jpg で書き出す'),el('li',null,'どうしても大きいときは、ギガファイル便・Googleドライブなどのリンクを下の「メモ」に貼ってもOK'))); mTip.hidden=false }
   function setKind(k){ media.kind=k; mReset(); const o=MOPT.find(x=>x[0]===k); mDesc.textContent=o[2];
     mPanel.hidden=k==='auto'; fileIn.accept=k==='video'?'video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov':k==='image'?'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp':'';
     mHint.textContent=k==='video'?'ファイルを選ぶと、ここで長さと大きさを確かめます。':k==='image'?'ファイルを選ぶと、ここで大きさを確かめます。':'' }
