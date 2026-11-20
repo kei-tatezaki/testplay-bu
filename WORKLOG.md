@@ -337,8 +337,12 @@
 - **ルールのコーチ（`assets/coach.js`、AIなし）**：入力が止まって600ms後に判定。最大2つ。きつい言葉の辞書（置き換えボタン、その語だけ置換）／短い・「面白かった」だけ（［書き出しを足す］＝「特に〜の場面で、」、〜が選択された状態で入る）／作品の語（title・genre・oneliner・highlights・check・question・controls から、カタカナ・漢字・数字・英字を抽出）が1つも無い→「どのゲームでも言えそう」／場面と理由があればほめる。反映の直前1回分は［元に戻す］（本人が打ち始めると消える）。
 - **AIコーチ**：［AIに見てもらう］は、自分で打った字（input イベントの増分。貼り付け・チップ・提案の反映は数えない）が20字以上のときだけ。押せない理由を小さく表示。`feedback-coach` へ POST（10秒で中止）。コメントは付箋、rewrite は「こう直してみる？」カード＋［これにする］→［元に戻す］、残り回数を表示。失敗・429・タイムアウトは「いまはAIコーチを使えません」だけ出して続行（送信は止めない）。
 - **Edge Function（`supabase/functions/feedback-coach/index.ts`、デプロイは運営）**：既定は Claude（Messages API、tool_choice で `coach_result` を強制、`CLAUDE_MODEL`、max_tokens 600、temperature 0.4）。`AI_PROVIDER=gemini` で Gemini 版（responseSchema）に切りかえ可。JWT 検証（未ログイン401）、BAN 403、1日20回（429）、Gemini/Claude 失敗時は回数を返す（`ai_coach_refund`）、本文は800字で切る、rewrite が空・同じ・1.5倍超なら null。CORS は kei-tatezaki.github.io と localhost。
-- **SQL 017（未適用）**：`ai_coach_uses`、`ai_coach_take()`（JST5時区切り・settings の `ai_coach_daily_limit` 既定20・超えたら 'limit'）、`ai_coach_refund()`。`017_check.sql` は使い捨て Postgres で14件合格（016_check も65件のまま合格）。`tests/run_local.sh` は *_check.sql を自動では流さないよう直した（016_check が 016 本体より先に流れて落ちていたため）。
+- **SQL 017（未適用）**：`ai_coach_uses`、`ai_coach_take()`（JST5時区切り・既定30・人ごとの上書き `ai_coach_limits`・超えたら 'limit'・60秒6回で 'too_fast'・`ai_coach_log` は7日より古い行を take のたびに削除）、`ai_coach_refund()`（回数と log を1つ戻す）、運営用 `admin_ai_limit_set/clear`・`admin_ai_usage`・`admin_ai_today`。全体の上限は作らない。`017_check.sql` は使い捨て Postgres で31件合格（016_check も65件のまま合格）。`tests/run_local.sh` は *_check.sql を自動では流さないよう直した（016_check が 016 本体より先に流れて落ちていたため）。
 - privacy.html（build.py）に、AIコーチを使ったときだけ感想の文と作品の説明が Anthropic の Claude API に送られる旨を追記。
 - 確かめ：Playwright（google-chrome・route モック、functions も成功／429／500／遅延）390×844・1440×900。pageerror 0・横スクロールなし・alert なし。書き込みなし。スクショ `/home/claude/shots/c_*_m390.png`・`c_*_pc1440.png`（chips／specific／tone／generic／praise／ai_disabled／ai_result／ai_applied／ai_fail429／ai_fail500／ai_timeout／full）。
 - 決めたこと：40字ポイント・lazy 判定・送信は変更なし。PC は感想シートを860pxに広げ、右にコーチ欄。Edge Function は deno が無く型の目視確認のみ。
 
+
+- **仕様変更（自動化）**：AIコーチは自動で読む（ログイン中・自分で20字以上・2.5秒止まった・前回から15字以上かわった（初回は不要）・送信中でない。1回シートを開く間に自動は最大5回、手動の［もう一度見てもらう］は数えず同じ上限を使う）。読んでいる間は小さい付箋「AIが読んでいます…」、結果は前回分を置きかえ。429 limit→「今日のAIコーチはここまで（ルールのコーチは使えます）」で自動停止、too_fast→1分休む、403→停止。Edge Function は too_fast を 429（retry_after 60、Retry-After）、limit を 429 で返し、本文に reason。
+- **admin.html「AIコーチ」タブ**：今日の全体の回数、初期値の変更（admin_settings_set）、利用の多い人（今日・7/30日合計・上限）、人ごとの上限の変更・0で停止（確認つき）・初期値に戻す。ポイントタブの「決まりの数字」には ai_coach の行を出さない。
+- 確かめ：Playwright モックで、20字未満は呼ばない・2.5秒前は呼ばない・15字未満の差は呼ばない・15字以上で呼ぶ・5回で自動停止（手動は押せる）・429 limit／too_fast／残り0の文言・読んでいる付箋。管理タブはモックで各 rpc の引数を確認。スクショ `/home/claude/shots/c_auto_*.png`・`c_admin_ai_*.png`。
