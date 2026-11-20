@@ -160,7 +160,7 @@ ${statsText}
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: Deno.env.get("MODEL_COACH_MODEL") ?? "claude-haiku-5-5",
-        max_tokens: 3000,
+        max_tokens: 6000,
         system: SYSTEM + "\n\n結果は必ず model_review ツールで返すこと。ツールが使えないときは、同じ形の JSON だけを返すこと。",
         messages: [{ role: "user", content }],
         tools: [{ name: "model_review", description: "3Dモデルの見立てを返す", input_schema: SCHEMA }],
@@ -181,7 +181,10 @@ ${statsText}
       const text = blocks.filter((b) => b.type === "text").map((b) => b.text ?? "").join("");
       const m = text.match(/\{[\s\S]*\}/); if (m) { try { out = JSON.parse(m[0]); } catch { /* 下で失敗 */ } }
     }
-    if (!out) return json({ error: "bad_output" }, 502, cors);
+    if (!out) {
+      console.error("model-coach bad_output", data?.stop_reason, JSON.stringify(blocks).slice(0, 400));
+      return json({ error: "bad_output", stop_reason: data?.stop_reason ?? "", detail: JSON.stringify(blocks.map((b) => b.type)).slice(0, 120) }, 502, cors);
+    }
     return json({ ...clean(out), model: data?.model ?? "", usage: data?.usage ?? null }, 200, cors);
   } catch (_e) {
     return json({ error: "timeout_or_network" }, 504, cors);
