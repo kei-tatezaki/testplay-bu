@@ -6,7 +6,7 @@ D=$(cd "$(dirname "$0")/.." && pwd)
 PGBIN=$(ls -d /usr/lib/postgresql/*/bin | tail -1)
 DIR=$(mktemp -d); chown postgres "$DIR"
 PORT=54329
-runuser -u postgres -- $PGBIN/initdb -D "$DIR/data" -A trust >/dev/null
+runuser -u postgres -- $PGBIN/initdb -D "$DIR/data" -A trust -E UTF8 --locale=C.UTF-8 >/dev/null
 runuser -u postgres -- $PGBIN/pg_ctl -D "$DIR/data" -o "-p $PORT -k $DIR -c listen_addresses=''" -l "$DIR/log" -w start >/dev/null
 trap 'runuser -u postgres -- $PGBIN/pg_ctl -D "$DIR/data" -m immediate stop >/dev/null; rm -rf "$DIR"' EXIT
 P="psql -h $DIR -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X"
