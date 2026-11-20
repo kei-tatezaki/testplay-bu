@@ -318,3 +318,14 @@
 - **今日のミッション**：`assets/mission.js`。スタンプカード（アニメ、reduced-motion は即時）、連続日数、一覧の帯、PC サイドバー／スマホ⋮メニュー、達成トースト、me.html の「スタンプ」タブ。
 - 確かめ：Playwright（google-chrome・route モック）390×844・1440×900ほか。pageerror 0・横スクロールなし・AA最小 4.87。016 は使い捨て Postgres で 65件合格。本番 Supabase には書いていない。
 - スクリーンショット：`/home/claude/shots/f_*.png`。
+
+
+## 見た目の仕上げ（部室のイラスト・運営について・質感）
+
+- **絵**：`assets/art/`（clubroom 93KB・lost・empty_board・desk・cheer。lost/empty/desk/cheer は紙色の背景を透明にした webp。合計約190KB）。一覧の一番上に「学生のゲームを、学生が遊ぶ部室。」＋ボタン2つ＋部室の写真（白フチ・-2deg・テープ）。スマホは写真を横長に切り抜き（高さ130〜164px、ブロック全体は 360×740 で 351px・390×844 で約390px）。作る人ページは同じ絵を別の切り取り（掲示板）・反対の傾き・小さめ。
+- **空の状態**：絞り込み0件・自分の作品／遊んだ作品／送った感想が0・プロフィールの作品0・作品ページの感想0 に empty_board＋Klee One の一言（`TPB.emptyBoard` / `TPB.ebImg`）。404 に lost、応募完了に cheer、PC の左サイドバー下に desk（768〜1023px のレールでは出さない）。
+- **運営について**：`tpb.js` の `T.about()` が全ページの `.wrap` 末尾に名刺風の紙を描く（ショート・admin を除く）。運営・mailto・X・YouTube・Discord（TPB_DATA.discord）・privacy・イラストの注記。SVGアイコンは自前。ショートは PC サイドバー下とスマホの ⋮ メニューに「運営について」のリンクだけ（`list.html#about`）。
+- **質感**：手描き風の下線（`.hu` 朱／`.hu-k` からし）、段落の最大幅 38em、PC 1100px 以上で本文の外側にだけ薄いコルク、カードの傾き・影・テープを nth-child で変化、ハンコの押下とフォーカスの統一（`.btn`・`.tpb-btn`）。
+- **OG**：`og/site.png` を部室の写真つきに作り直し（build.py の make_site_og）。
+- **スタンプカード文言**：(a) の記号をやめ、ボーナスは「感想2つでボーナス」「感想のミッション2つがそろうと、ボーナス +5pt」、各ミッションの説明を短く。
+- 確かめ：Playwright 360/390/820/1024/1280/1440、主要8ページで横スクロールなし・pageerror 0。スクリーンショット：`/home/claude/shots/d_*.png`（変更前は `d_before_*.png`）。
