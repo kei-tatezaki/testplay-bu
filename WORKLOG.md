@@ -359,3 +359,13 @@
 - **ネタ帳**：creators.html に「ネタ帳にもどうぞ」（#neta）、list のお知らせ欄に小さなリンク（スマホは省略）。
 - 確かめ：Playwright 360/390/820/1024/1280/1440、list・creators・me・profile・作品ページ・ショート・privacy で pageerror 0・横スクロールなし・絵文字なし。list の文字コントラスト最小 4.99（朱ボタンの白文字）。コーチはモックで3枚上限・praise 優先を確認。書き込みなし。スクショ `/home/claude/shots/r_*.png`（変更前 `r_before_*.png`）。
 - 残し：dev.html・admin.html（運営向けの業務画面）の絵文字と見た目は未変更。
+
+
+## いいねと履歴（11月21日）
+
+- **SQL 018（未適用）**：`supabase/018_likes_history.sql`。`user_likes`・`user_history`（本人だけ select/insert/delete の RLS、BAN は insert 不可）、同じ作品の view は前後30分以内なら静かに捨てるトリガー、1人あたり新しい500件を超えたら古い行を削除、`profiles.likes_public`（既定 false）、`my_profile()` に likes_public を追加、`likes_public_set(p_on)`、`public_likes(p_handle)`（公開中・非表示でない・BAN でない人だけ。新しい順200件）、`import_local(p_likes, p_history)`（いいね200・履歴200まで、重複は無視、未来の日時は除く）。`018_check.sql` は使い捨て Postgres で52件合格（016は65件・017は31件のまま合格）。
+- **記録**：`assets/tpb.js` に `TPB.hist`（端末 `tpb:history` 最新200件＋ログイン中は user_history / user_likes）。ログインを見つけたら（読み込み時・SIGNED_IN）`import_local` を1回だけ送り、`tpb:imported` を立てる。ショートは、2秒以上見たら view、`endPlay` の秒数で play（ダウンロード型は秒なしで play）、いいねの付け外しで user_likes。未ログインは通信しない。
+- **マイページ**：タブ「いいね」「履歴」を追加し、「遊んだ作品」は履歴に統合（`#played` は履歴へ）。履歴は今日／昨日／M月D日で区切り、「履歴を消す」は二度押し。未ログインは端末の記録を出す。プロフィールに「いいねした作品を公開する」スイッチ。
+- **公開プロフィール**：公開中の人だけ「いいねした作品」。本人が見ると公開状態と切りかえリンク。privacy.html にも追記。
+- **決めたこと**：「存在する slug だけ」は作品表が DB に無いので slug の形だけで確認。未来の日時は5分の時計ずれまで許す。引き継ぎ済みの印は端末に1つ（別アカウントに二重で送らない）。
+- 確かめ：Playwright モック（`/home/claude/tools/htest.py`）390×844・1440×900、pageerror 0・横スクロールなし・絵文字なし・alert なし、文字コントラスト最小 4.99、書き込みなし。スクショ `/home/claude/shots/h_*.png`。
