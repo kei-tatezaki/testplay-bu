@@ -463,6 +463,26 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 .info .ask1{border-left:3px solid var(--karashi);padding-left:8px;font-size:13px;line-height:1.5;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sAsk{margin:0 0 4px}
 .vpanel .ask{color:var(--ink)}.vpanel .ask b{color:var(--muted);opacity:1}
+/* 第一印象・PCで遊ぶリスト・プレイヤーの読み込み中 */
+.fi-btn{display:inline-flex;align-items:center;gap:6px;justify-self:start;font:inherit;font-size:13px;font-weight:700;min-height:44px;padding:4px 12px 4px 8px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;font-family:var(--f-rd)}
+.info .fi-btn{color:inherit;border-color:#ffffff66}
+.fi-btn svg{width:18px;height:18px}
+.vpanel .fi-btn.pv{color:var(--ink);border-color:var(--ink)}
+.fi-btn:hover{background:#8882}
+.rb.pcb .ic{background:var(--karashi);color:var(--ink)}
+.rb.pcb[aria-pressed=true] .ic{background:var(--ink);color:var(--paper)}
+.pcband{position:fixed;z-index:22;left:50%;top:calc(60px + env(safe-area-inset-top));transform:translateX(-50%);max-width:calc(100% - 32px);font:inherit;font-size:14px;font-weight:700;min-height:44px;padding:6px 16px;border:0;border-left:4px solid var(--karashi);border-radius:2px;background:var(--karashi-soft);color:var(--ink);cursor:pointer;font-family:var(--f-rd);box-shadow:0 2px 8px #0003}
+.pcband[hidden]{display:none}
+.fi-cnt{font-size:12px;text-align:right;opacity:.75;margin-top:-6px}
+.fi-tone{display:grid;gap:6px;font-size:13px}.fi-tone:empty{display:none}.fi-tone p{margin:0}
+.player .pbody{position:relative;overflow:hidden}
+.player iframe{position:relative;z-index:1;transition:opacity .2s ease}
+.pbg{position:absolute;inset:-24px;background:#0b0e13 center/cover no-repeat;filter:blur(22px) brightness(.55)}
+.pbg video{width:100%;height:100%;object-fit:cover}
+.ploadbar{position:absolute;z-index:2;left:0;right:0;top:0;height:3px;background:#ffffff33;overflow:hidden}
+.ploadbar i{display:block;height:100%;width:40%;background:var(--shu,#C8401F)}
+@media (prefers-reduced-motion:no-preference){.ploadbar i{animation:pload 1.1s ease-in-out infinite}@keyframes pload{from{transform:translateX(-100%)}to{transform:translateX(260%)}}}
+@media (prefers-reduced-motion:reduce){.ploadbar i{width:100%}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -472,6 +492,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 <a class="skip" href="#feed" id="skip">作品へ飛ぶ</a>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">テストプレイ部：学生のゲームを5分でつまみ食い</h1>
 <div class="top"><a class="back" id="back" href="list.html" aria-label="作品一覧を見る"><span aria-hidden="true">▦</span><span class="bk-t">作品一覧</span></a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span><div class="ftabs" role="tablist" aria-label="ショートの切り替え"><button type="button" role="tab" id="tabRec" aria-selected="true"><span>おすすめ</span></button><button type="button" role="tab" id="tabFol" aria-selected="false"><span>フォロー中</span><i class="fdot" hidden aria-label="新しい作品があります"></i></button></div><p class="fmsg" id="fMsg" role="status" hidden>作者をフォローすると、ここに新作が流れます</p></div>
+<button type="button" class="pcband" id="pcBand" hidden></button>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは、作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">操作がわかりにくい</button>
 <button type="button" data-r="heavy">重い・うまく動かない</button>
@@ -666,6 +687,42 @@ function ageCover(){
 }
 // 作者のお願い（games.json の fb_style・goal）。未設定なら何も出さない
 const FBS_LONG={gentle:'やさしめに言ってほしい（良いところも知りたい）',honest:'正直に言ってほしい（厳しくてもOK）',both:'良いところも、厳しいことも聞きたい'}, FBS_SHORT={gentle:'やさしめに',honest:'正直に',both:'両方'};
+// 線画アイコン（絵文字は使わない）
+const SVGP2={fi:'M12 21a9 9 0 100-18 9 9 0 000 18zM9 10v.6M15 10v.6M8.5 14c2 1.8 5 1.8 7 0',pc:'M3 5h18v11H3zM8 20h8M12 16v4'};
+function svgI2(k){ const s=svgI('up'); s.firstChild.setAttribute('d',SVGP2[k]); return s }
+// 第一印象：動画を見て「遊んでみたい？」。遊んでいなくても送れる。感想シートとは別
+function fiLabel(g){ const o=TPB.fi.sentToday(g.slug); return o?'第一印象：送った（変える）':'第一印象を送る' }
+function fiBtn(g,cls){ const b=el('button',{type:'button',class:cls,'data-fi':g.slug,onclick:e=>openFI(g,e.currentTarget)},svgI2('fi'),el('span',null,fiLabel(g))); return b }
+function refreshFI(slug){ document.querySelectorAll('[data-fi="'+slug+'"] span').forEach(sp=>{ const g=GAMES.find(x=>x.slug===slug); if(g) sp.textContent=fiLabel(g) }) }
+// 重い作品（PC用・ダウンロード型・50MB以上）を、スマホで見ているとき：「PCで遊ぶリストに入れる」を遊ぶの横に目立たせる
+const heavy=g=>isDl(g)||(typeof g.size_mb==='number'&&g.size_mb>=50)||platOf(g)==='pc';
+const pclOK=g=>DEVICE==='sp'&&platOf(g)!=='sp'&&!!TPB.pcl;
+function pclRail(g){ if(!pclOK(g)||!(heavy(g)||!canPlay(g))) return null;
+  const on=TPB.pcl.has(g.slug);
+  return el('button',{class:'rb pcb',type:'button','data-pcl':g.slug,'aria-pressed':String(on),'aria-label':'PCで遊ぶリストに入れる',onclick:async e=>{ const b=e.currentTarget; await TPB.pcl.toggle(g); refreshPcl(g.slug) }},el('span',{class:'ic'},svgI2('pc')),el('span',{class:'lb'},on?'入れた':'PCで遊ぶ')) }
+function refreshPcl(slug){ const on=TPB.pcl.has(slug); document.querySelectorAll('[data-pcl="'+slug+'"]').forEach(b=>{ b.setAttribute('aria-pressed',String(on)); const l=b.querySelector('.lb'); if(l) l.textContent=on?'入れた':'PCで遊ぶ'; b.setAttribute('aria-label',on?'PCで遊ぶリストから外す':'PCで遊ぶリストに入れる') }) }
+document.addEventListener('tpb:pclist',e=>refreshPcl(e.detail.slug));
+// 第一印象を送る小さなシート（遊んでいなくても送れる。AIコーチは使わない。言い方のルールのコーチだけ）
+function openFI(g,anchor){
+  const prev=TPB.fi.sentToday(g.slug); let level=prev?prev.level:0;
+  const msg=el('p',{class:'tpb-msg','aria-live':'polite'}), toneBox=el('div',{class:'fi-tone','aria-live':'polite'});
+  const opts=el('div',{class:'tpb-opts',role:'radiogroup','aria-label':'遊んでみたい？'},TPB.fi.LEVELS.map(([v,l])=>el('button',{type:'button',class:'tpb-opt',role:'radio','aria-checked':String(v===level),onclick:e=>{ level=v; opts.querySelectorAll('.tpb-opt').forEach(x=>x.setAttribute('aria-checked',String(x===e.currentTarget))); msg.textContent=''; msg.className='tpb-msg' }},l)));
+  const ta=el('textarea',{maxlength:100,rows:2,placeholder:'ひとこと（任意・100字まで）','aria-label':'ひとこと（任意）'}); ta.value=prev?prev.note:'';
+  const cnt=el('div',{class:'fi-cnt'}), send=el('button',{class:'tpb-btn',type:'button'},prev?'送りなおす':'送る');
+  function tone(){ cnt.textContent=[...ta.value].length+'/100字'; toneBox.replaceChildren();
+    const t=(window.TPBCoach?TPBCoach.analyze(ta.value,[],g.fb_style):[]).filter(n=>n.kind==='tone')[0];
+    if(t){ toneBox.append(el('p',null,t.msg),...t.acts.map(a=>el('button',{type:'button',class:'tpb-btn ghost',onclick:()=>{ ta.value=ta.value.split(a.w).join(a.r); tone() }},a.label))) } }
+  ta.addEventListener('input',tone); tone();
+  send.addEventListener('click',async()=>{
+    if(!level){ msg.className='tpb-msg err'; msg.textContent='3つのうち、ひとつ選んでね'; return }
+    send.disabled=true; msg.className='tpb-msg'; msg.textContent='送っています…';
+    const r=await TPB.fi.send(g.slug,level,ta.value.trim()); send.disabled=false;
+    if(r.ok){ TPB.closeOverlay(); TPB.toast('送ったよ。ありがとう',2000); refreshFI(g.slug) }
+    else{ msg.className='tpb-msg err'; msg.textContent=TPB.fi.errText(r.error) } });
+  TPB.sheet('動画を見て思ったこと',el('div',{style:'display:grid;gap:12px'},
+    el('p',{class:'tpb-sub'},'「'+g.title+'」の動画を見て、遊んでみたいと思った？　遊んでいなくても送れます。遊んだあとに書く「感想」とは別のものです。'),
+    el('b',{style:'font-size:14px'},'遊んでみたい？'),opts,ta,cnt,toneBox,msg,send),anchor);
+}
 function askBox(g){ const st=FBS_LONG[g.fb_style], goal=(g.goal||'').trim(); if(!st&&!goal) return null;
   return el('div',{class:'ask'},st?el('p',null,el('b',null,'作者のお願い'),st):null,goal?el('p',null,el('b',null,'この作品で目指していること'),goal):null) }
 function askLine(g){ const st=FBS_SHORT[g.fb_style], goal=(g.goal||'').trim(); if(!st&&!goal) return null;
@@ -689,7 +746,7 @@ function chipsFor(g){
   if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},PLATNAME(g)+'用'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
   if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
-  return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},g.minutes):null);
+  return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},g.minutes):null,TPB.sizeText(g)?el('span',{class:'chip sz'},TPB.sizeText(g)):null,TPB.isFast(g)?el('span',{class:'chip fast'},'すぐ遊べる'):null);
 }
 function refreshChips(slug){
   const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]'), old=sl&&sl.querySelector('.chips');
@@ -720,19 +777,19 @@ order.forEach((g,idx)=>{
       el('h2',null,g.title),
       byLine(g),
       chips,
-      el('p',null,g.oneliner), askLine(g)),
+      el('p',null,g.oneliner), askLine(g), fiBtn(g,'fi-btn')),
     el('div',{class:'vpanel'},
       el('h2',null,g.title), byLine(g),
       el('p',null,g.oneliner),
       el('button',{class:'bigplay'+(isDl(g)?' dl':'')+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},isDl(g)?playText(g):'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
       g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null, askBox(g),
-      el('div',{class:'fbn'}),
+      el('div',{class:'fbn'}), fiBtn(g,'fi-btn pv'),
       el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'感想を書く'),
       el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
     el('div',{class:'rail'},
       whoBtn(g),
       el('button',{class:'rb play'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':canPlay(g)?(isDl(g)?'公開ページへ（ダウンロード）':'遊ぶ'):'遊ぶ（'+PLATNAME(g)+'用のゲームです）',onclick:()=>play(g)},el('span',{class:'ic'},isDl(g)?'⬇':'▶'),el('span',{class:'lb'},isDl(g)?'公開ページ':'遊ぶ')),
-      likeB, hmmB,
+      pclRail(g), likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},svgI('chat')),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
     (idx===0||!matchMedia('(pointer:coarse)').matches)?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓で次へ・Spaceで遊ぶ'):null,
@@ -776,6 +833,13 @@ feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'�
   // 最新のフォロー中を取りにいく。届いたら、作者名の「フォロー中」・点・?tab=follow を反映（おすすめの並びは入れ替えない）
   if(TPB.follow&&TPB.maybeLoggedIn()) ready.then(()=>TPB.follow.mine()).then(r=>{ rows=r||[]; FOLH=TPB.follow.handles(rows); refreshCreators(); dot();
     if(/^(fol|follow)$/.test(new URLSearchParams(location.search).get('tab')||'')) setMode('fol') });
+  // PC：スマホで「PCで遊ぶ」に入れて、まだ遊んでいない作品があれば、先頭に帯を出す。押すとその作品だけ順に並べる（遊ぶとリストから自動で外れる）
+  const band=$('pcBand'); let pcRows=[];
+  const pcGames=()=>pcRows.map(s=>GAMES.find(g=>g.slug===s)).filter(g=>g&&canPlay(g)&&!played.has(g.slug));
+  function paintBand(){ const l=pcGames(); band.hidden=!(DEVICE==='pc'&&(l.length||mode==='pc')); band.textContent=mode==='pc'?'スマホで入れた作品だけ表示中（おすすめにもどる）':'スマホで入れた作品 '+l.length+'本'; band.setAttribute('aria-pressed',String(mode==='pc')) }
+  band.addEventListener('click',()=>{ if(mode==='pc'){ mode='rec'; paint(); put(order) } else { const l=pcGames(); if(!l.length) return; msg.hidden=true; mode='pc'; paint(); put(l) } paintBand() });
+  if(DEVICE==='pc'&&TPB.pcl) ready.then(()=>TPB.pcl.pending()).then(r=>{ pcRows=r||[]; paintBand() });
+  document.addEventListener('tpb:pclist',()=>{ if(DEVICE==='pc'&&TPB.pcl) TPB.pcl.pending().then(r=>{ pcRows=r||[]; paintBand() }) });
   dot();
 }
 // 動画の大きさ：題名などの高さを測って動画のおき場を決める。縦長に近い動画は画面いっぱい（cover）、そうでなければ真ん中に大きく
@@ -839,7 +903,7 @@ function warmVideo(sl){ const v=sl&&sl.querySelector&&sl.querySelector('video');
 const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ warmVideo(e.target); warmVideo(e.target.nextElementSibling) } const v=e.target.querySelector('video');if(!v)return;if(e.isIntersecting){v.play().catch(()=>{})}else{ v.pause(); e.target.classList.remove('paused') }}),{threshold:.6});
 document.querySelectorAll('.slide').forEach(s=>io.observe(s));
 // 見ていた時間を記録：2秒以内にスワイプした作品は、次から少し下げる
-let viewing=null, viewStart=0;
+let viewing=null, viewStart=0, pfT=0;
 function leaveView(){
   if(!viewing) return;
   const slug=viewing, dwell=Date.now()-viewStart; viewing=null;
@@ -848,7 +912,7 @@ function leaveView(){
   if(dwell>=2000 && window.TPB&&TPB.hist) TPB.hist.add(slug,'view',null,Date.now()-dwell);   // 2秒以上見た作品は履歴に残す
 }
 const vio = new IntersectionObserver(es=>es.forEach(e=>{const slug=e.target.dataset.slug; if(!slug) return;
-  if(e.isIntersecting){ if(viewing!==slug){ leaveView(); viewing=slug; viewStart=Date.now(); savePos(slug) } } else if(viewing===slug) leaveView();
+  if(e.isIntersecting){ if(viewing!==slug){ leaveView(); viewing=slug; viewStart=Date.now(); savePos(slug); clearTimeout(pfT); if(DEVICE==='sp'){ const g=GAMES.find(x=>x.slug===slug); pfT=setTimeout(()=>{ if(viewing===slug&&g&&TPB.prefetch) TPB.prefetch.hint(g) },4000) } } } else if(viewing===slug){ leaveView(); clearTimeout(pfT) }
 }),{threshold:.6});
 document.querySelectorAll('.slide[data-slug]').forEach(s=>vio.observe(s));
 addEventListener('pagehide',leaveView);
@@ -919,7 +983,16 @@ function openPlayer(g){
     fr.focus(); try{ fr.contentWindow.focus() }catch(_){}
     try{ fr.contentDocument.addEventListener('keydown',onPlayerKey) }catch(_){}  // 同じ出どころのゲームなら、ゲームの中でも Esc で閉じられる
   });
-  fr.src=outer?g.inpage:g.play; $('pBody').replaceChildren(fr);
+  // 読み込み中：上に細いバー（iframe の load まで）。背景には、その作品のプレイ動画をぼかして流す（動きを減らす設定・通信量の節約中は、止めた絵だけ）
+  const pb=$('pBody'), still=matchMedia('(prefers-reduced-motion:reduce)').matches||(navigator.connection&&navigator.connection.saveData), r18=g.rating==='r18';
+  const bg=el('div',{class:'pbg','aria-hidden':'true'}); const cov=r18?null:(g.cover||('og/'+g.slug+'.png'));
+  if(g.clip&&!r18&&!still){ const v=el('video',{src:g.clip,muted:true,loop:true,playsinline:true,autoplay:true,preload:'auto'}); v.muted=true; bg.append(v); v.play().catch(()=>{}) }
+  else if(cov) bg.style.backgroundImage="url('"+cov+"')";
+  const bar=el('div',{class:'ploadbar',role:'progressbar','aria-label':'ゲームを読み込み中'+(still?'':''),'aria-busy':'true'},el('i'));
+  fr.style.opacity='0'; let loaded=false;
+  const done=()=>{ if(loaded) return; loaded=true; fr.style.opacity='1'; bar.remove(); bg.remove() };
+  fr.addEventListener('load',done); setTimeout(done,20000);
+  fr.src=outer?g.inpage:g.play; pb.replaceChildren(bg,bar,fr);
   $('player').classList.add('open'); syncInert(); TPB.layer.open('player',closePlayer);
   fr.focus();
 }
@@ -928,7 +1001,7 @@ function play(g){
   if(!canPlay(g)){ wrongDevice(g); return }
   closeIntro(); hideAfter(); hideNeedPlay();
   const wasFresh=!played.has(g.slug);
-  markPlayed(g); track(g,'play'); current=g;
+  markPlayed(g); track(g,'play'); current=g; if(TPB.pcl) TPB.pcl.played(g.slug);
   // ダウンロード型：新しいタブで公開ページを開く。「どうだった？」は出さない（遊べたかは、次にサイトを開いたときに聞く）。公開ページを開いたら、今日のミッションの(a)は達成
   if(isDl(g)){ if(window.TPB&&TPB.hist) TPB.hist.add(g.slug,'play',null); window.open(g.play,'_blank','noopener'); if(window.TPB&&TPB.mission) TPB.mission.dlOpened(g.slug,wasFresh); return }
   // 埋め込める作品（itch.io の embed／作者の *.github.io）は、サイトの中のプレイヤーで開く（g.inpage は build.py が決める）

@@ -384,3 +384,17 @@
 - **privacy.html**：フォローの記録（本人と相手の一覧に出る）を追記。
 - 確かめ：Playwright モック（`/home/claude/tools/pmock.py`・`pme*.py`・`pprof.py`・`pfeed.py`・`pmenu.py`）390×844・360×740・1440×900・1024×768。pageerror 0・横スクロールなし・絵文字なし・文字コントラスト AA・タブ見切れなし。スクショ：`/home/claude/shots/p_before_*.png`（前）、`p_*.png`（後）。
 - 残し：フォロー通知はしない。ショートの「フォロー中」は、サイトの作品（games.json）のうち game_owners で作者に結ばれているものだけ。build.py の古い CSS（`.mehead`・`.cols` の本人カード用など）は他ページ用に残している。
+
+
+## PWA・第一印象・PCで遊ぶリスト・重さの目印・先読み（11月21日）
+
+- **SQL 020（未適用）**：`supabase/020_first_impression_pclist.sql`＋`020_check.sql`（使い捨て Postgres で 90件合格。016〜019 のチェックも通る）。`first_impressions`（1人1作品1日1件・上書き、BAN・禁止語、メモ100字まで、匿名は client_id）、`pc_list`（本人だけ・200件まで）、`first_impression_send`／`first_impression_public`（メモは合計5件以上で公開）／`dev_first_impressions`／`admin_first_impressions`／`admin_first_impression_hide`（画面なし）／`pclist_import`。`submission_send` は 016 のもの＋`size_mb`・`fb_style`・`goal` を許可。021（はいいえ）は適用済みのまま。
+- **PWA**：manifest（maskable 追加）、`src/sw.js`→`sw.js`（build.py が内容ハッシュを付ける。HTML は network-first→キャッシュ→`offline.html`、CSS/JS/画像は stale-while-revalidate、clips の mp4・Supabase・関数・外部ゲームには触らない）、`assets/pwa.js`（2回目の訪問／2本遊んだ／感想を送ったあとに案内。iOS は共有ボタンの図。「あとで」で14日）。メニューとマイページに常設の「アプリとして使う」。
+- **第一印象**：ショートと作品ページに「動画を見て思ったこと」。ルールコーチ（口調）のみ。作品ページ・dev に集計。ポイント・ミッションなし。
+- **PCで遊ぶリスト**：スマホで入れ、PCで「スマホで入れた作品 ○本」。遊んだら自動で外れる。端末内 `tpb:pcList`、ログイン時 `pclist_import`。
+- **重さの目印**：games.json の任意 `size_mb`（「約25MB」「すぐ遊べる」＝10MB以下かつ both/sp）、list に「スマホですぐ遊べる」絞り込み、応募フォームに容量欄。サンプル9本は 0.02 を仮に入れた。
+- **待ち時間**：プレイヤー上部の細い読み込みバー＋プレイ動画のぼかし背景（reduced-motion では止める）、閲覧4秒後の preconnect／prefetch、プロフィール編集の「先読みする」スイッチ。
+- **作者のお願い（fb_style／goal）**：応募フォーム、感想シート、Edge Function（`feedback-coach`、未デプロイ。deno がなく実行は未確認）、coach.js の口調判定。
+- **creators.html**：「スマホですぐ遊んでもらうには」「企画・プランナーの人へ」、確かめたいことに「企画の芯」。
+- 確かめ：Playwright モック（`/home/claude/tools/w_test.py`、list／feed／game／submit／me／dev／pwa／coach）で pageerror 0・横スクロールなし・絵文字なし。SW 登録・オフライン・iOS／Android の案内を確認。
+- 残し：Lighthouse の installable は未実行。Edge Function は未デプロイ。第一印象メモの非表示は画面なし。

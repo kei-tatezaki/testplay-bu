@@ -115,6 +115,7 @@ button,select,input{font:inherit}
     <div class="card"><h2>よかったところ</h2><div class="bars" id="good"></div></div>
     <div class="card"><h2>気になったところ</h2><div class="bars" id="bad"></div></div>
     <div class="card"><h2>あなたの質問への答え <span class="note" id="qText"></span></h2><div class="bars" id="answer"></div></div>
+    <div class="card"><h2>第一印象（動画を見た人）</h2><p class="note" style="margin-top:-6px">遊ぶ前に、ショートの動画を見て「遊んでみたい？」に答えた人です。遊んでいなくても送れます。感想とは別です。</p><div id="fiBox"><span class="muted">読み込み中…</span></div></div>
     <div class="card"><h2>遊ばれた時間帯</h2>
       <div class="hours" id="hours"></div><div class="hlab" id="hlab"></div>
       <h2 style="margin-top:16px">PC・スマホ</h2><div class="bars" id="devices"></div>
@@ -207,7 +208,19 @@ async function load(){
   const D=s.devices||{}; bars('devices',[['PC',D.pc||0],['スマホ',D.sp||0]]);
   const FBN={gentle:'やさしめに',honest:'正直に',both:'両方ほしい'}, fs=GAMES[slug]&&GAMES[slug].fb_style;
   $('fbAsk').hidden=!FBN[fs]; $('fbAsk').textContent=FBN[fs]?'あなたは「'+FBN[fs]+'」を選びました（応募のときに変えられます）':'';
+  loadFi(slug);
   renderFb();
+}
+// 第一印象（020）。まだ適用していないときは、エラーを出さずに書いておく
+async function loadFi(slug){
+  const box=$('fiBox'); let d=null, err=false;
+  try{ const r=await sb.rpc('dev_first_impressions',{p_slug:slug}); if(r.error) err=true; else d=r.data }catch(e){ err=true }
+  if(slug!==$('game').value) return;
+  if(err||!d){ box.innerHTML='<span class="muted">まだ集計できません</span>'; return }
+  if(!d.total){ box.innerHTML='<span class="muted">まだありません</span>'; return }
+  const LAB={3:'遊びたい',2:'少し気になる',1:'今はいいかな'};
+  box.innerHTML='<div class="bars" id="fiBars"></div>'+((d.recent||[]).length?'<p class="note" style="margin:10px 0 4px">最近のひとこと（新しい順）</p><ul class="list">'+d.recent.map(x=>`<li><span class="tag">${esc(LAB[x.level]||'')}</span> ${esc(x.note)}</li>`).join('')+'</ul>':'');
+  bars('fiBars',[['遊びたい',d.want||0],['少し気になる',d.maybe||0],['今はいいかな',d.no||0,'warn']]);
 }
 function renderFb(){
   $('fbCount').textContent=FB.length+'件';

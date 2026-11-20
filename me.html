@@ -53,6 +53,7 @@
 .fr .chip{justify-self:start}
 .wl{margin:0;font-size:14px;color:var(--muted)}
 .wl a{font-weight:700;color:var(--ao);text-underline-offset:3px}
+.pcl{margin:0 0 14px;padding:0 0 12px;border-bottom:1px solid var(--line)}.pcl-h{margin:0 0 2px;font-size:15px}.pcl-h small{font-weight:400;color:var(--muted);font-size:12px}.pcl .note{margin:0 0 8px}
 .utl{display:flex;flex-wrap:wrap;gap:0 18px;margin:6px 0 0}
 .utl a,.utl button{display:inline-flex;align-items:center;min-height:40px;font:inherit;font-size:13px;color:var(--ao);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .unlikeb{display:flex;align-items:center;min-height:48px}
@@ -173,7 +174,7 @@ function render(){
     PROFILE&&PROFILE.hidden?el('p',{class:'msg err'},'このプロフィールは運営が非表示にしています'):null,
     hasWorks()?null:el('p',{class:'wl'},'自分の作品を、テストプレイしてもらいませんか？ ',el('a',{href:'./submit.html'},'作品を載せる →')),
     BAR,PANE,
-    el('p',{class:'utl'},PROFILE&&PROFILE.handle?el('a',{href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,ISADMIN?el('a',{href:'./admin.html'},'管理ページ'):null,
+    el('p',{class:'utl'},PROFILE&&PROFILE.handle?el('a',{href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,T.pwa?T.pwa.link('pwa-link','アプリとして使う'):null,ISADMIN?el('a',{href:'./admin.html'},'管理ページ'):null,
       el('button',{type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); T.store.set('folCache',null); location.reload() }},'ログアウト')));
   drawPane();
 }
@@ -216,14 +217,30 @@ function paneGames(pane){
 }
 // ---- いいね ----
 // ログイン中はアカウントの user_likes、ログインしていなければこの端末の tpb:reacts
-async function paneLikes(pane){
+// PCで遊ぶリスト（スマホで「PCで遊ぶリストに入れる」にした作品）。タブは増やさず、いいねタブの上に小さな見出しで出す。空なら出さない
+async function pcListBox(){
+  if(!T.pcl) return null;
+  const slugs=await T.pcl.list(), games=slugs.map(T.game).filter(Boolean); if(!games.length) return null;
+  const box=el('section',{class:'pcl','aria-labelledby':'pclH'},el('h3',{id:'pclH',class:'pcl-h'},'PCで遊ぶ ',el('small',null,games.length+'本')),
+    el('p',{class:'note'},'スマホで入れた作品です。PCで遊ぶと、ここから外れます。'));
+  const grid=el('div',{class:'gtg'}); box.append(grid);
+  async function drop(g,art){ T.closeOverlay(); await T.pcl.remove(g.slug); art.remove(); T.toast('PCで遊ぶリストから外したよ',1500); if(!grid.children.length) box.remove() }
+  games.forEach(g=>grid.append(T.gthumb(g,{menu:(a,art)=>itemSheet(g,a,[['リストから外す',{warn:true,onclick:()=>drop(g,art)}],['作品ページを見る',{href:'./games/'+g.slug+'/'}],['ショートで見る',{href:'./?g='+g.slug}]])})));
+  return box;
+}
+function paneLikes(pane){
+  const top=el('div'), rest=el('div'); pane.append(top,rest);
+  pcListBox().then(b=>{ if(b&&top.isConnected) top.append(b) }).catch(()=>{});
+  return paneLikesList(rest);
+}
+async function paneLikesList(pane){
   pane.append(el('p',{class:'note'},'読み込み中…'));
   let rows=[], failed=false;
   if(SES){ try{ const r=await sb.from('user_likes').select('game_slug,created_at').order('created_at',{ascending:false}).limit(500); if(r.error) throw r.error; rows=r.data||[] }catch(e){ failed=true } }
   else rows=T.hist.localLikes().reverse().map(g=>({game_slug:g}));
   if(!pane.parentNode) return;
   pane.replaceChildren();
-  if(failed){ pane.append(el('div',{class:'callout'},el('b',null,'いいねを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>{ pane.replaceChildren(); paneLikes(pane) }},'もう一度'))); return }
+  if(failed){ pane.append(el('div',{class:'callout'},el('b',null,'いいねを読み込めませんでした'),el('p',{class:'note'},'時間をおいて、もう一度開いてね。'),el('button',{class:'btn',type:'button',onclick:()=>{ pane.replaceChildren(); paneLikesList(pane) }},'もう一度'))); return }
   const games=rows.map(r=>T.game(r.game_slug)).filter(Boolean);
   if(!games.length){ pane.append(empty('まだ「いいね」した作品はありません',el('a',{href:'./'},'ショートで探す →'))); return }
   pane.append(el('p',{class:'note'},games.length+'本にいいねしました（新しい順）。'+(SES?'':'ログインすると、どの端末からでも見られます。')));
@@ -232,7 +249,7 @@ async function paneLikes(pane){
     T.closeOverlay(); T.hist.unlikeLocal(g.slug);
     if(SES){ try{ const r=await sb.from('user_likes').delete().eq('game_slug',g.slug); if(r.error) throw r.error }catch(e){ T.toast('外せませんでした。もう一度試してね'); return } }
     art.remove(); T.toast('いいねを外したよ',1500);
-    if(!grid.children.length) paneLikes(pane.replaceChildren()||pane) }
+    if(!grid.children.length) paneLikesList(pane.replaceChildren()||pane) }
   games.forEach(g=>grid.append(T.gthumb(g,{plays:(STATS[g.slug]||{}).plays,menu:(a,art)=>itemSheet(g,a,[['いいねを外す',{warn:true,onclick:()=>unlike(g,art)}],['作品ページを見る',{href:'./games/'+g.slug+'/'}]])})));
 }
 // ---- 履歴（見た・遊んだ） ----
@@ -330,6 +347,14 @@ function publicBox(){
     el('label',{class:'sw','for':'likesPublic'},cb,el('span',{class:'tr','aria-hidden':'true'}),el('span',{class:'tx'},el('b',null,'いいねした作品を公開する'),
       el('small',{class:'note'},PROFILE?'オンにすると、あなたの公開プロフィールに「いいねした作品」が出ます。いつでもオフにできます。履歴は公開されません。':'先にプロフィール（名前とID）を作ると選べます。'))),msg));
 }
+// 「先読みする」（スマホで同じ作品を4秒以上見たら、サイトの中で開く作品を先に読み込む。通信量を使う）。この端末だけの設定
+function prefetchBox(){
+  const cb=el('input',{type:'checkbox',role:'switch',id:'prefetchSw'}); cb.checked=T.prefetch.on();
+  cb.addEventListener('change',()=>{ T.prefetch.set(cb.checked); T.toast(cb.checked?'先読みをオンにしたよ':'先読みをオフにしたよ',1500) });
+  return el('section',{class:'card'},el('div',{class:'body',style:'display:grid;gap:8px'},el('h2',{style:'margin:0 0 2px;font-size:16px'},'この端末の設定'),
+    el('label',{class:'sw','for':'prefetchSw'},cb,el('span',{class:'tr','aria-hidden':'true'}),el('span',{class:'tx'},el('b',null,'先読みする（通信量を使います）'),
+      el('small',{class:'note'},'スマホで同じ作品を4秒以上見ていると、サイトの中で開く作品を先に読み込んで、「遊ぶ」を押したあとの待ち時間を減らします。はじめは、Wi-Fiのようなとき（通信量の節約をしていない4G）だけオンです。')))));
+}
 function paneEdit(pane){
   const p=PROFILE||{handle:'',name:'',bio:'',avatar_url:'',links:[],video:''};
   let avatarUrl=p.avatar_url||'', newBlob=null;
@@ -385,6 +410,7 @@ function paneEdit(pane){
   });
   pane.append(form);
   pane.append(publicBox());
+  pane.append(prefetchBox());
 }
 if(sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_IN'&&!SES) start() });
 start();

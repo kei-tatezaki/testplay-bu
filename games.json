@@ -25,7 +25,8 @@
     "platform": "both",
     "controls": "タップ／スペースキー",
     "added": "2026-11-19",
-    "creator": "unei"
+    "creator": "unei",
+    "size_mb": 0.02
   },
   {
     "slug": "color",
@@ -59,7 +60,8 @@
     "platform": "both",
     "controls": "タップ／クリック",
     "added": "2026-11-19",
-    "creator": "unei"
+    "creator": "unei",
+    "size_mb": 0.02
   },
   {
     "slug": "lights",
@@ -87,7 +89,8 @@
     "platform": "both",
     "controls": "タップ／クリック",
     "added": "2026-11-19",
-    "creator": "unei"
+    "creator": "unei",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -115,7 +118,8 @@
     "bg": "#1b1730",
     "controls": "タップ／スペースキー",
     "play": "play/stack/",
-    "clip": "clips/stack.mp4"
+    "clip": "clips/stack.mp4",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -143,7 +147,8 @@
     "bg": "#07131f",
     "controls": "指やマウスで左右／← →キー",
     "play": "play/stars/",
-    "clip": "clips/stars.mp4"
+    "clip": "clips/stars.mp4",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -171,7 +176,8 @@
     "bg": "#fbf7ef",
     "controls": "タップ／1〜4キー",
     "play": "play/memo/",
-    "clip": "clips/memo.mp4"
+    "clip": "clips/memo.mp4",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -199,7 +205,8 @@
     "bg": "#2a1f1a",
     "controls": "タップ／1・2・3キー",
     "play": "play/houkago/",
-    "clip": "clips/houkago.mp4"
+    "clip": "clips/houkago.mp4",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -227,7 +234,8 @@
     "bg": "#0f2a23",
     "controls": "タップ／1・2・3キー",
     "play": "play/calc/",
-    "clip": "clips/calc.mp4"
+    "clip": "clips/calc.mp4",
+    "size_mb": 0.02
   },
   {
     "author": "テストプレイ部",
@@ -255,6 +263,7 @@
     "bg": "#f6f3fb",
     "controls": "タップ／クリック",
     "play": "play/odd/",
-    "clip": "clips/odd.mp4"
+    "clip": "clips/odd.mp4",
+    "size_mb": 0.02
   }
 ]

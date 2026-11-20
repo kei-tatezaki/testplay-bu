@@ -336,7 +336,7 @@ function newForm(){
     if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。（見送りになったときは、無料がもう一度使えます）':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':''))) });
   // 見本：スマホ・タブレットは、作品名の欄の上に置く（畳んでおく）。PC（1200px以上）は左の列（付箋・ポイントの下）に置く
   const sideCol=el('div',{class:'sidecol'},lfBox,ptBox), mq=matchMedia('(min-width:1200px)');
-  function placePv(){ if(mq.matches) sideCol.append(pv); else form.insertBefore(pv,form.querySelector('label')) }
+  function placePv(){ if(mq.matches) sideCol.append(pv); else form.insertBefore(pv,form.querySelector(':scope > label')||form.firstElementChild) }
   mq.addEventListener('change',placePv); placePv();
   main.classList.add('cols','wideside'); main.replaceChildren(sideCol,el('div',{class:'maincol'},form)); drawPts(); drawLf();
 }

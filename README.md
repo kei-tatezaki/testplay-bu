@@ -102,3 +102,11 @@
 ## 見た目のルール（作り直し後）
 
 CSS の本体は `build.py` の `CSS` と `src/style_v2.css`（assets/style.css の末尾に足されます）。飾りは「おすすめ」と「新作」（公開から14日以内）だけ。朱は「遊ぶ・送る・応募する」の主ボタンと押した状態、からしはおすすめ・新作・ミッションの目印、青はリンク。絵文字は使わず、必要なら線画 SVG。
+
+## PWA と共通部品の追加（11月21日）
+
+- `src/sw.js` が元。`python3 build.py` がバージョン（内容ハッシュ）を入れて `/sw.js` を出す。`offline.html` も build.py が出す。
+- `assets/pwa.js`：登録・案内・常設リンク（`TPB.pwa`）。maskable アイコンは `assets/icon-maskable-*.png`。
+- `TPB.pcl`（PCで遊ぶリスト）、`TPB.fi`（第一印象）、`TPB.prefetch`（先読み）、`TPB.sizeText`／`isFast`（重さの目印）は `assets/tpb.js`。
+- games.json の任意項目 `size_mb`（MB の数字）。
+- SQL は `supabase/020_first_impression_pclist.sql`（未適用）と `020_check.sql`。

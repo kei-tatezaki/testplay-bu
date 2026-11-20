@@ -174,7 +174,7 @@ td.sel{width:34px}
 
   <div data-panel="games" hidden>
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
-      <thead><tr><th>作品</th><th>遊んだ人</th><th>感想</th><th>遊びたい度（めやす）</th><th>👍</th><th>🤔 操作</th><th>🤔 重い</th><th>🤔 おもしろさ</th><th>興味なし</th></tr></thead>
+      <thead><tr><th>作品</th><th>遊んだ人</th><th>感想</th><th>遊びたい度（めやす）</th><th>👍</th><th>🤔 操作</th><th>🤔 重い</th><th>🤔 おもしろさ</th><th>興味なし</th><th>第一印象（遊びたい／少し気になる／今はいいかな）</th></tr></thead>
       <tbody id="gameRows"></tbody>
     </table></div>
   </div>
@@ -723,6 +723,8 @@ $('fbRows').onclick = async (e) => {
 async function loadGames(){
   const rows = await rpc('game_stats', { since_days: 3650 });
   const by = {}; rows.forEach(r => by[r.game_slug] = r);
+  // 第一印象（020）。まだ適用していないときは、エラーを出さず「—」にする
+  const fi = {}; try { const r = await sb.rpc('admin_first_impressions', { p_days: 3650 }); if (!r.error) (r.data || []).forEach(x => fi[x.game_slug] = x); else fi.__none = true; } catch (e) { fi.__none = true; }
   const slugs = [...new Set([...Object.keys(GAMES), ...Object.keys(by)])];
   // 開発者ページ・作品ページと同じ計算：(すごく遊びたい＋ちょっと遊びたい×0.5＋いいね＋1.5)÷(感想＋いいね＋うーん＋3)
   const rate = s => { const n=s.feedbacks+s.likes+s.hmms; return n ? Math.round((s.again_much+0.5*s.again_some+s.likes+1.5)/(n+3)*100)+'%（めやす・'+n+'人）' : '—' };
@@ -730,7 +732,8 @@ async function loadGames(){
     const s = by[slug] || {plays:0,likes:0,hmms:0,feedbacks:0,again_much:0,again_some:0,hmm_controls:0,hmm_heavy:0,hmm_fun:0,not_for_me:0};
     return `<tr><td><a href="games/${esc(slug)}/" style="color:var(--shu-ink)">${esc(GAMES[slug]?.title || slug)}</a></td>
       <td>${s.plays}</td><td>${s.feedbacks}</td><td>${rate(s)}</td><td>${s.likes}</td>
-      <td>${s.hmm_controls}</td><td>${s.hmm_heavy}</td><td>${s.hmm_fun}</td><td class="muted">${s.not_for_me}</td></tr>`;
+      <td>${s.hmm_controls}</td><td>${s.hmm_heavy}</td><td>${s.hmm_fun}</td><td class="muted">${s.not_for_me}</td>
+      <td>${fi.__none ? '—' : (fi[slug] ? `${fi[slug].want}／${fi[slug].maybe}／${fi[slug].no}` : '0／0／0')}</td></tr>`;
   }).join('');
 }
 
