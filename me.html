@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/side.css">
 <style>
 .mehead{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .mehead .who{flex:1;min-width:160px}
@@ -29,6 +30,13 @@
 .ptbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ptbig b{font-size:34px;line-height:1.1;color:var(--shu-ink)}
 .ptlist{display:grid;gap:0;margin:0;padding:0;list-style:none}.ptlist li{display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.ptlist li:first-child{border-top:0}.ptlist .d{font-weight:700;white-space:nowrap}.ptlist .d.minus{color:#B0301B}.ptlist small{display:block;color:var(--muted);font-size:12px}
 .callout{border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;display:grid;gap:8px;justify-items:center}
+@media (min-width:1024px){
+.mehead{display:grid;justify-items:center;text-align:center;gap:10px;padding:24px 20px}
+.mehead .who{flex:none;min-width:0;width:100%}
+.mehead .tpb-av{width:96px!important;height:96px!important;font-size:40px!important}
+.mehead .acts{display:grid;width:100%;gap:8px}
+.mehead .acts .btn{justify-content:center}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +45,7 @@
 <body>
 <div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./list.html">作品一覧</a><a class="btn" href="./">▶ ショート</a></span></header>
-<main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
+<main id="main" class="stack"><p class="empty">読み込み中…</p></main>
 <footer><a href="./creators.html">作品を載せたい人へ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -47,7 +55,7 @@
 (function(){
 "use strict";
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
-let SES=null, ISADMIN=false, PROFILE=null, TAB='games', MINE=[], STATS={};
+let SES=null, ISADMIN=false, PROFILE=null, TAB='games', MINE=[], STATS={}, PTS=null;
 const ERR={bad_handle:'IDは、半角の英小文字・数字・_ で3〜20文字にしてね',handle_taken:'そのIDはもう使われています。別のIDにしてね',bad_name:'その名前は使えません（1〜30文字。「運営」「公式」は使えません）',
   bad_bio:'ひとことは160文字までにしてね',banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',bad_links:'リンクは https:// から始まるURLにしてね（6つまで）',
   bad_video:'紹介動画はYouTubeのURLにしてね',bad_avatar:'アイコンの画像を保存できませんでした。もう一度選んでね',banned:'このアカウントでは変更できなくなっています。心当たりがない場合は運営に連絡してね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね'};
@@ -68,6 +76,8 @@ async function start(){
   if(location.hash==='#edit'||!PROFILE) TAB='edit';
   if(location.hash==='#fb') TAB='fb'; if(location.hash==='#pt') TAB='pt'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
   render();
+  // PCの本人カードに出すポイント（取れなかったら出さない。スマホでは隠れている）
+  try{ const r=await sb.rpc('my_points'); if(r&&r.data){ PTS=r.data; fillPts() } }catch(e){}
 }
 // ログインしていない人にも、この端末で遊んだ作品は見せる
 function playedOnly(){
@@ -75,13 +85,17 @@ function playedOnly(){
   if(!games.length) return null;
   return el('section',{style:'display:grid;gap:12px'},el('h2',{style:'margin:8px 0 0;font-size:16px'},'この端末で遊んだ作品'),el('div',{class:'grid'},games.map(g=>T.tile(g,null))));
 }
+function fillPts(){ const n=document.querySelector('.mepts'); if(!n) return; n.replaceChildren(); if(PTS&&typeof PTS.balance==='number') n.append(el('b',null,PTS.balance+'pt'),'いまのポイント') }
 function render(){
+  main.classList.add('cols');
   const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['pt','ポイント'],['edit','プロフィール']];
   const pane=el('div',{class:'pane',id:'pane',role:'tabpanel'});
   const head=el('section',{class:'card'},el('div',{class:'body mehead'},
     T.avatar({name:nameOf(),avatar:PROFILE&&PROFILE.avatar_url},64),
-    el('div',{class:'who'},el('h1',null,nameOf()),el('div',{class:'by'},PROFILE?'@'+PROFILE.handle:'プロフィールはまだありません'),
+    el('div',{class:'who'},el('h1',null,nameOf()),el('div',{class:'by'},PROFILE&&PROFILE.handle?'@'+PROFILE.handle:PROFILE?'ハンドル未設定':'プロフィールはまだありません'),
       PROFILE&&PROFILE.hidden?el('div',{class:'msg err'},'このプロフィールは運営が非表示にしています'):null),
+    PROFILE&&PROFILE.bio?el('p',{class:'mebio'},PROFILE.bio):null,
+    el('div',{class:'mepts'}),
     el('div',{class:'acts'},
       PROFILE?el('a',{class:'btn ghost',href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,
       ISADMIN?el('a',{class:'btn ghost',href:'./admin.html'},'管理ページ'):null,
@@ -91,7 +105,8 @@ function render(){
   bar.addEventListener('keydown',e=>{ const ks=tabs.map(t=>t[0]); let i=ks.indexOf(TAB);
     if(e.key==='ArrowRight') i=(i+1)%ks.length; else if(e.key==='ArrowLeft') i=(i-1+ks.length)%ks.length; else if(e.key==='Home') i=0; else if(e.key==='End') i=ks.length-1; else return;
     e.preventDefault(); TAB=ks[i]; history.replaceState(null,'','#'+TAB); render(); const b=document.getElementById('tab-'+TAB); if(b) b.focus() });
-  main.replaceChildren(head,bar,pane);
+  main.replaceChildren(el('div',{class:'sidecol'},head),el('div',{class:'maincol'},bar,pane));
+  fillPts();
   ({games:paneGames,played:panePlayed,fb:paneFb,pt:panePoints,edit:paneEdit})[TAB](pane);
 }
 

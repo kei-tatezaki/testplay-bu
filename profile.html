@@ -12,6 +12,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/side.css">
 <style>
 .phead .tpb-av{box-shadow:0 0 0 3px var(--card),0 0 0 4px var(--line)}
 .video{position:relative;aspect-ratio:16/9;border-radius:4px;overflow:hidden;background:#000;max-width:640px;width:100%;margin:0 auto}
@@ -24,6 +25,7 @@
 .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
 .acts .btn{padding:8px 16px;font-size:14px}
 .skel{height:220px;display:grid;place-items:center;color:var(--muted)}
+@media (min-width:1024px){.video{margin:0;max-width:720px}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +34,7 @@
 <body>
 <div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
-<main id="main"><p class="skel">読み込み中…</p></main>
+<main id="main" class="stack"><p class="skel">読み込み中…</p></main>
 <footer><a href="./list.html">← 作品一覧に戻る</a><a href="./creators.html">作品を載せたい人へ</a><a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -78,7 +80,8 @@ const acts=el('div',{class:'acts'},
 const links=p.links.map(l=>{ const lab=linkLabel(l); return lab&&/^https:\/\//.test(l)?el('a',{href:l,target:'_blank',rel:'noopener nofollow ugc'},lab,el('span',{'aria-hidden':'true',class:'muted'},'↗')):null }).filter(Boolean);
 const vid=ytId(p.video);
 const grid=el('div',{class:'grid'}, games.map(g=>T.tile(g,stats[g.slug],{inProfile:true})));
-main.replaceChildren(
+main.classList.add('cols');
+main.replaceChildren(el('div',{class:'sidecol'},
   el('section',{class:'phead'},
     T.avatar({name:p.name,avatar:p.avatar},96),
     el('h1',null,p.name,p.official?[' ',el('span',{class:'badge'},'運営')]:null),
@@ -90,15 +93,15 @@ main.replaceChildren(
       plays+fbs>=10?el('span',null,el('b',null,String(fbs)),'もらった感想'):null),
     p.bio?el('p',{class:'bio'},p.bio):null,
     links.length?el('nav',{class:'links','aria-label':'リンク'},links):null,
-    acts),
-  (window.TPB_DATA.allSample&&games.length&&games.every(g=>g.sample))?el('div',{class:'notice',role:'note'},el('span',null,el('b',null,'いまは運営のお試し作品だけです。'),'最初の作品を募集中です。'),el('b',{class:'lfb'},'最初の1本は投稿無料'),el('a',{class:'btn',href:'./submit.html'},'作品を応募する')):null,
+    acts)),
+el('div',{class:'maincol'},
+  (window.TPB_DATA.allSample&&games.length&&games.every(g=>g.sample))?el('div',{class:'notice',role:'note'},el('span',null,el('b',null,'いまは運営のお試し作品だけです。'),el('span',{class:'n2'},'最初の作品を募集中です。')),el('b',{class:'lfb'},'最初の1本は投稿無料'),el('a',{class:'btn',href:'./submit.html'},'作品を応募する')):null,
   vid?el('div',{class:'sec'},el('h2',null,'紹介動画')):null,
   vid?el('div',{class:'video'},el('button',{type:'button',class:'vplay','aria-label':p.name+' の紹介動画を見る（YouTubeから読み込みます）',onclick:e=>{
     const box=e.currentTarget.parentElement; box.replaceChildren(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+vid+'?autoplay=1',title:p.name+' の紹介動画',allow:'encrypted-media; picture-in-picture; autoplay',allowfullscreen:true}));
   }},el('span',{class:'vp','aria-hidden':'true'},'▶'),el('span',{class:'vt'},'紹介動画を見る'),el('small',null,'押すとYouTubeから読み込みます'))):null,
   el('div',{class:'sec'},el('h2',null,'作品'),el('span',{class:'by'},games.length?'画像をタップするとショートで見られます':'')),
-  games.length?grid:el('p',{class:'empty'},'まだ作品がありません。'));
-main.style.display='grid'; main.style.gap='16px';
+  games.length?grid:el('p',{class:'empty'},'まだ作品がありません。')));
 // 自分のプロフィールなら「編集」を出す
 if(T.maybeLoggedIn()){
   const s=await T.session(); if(!s) return;

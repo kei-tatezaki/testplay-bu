@@ -12,6 +12,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/side.css">
 <style>
 .two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
 @media (max-width:520px){.two{grid-template-columns:1fr}}
@@ -27,7 +28,7 @@
 <body>
 <div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><span data-me></span></span></header>
-<main id="main" style="display:grid;gap:16px"><p class="empty">読み込み中…</p></main>
+<main id="main" class="stack"><p class="empty">読み込み中…</p></main>
 <footer><a href="./creators.html#url">遊べるURLの作り方</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -158,8 +159,11 @@ function newForm(){
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
     const r=await send('new',null,d,btn,msg);
     if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。（見送りになったときは、無料がもう一度使えます）':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':''))) });
-  form.insertBefore(pv,form.querySelector('label'));  // 見本は、作品名の欄の上に置く（スマホでは畳んでおく）
-  main.replaceChildren(lfBox,ptBox,form); drawPts(); drawLf();
+  // 見本：スマホ・タブレットは、作品名の欄の上に置く（畳んでおく）。PC（1200px以上）は左の列（付箋・ポイントの下）に置く
+  const sideCol=el('div',{class:'sidecol'},lfBox,ptBox), mq=matchMedia('(min-width:1200px)');
+  function placePv(){ if(mq.matches) sideCol.append(pv); else form.insertBefore(pv,form.querySelector('label')) }
+  mq.addEventListener('change',placePv); placePv();
+  main.classList.add('cols','wideside'); main.replaceChildren(sideCol,el('div',{class:'maincol'},form)); drawPts(); drawLf();
 }
 async function start(){
   SES=sb?await T.session():null;
