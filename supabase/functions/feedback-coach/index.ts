@@ -80,25 +80,36 @@ type Raw = { comments?: unknown; rewrite?: unknown };
 async function callClaude(userPrompt: string, signal: AbortSignal): Promise<Raw> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("not_configured");
+  // 新しいモデルは考える機能が常に入っていて、tool_choice の強制や temperature を受け付けないことがある。
+  // なので道具は「使ってね」と渡すだけにして、使わずに文章で JSON を返したときも読めるようにしておく。
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     signal,
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: Deno.env.get("CLAUDE_MODEL") ?? "claude-haiku-5-5",
-      max_tokens: 600,
-      temperature: 0.4,
-      system: SYSTEM,
+      max_tokens: 1500,
+      system: SYSTEM + "\n\n結果は必ず coach_result ツールで返すこと。ツールが使えないときは {\"comments\":[...],\"rewrite\":...} の JSON だけを返すこと。",
       messages: [{ role: "user", content: userPrompt }],
       tools: [{ name: "coach_result", description: "感想へのコメントと、書き直し案を返す", input_schema: CLAUDE_SCHEMA }],
-      tool_choice: { type: "tool", name: "coach_result" },
+      tool_choice: { type: "auto" },
     }),
   });
-  if (!res.ok) throw new Error("upstream");
+  if (!res.ok) {
+    console.error("claude error", res.status, (await res.text()).slice(0, 500));
+    throw new Error("upstream");
+  }
   const data = await res.json();
-  const block = (data?.content ?? []).find((b: { type?: string }) => b.type === "tool_use");
-  if (!block?.input) throw new Error("bad_output");
-  return block.input as Raw;
+  const content = (data?.content ?? []) as Array<{ type?: string; input?: Raw; text?: string }>;
+  const block = content.find((b) => b.type === "tool_use");
+  if (block?.input) return block.input;
+  const text = content.filter((b) => b.type === "text").map((b) => b.text ?? "").join("");
+  const m = text.match(/\{[\s\S]*\}/);
+  if (m) {
+    try { return JSON.parse(m[0]) as Raw; } catch (_) { /* 下で失敗にする */ }
+  }
+  console.error("claude bad_output", JSON.stringify(data).slice(0, 500));
+  throw new Error("bad_output");
 }
 
 async function callGemini(userPrompt: string, signal: AbortSignal): Promise<Raw> {
