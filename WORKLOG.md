@@ -329,3 +329,16 @@
 - **OG**：`og/site.png` を部室の写真つきに作り直し（build.py の make_site_og）。
 - **スタンプカード文言**：(a) の記号をやめ、ボーナスは「感想2つでボーナス」「感想のミッション2つがそろうと、ボーナス +5pt」、各ミッションの説明を短く。
 - 確かめ：Playwright 360/390/820/1024/1280/1440、主要8ページで横スクロールなし・pageerror 0。スクリーンショット：`/home/claude/shots/d_*.png`（変更前は `d_before_*.png`）。
+
+
+## 感想シートのコーチ（書き出しチップ・ルールのコーチ・AIコーチ）
+
+- **書き出しチップ**：感想欄の上に付箋チップ。1段目「👍良かったところ／🤔気になったところ／💡こうしたら？」→ 2段目（操作・見た目・音・ルール・目的・難しさ・最初のわかりやすさ・その他）。7×3 の書き出しを、カーソル位置に入れる（末尾は読点。前の文が句点で終わっていなければ「。」を足す）。横スクロール1行。g.check に近い2段目は「★」＋赤い破線で目立たせる（操作感→操作、楽しさ→ルール・目的、チュートリアル→最初のわかりやすさ、難しさ→難しさ）。
+- **ルールのコーチ（`assets/coach.js`、AIなし）**：入力が止まって600ms後に判定。最大2つ。きつい言葉の辞書（置き換えボタン、その語だけ置換）／短い・「面白かった」だけ（［書き出しを足す］＝「特に〜の場面で、」、〜が選択された状態で入る）／作品の語（title・genre・oneliner・highlights・check・question・controls から、カタカナ・漢字・数字・英字を抽出）が1つも無い→「どのゲームでも言えそう」／場面と理由があればほめる。反映の直前1回分は［元に戻す］（本人が打ち始めると消える）。
+- **AIコーチ**：［AIに見てもらう］は、自分で打った字（input イベントの増分。貼り付け・チップ・提案の反映は数えない）が20字以上のときだけ。押せない理由を小さく表示。`feedback-coach` へ POST（10秒で中止）。コメントは付箋、rewrite は「こう直してみる？」カード＋［これにする］→［元に戻す］、残り回数を表示。失敗・429・タイムアウトは「いまはAIコーチを使えません」だけ出して続行（送信は止めない）。
+- **Edge Function（`supabase/functions/feedback-coach/index.ts`、デプロイは運営）**：既定は Claude（Messages API、tool_choice で `coach_result` を強制、`CLAUDE_MODEL`、max_tokens 600、temperature 0.4）。`AI_PROVIDER=gemini` で Gemini 版（responseSchema）に切りかえ可。JWT 検証（未ログイン401）、BAN 403、1日20回（429）、Gemini/Claude 失敗時は回数を返す（`ai_coach_refund`）、本文は800字で切る、rewrite が空・同じ・1.5倍超なら null。CORS は kei-tatezaki.github.io と localhost。
+- **SQL 017（未適用）**：`ai_coach_uses`、`ai_coach_take()`（JST5時区切り・settings の `ai_coach_daily_limit` 既定20・超えたら 'limit'）、`ai_coach_refund()`。`017_check.sql` は使い捨て Postgres で14件合格（016_check も65件のまま合格）。`tests/run_local.sh` は *_check.sql を自動では流さないよう直した（016_check が 016 本体より先に流れて落ちていたため）。
+- privacy.html（build.py）に、AIコーチを使ったときだけ感想の文と作品の説明が Anthropic の Claude API に送られる旨を追記。
+- 確かめ：Playwright（google-chrome・route モック、functions も成功／429／500／遅延）390×844・1440×900。pageerror 0・横スクロールなし・alert なし。書き込みなし。スクショ `/home/claude/shots/c_*_m390.png`・`c_*_pc1440.png`（chips／specific／tone／generic／praise／ai_disabled／ai_result／ai_applied／ai_fail429／ai_fail500／ai_timeout／full）。
+- 決めたこと：40字ポイント・lazy 判定・送信は変更なし。PC は感想シートを860pxに広げ、右にコーチ欄。Edge Function は deno が無く型の目視確認のみ。
+

@@ -68,6 +68,15 @@
 - games.json に `"play_kind":"download"`, `"size":"約2GB"`, `"os":["windows"]` を書くとダウンロード型の表示になる（遊ぶURLは公開ページ）。`"embed":"https://itch.io/embed-upload/数字"` か作者の *.github.io のURLは枠内で遊べる。admin の「games.json用」にそのまま出る。
 - 今日のミッションは `supabase/016_missions_playkind.sql` を適用してから有効になる（未適用でも他は動く）。`016_check.sql` は一時DBで流す検査用（最後にわざと例外で巻き戻す）。
 
+## 感想のAIコーチ（任意）
+
+感想シートの「AIに見てもらう」は、Supabase Edge Function `feedback-coach` を呼ぶ（ルールのコーチ `assets/coach.js` は端末の中だけで動き、AIなしでも使える。関数が無くても、シートは普通に動く）。
+
+1. `supabase/017_ai_coach.sql` を SQL Editor で実行（検査は `017_check.sql`。1人1日20回、上限は settings の `ai_coach_daily_limit` で変える）
+2. 秘密を設定：`supabase secrets set ANTHROPIC_API_KEY=sk-ant-...`（任意：`CLAUDE_MODEL=...`、既定は `claude-haiku-5-5`）。Gemini に切りかえるなら `AI_PROVIDER=gemini` と `GEMINI_API_KEY`（任意 `GEMINI_MODEL`）
+3. デプロイ：`supabase functions deploy feedback-coach --project-ref jwrzqaxuvmdbroemenng`（関数の中で JWT を自分で検証するので、`--no-verify-jwt` は不要）
+4. 感想の文と作品の説明は Claude API に送られる（privacy.html に書いてある）。使わなければ送られない
+
 ## データベース（Supabase）
 
 `supabase/001`〜`013` を番号順に SQL Editor で実行する。009 がプロフィール・アイコン画像・報告・応募。010 は `admin_exists()`（管理者がいるかだけを返す。admin.html で、管理者でない人に「管理者にする」を出さないため。未適用でも、管理者がいるものとして動く）。
