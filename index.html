@@ -90,9 +90,10 @@ button{font:inherit;color:inherit}
 /* play overlay */
 .player{position:fixed;inset:0;z-index:40;background:#000;display:none;flex-direction:column}
 .player.open{display:flex}
-.player header{display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:#111;border-bottom:1px solid var(--line)}
+.player header{display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:#111;border-bottom:1px solid #2a2622;color:#F1EDE6}
 .player header b{flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.player header button{background:#ffffff1a;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px;min-height:44px}
+.player header button{background:#ffffff26;color:#F1EDE6;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:700;min-height:44px}
+.player header button:focus-visible{outline:3px solid #9EC1F0;outline-offset:2px}
 .player header button.fb{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .player .pbody{flex:1;display:flex;min-height:0}
 .player iframe{flex:1;border:0;width:100%;background:#fff}
@@ -383,7 +384,7 @@ fieldset.err{outline:2px solid #B0301B}
 <div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span> <b class="lfi">最初の1本は投稿無料</b></span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
-  <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" class="fb" id="pFb">💬 感想</button></header>
+  <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" id="pFull" hidden>⛶ 全画面</button><button type="button" class="fb" id="pFb">💬 感想</button></header>
   <div class="pbody" id="pBody"></div>
 </div>
 
@@ -459,8 +460,9 @@ let CLIENT = store.get('cid',''); if(!CLIENT){ CLIENT = (crypto.randomUUID?crypt
 
 // この端末で遊べるか（スマホ＝タッチ中心で画面が小さい）
 const DEVICE = (matchMedia('(pointer:coarse)').matches && Math.min(screen.width,screen.height) < 820) ? 'sp' : 'pc';
-// スマホで動く作品はPCでも動くので、遊べないのは「スマホでPC用の作品」だけ
-const canPlay = g => g.platform!=='pc' || DEVICE==='pc';
+// 作者が選んだ対応端末どおり（PC用はスマホで、スマホ用はPCで遊べない）
+const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
+const PLATNAME = g => g.platform==='pc'?'PC':'スマホ';
 const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
 // 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
 // 並び順は assets/rank.js（作る人優先：新作・感想が少ない作品を上げつつ、その人の好みも見る）
@@ -541,7 +543,7 @@ function byLine(g){
 function chipsFor(g){
   const imp=[];
   if(g.rating==='r15'||g.rating==='r18') imp.push(el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()));
-  if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},'PC用'));
+  if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},PLATNAME(g)+'用'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
   if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
   return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null);
@@ -570,7 +572,7 @@ order.forEach((g,idx)=>{
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
-    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?'▶ 遊ぶ':'PC用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（PC用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?'▶ 遊ぶ':PLATNAME(g)+'用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（'+PLATNAME(g)+'用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
@@ -579,7 +581,7 @@ order.forEach((g,idx)=>{
     el('div',{class:'vpanel'},
       el('h2',null,g.title), byLine(g),
       el('p',null,g.oneliner),
-      el('button',{class:'bigplay'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（PC用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
+      el('button',{class:'bigplay'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（'+PLATNAME(g)+'用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
       g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
       el('div',{class:'fbn'}),
       el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'💬 感想を書く'),
@@ -757,10 +759,14 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 addEventListener('pagehide',()=>{ if(playing && !playing.external) endPlay() });
 let warned={};
 function wrongDevice(g){
-  $('toastText').textContent = 'これはPC用のゲームだよ！PCでこのサイトを開いて遊んでね';
+  $('toastText').textContent = 'これは'+PLATNAME(g)+'用のゲームだよ！'+PLATNAME(g)+'でこのサイトを開いて遊んでね';
   $('toastGo').hidden=true; showNote('toast',3500);
 }
-function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); syncInert(); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
+(function(){ const b=$('pFull'), pl=$('player'); if(!b||!pl.requestFullscreen||DEVICE!=='pc') return; b.hidden=false;
+  const sync=()=>{ b.textContent=document.fullscreenElement?'⛶ 全画面をやめる':'⛶ 全画面' };
+  b.addEventListener('click',()=>{ (document.fullscreenElement?document.exitFullscreen():pl.requestFullscreen()).catch(()=>{}) });
+  document.addEventListener('fullscreenchange',sync) })();
+function closePlayer(){ if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); syncInert(); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
   if(playerOpener&&playerOpener.isConnected) try{ playerOpener.focus({preventScroll:true}) }catch(_){}
   // 遊んだ直後に、ひとこと聞く（まだ👍も🤔も感想もない作品だけ）。それ以外のときはDiscordに誘う
   if(current && !reacts[current.slug] && !sent.has(current.slug)) askAfter(current); else maybeInvite() }

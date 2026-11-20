@@ -563,17 +563,17 @@ dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px 
 
 # 「▶ 遊ぶ」を押したらデータベースに記録する（フィードと同じ client_id を使う）
 TRACK_JS = """<script>
-// スマホでPC用の作品を開いたら「遊ぶ」を灰色にして、押したら案内だけ出す（スマホ用の作品はPCでも動くので止めない）
+// 対応していない端末で開いたら「遊ぶ」を灰色にして、押したら案内だけ出す（PC用はスマホで、スマホ用はPCで）
 (function(){
- var sp=matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<820; if(!sp) return;
- function mark(){ document.querySelectorAll('a[data-pconly]').forEach(function(a){ a.classList.add('off'); a.setAttribute('aria-disabled','true'); a.style.cssText+=';background:#8a8580;color:#f1ede6;box-shadow:0 3px 0 #5f5a55' }) }
+ var dev=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<820)?'sp':'pc', nm=function(p){return p==='pc'?'PC':'スマホ'}, sel='a[data-only]:not([data-only="'+dev+'"])';
+ function mark(){ document.querySelectorAll(sel).forEach(function(a){ a.classList.add('off'); a.setAttribute('aria-disabled','true'); a.style.cssText+=';background:#8a8580;color:#f1ede6;box-shadow:0 3px 0 #5f5a55' }) }
  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mark); else mark();
  document.addEventListener('click',function(ev){
-  var a=ev.target.closest&&ev.target.closest('a[data-pconly]'); if(!a) return;
+  var a=ev.target.closest&&ev.target.closest(sel); if(!a) return;
   ev.preventDefault(); ev.stopImmediatePropagation();
   var m=document.getElementById('pcOnlyMsg');
   if(!m){ m=document.createElement('p'); m.id='pcOnlyMsg'; m.setAttribute('role','status'); m.style.cssText='margin:8px 0 0;padding:8px 12px;background:var(--karashi-soft,#F8E6B0);color:var(--ink,#2A241E);border-radius:4px;font-weight:700'; a.insertAdjacentElement('afterend',m) }
-  m.textContent='これはPC用のゲームだよ！PCでこのページを開いて遊んでね';
+  var n=nm(a.dataset.only); m.textContent='これは'+n+'用のゲームだよ！'+n+'でこのページを開いて遊んでね';
  },true);
 })();
 document.addEventListener('click',function(ev){
@@ -644,7 +644,7 @@ def page(title, desc, url, image, body, prefix):
 def play_btn(g):
     """作品ページの「遊ぶ」。このサイトの中のゲームは、枠つきのプレイヤーを開くトップへ。外のサイトのゲームは別タブで開く。"""
     label = f"▶ 遊ぶ{'（' + e(g['minutes']) + '）' if g.get('minutes') else ''}"
-    pc = ' data-pconly="1"' if g.get("platform") == "pc" else ""
+    pc = f' data-only="{g["platform"]}"' if g.get("platform") in ("pc", "sp") else ""
     if re.match(r"https?:", g.get("play", "")):
         return f'<a class="btn big" data-play="{e(g["slug"])}"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">{label}</a>'
     return f'<a class="btn big"{pc} href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
