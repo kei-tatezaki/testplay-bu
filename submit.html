@@ -42,6 +42,7 @@
 .mtip ul{margin:2px 0 0;padding-left:1.3em}
 .mgo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
 .mgo button{font:inherit;font-size:13px;min-height:44px;padding:4px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
+.mpick:focus-within{outline:3px solid var(--ao);outline-offset:2px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -153,10 +154,11 @@ function newForm(){
   const media={kind:'auto',file:null,url:'',dur:0};
   const mName='mediakind', mErr=el('p',{class:'merr',role:'alert'}), mTip=el('div',{class:'mtip',hidden:true}), mPrev=el('div',{class:'mprev',hidden:true}), mInfo=el('p',{class:'hint',style:'margin:0'});
   const pvMedia=el('div',{class:'pvmedia'});
-  const fileIn=el('input',{type:'file',id:'mediaFile','aria-label':'動画か画像のファイル'});
+  const fileIn=el('input',{type:'file',id:'mediaFile','aria-label':'動画か画像のファイル',style:'position:absolute;width:1px;height:1px;opacity:0;overflow:hidden'});
+  const filePick=el('label',{class:'mpick',style:'position:relative;display:inline-flex;width:fit-content;align-items:center;min-height:44px;padding:6px 16px;border:2px solid var(--shu);border-radius:6px;color:var(--shu-ink,#A5311A);font-weight:700;cursor:pointer;background:var(--card)'},fileIn,'ファイルを選ぶ');
   const mHint=el('p',{class:'hint'});
   const mRemove=el('button',{type:'button',id:'mediaClear'},'ファイルをはずす');
-  const mPanel=el('div',{class:'mpanel',id:'mediaPanel',hidden:true},mHint,fileIn,mErr,mTip,mPrev,el('div',{class:'mgo'},mRemove));
+  const mPanel=el('div',{class:'mpanel',id:'mediaPanel',hidden:true},mHint,filePick,mErr,mTip,mPrev,el('div',{class:'mgo'},mRemove));
   const MOPT=[['auto','運営におまかせ','運営が遊んで、プレイ動画を撮ります。自分で用意しなくて大丈夫です。'],
     ['video','動画をのせる','mp4 / webm・2MBまで・15秒まで。音は出しません（無音で流れます）。'],
     ['image','画像をのせる','jpg / png / webp・2MBまで。縦長がおすすめですが、9:16〜4:3 どれでもOK。切らずにそのまま表示します。']];
