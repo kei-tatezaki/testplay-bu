@@ -167,7 +167,7 @@ function render(){
     hasWorks()?null:el('p',{class:'wl'},'自分の作品を、テストプレイしてもらいませんか？ ',el('a',{href:'./submit.html'},'作品を載せる →')),
     BAR,PANE,
     el('p',{class:'utl'},PROFILE&&PROFILE.handle?el('a',{href:T.profileUrl(PROFILE.handle)},'公開プロフィールを見る'):null,ISADMIN?el('a',{href:'./admin.html'},'管理ページ'):null,
-      el('button',{type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); location.reload() }},'ログアウト')));
+      el('button',{type:'button',onclick:async()=>{ await sb.auth.signOut(); T.store.set('me',null); T.store.set('folCache',null); location.reload() }},'ログアウト')));
   drawPane();
 }
 function drawPane(){ PANE.replaceChildren(); PANE.setAttribute('aria-labelledby','tab-'+TAB); ({games:paneGames,likes:paneLikes,history:paneHistory,fb:paneFb})[TAB](PANE) }

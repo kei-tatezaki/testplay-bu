@@ -311,6 +311,10 @@
     ".tpb-me{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;font-size:13px;border-radius:999px;min-height:44px;padding:3px 10px 3px 3px;border:1px solid var(--line,#8884)}" +
     ".tpb-me.in{padding:3px;border-color:transparent}" +
     "@media (max-width:480px){.tpb-me{padding:3px;border-color:transparent}.tpb-me-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.tpb-av.guest{border:1px solid var(--line,#8886)}}" +
+    ".fdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#C8401F;flex:none}.fdot[hidden]{display:none}" +
+    ".tpb-mi .fdot{margin-left:auto}" +
+    ".tpb-side nav a .fdot{position:absolute;right:18px;top:9px;box-shadow:0 0 0 2px #EFE6D3}" +
+    "@media (min-width:1024px){.tpb-side nav a .fdot{right:18px;top:50%;margin-top:-4px;box-shadow:none}}" +
     ".tpb-kebab{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;font-weight:800}" +
     ".tpb-kebab:hover,.tpb-kebab:focus-visible{background:#8883}" +
     ".tpb-ov{position:fixed;left:0;right:0;top:0;bottom:0;height:100vh;height:100dvh;z-index:90;background:#0006}" +
@@ -747,7 +751,7 @@ T.linkLabel = function (url) {
     })();
     return _mine;
   };
-  F.reset = function () { S.set("folCache", null) };
+  F.reset = function () { var c = S.get("folCache", null); if (c) { c.t = 0; S.set("folCache", c) } };   // 古い扱いにするだけ（次に開くまでの並びには、前の記録を使う）
   F.handles = function (rows) { var o = {}; (rows || []).forEach(function (r) { o[r.handle] = 1 }); return o };
   // 前に「フォロー中」を見たあとに公開された作品の数（games.json の added が日付なので、日本時間のその日の0時で比べる）
   F.newCount = function (rows) {
@@ -768,7 +772,7 @@ T.linkLabel = function (url) {
       busy = true; b.disabled = true;
       try {
         var r = await T.sb().rpc("follow_set", { p_handle: handle, p_on: !on }); if (r.error) throw r.error;
-        on = !!r.data.following; F.reset(); if (o.onChange) o.onChange(on, r.data); T.toast(on ? "フォローしたよ" : "フォローをやめたよ", 1600);
+        on = !!r.data.following; F.reset(); F.mine(true); if (o.onChange) o.onChange(on, r.data); T.toast(on ? "フォローしたよ" : "フォローをやめたよ", 1600);
       } catch (e) { T.toast(F.errText(e), 3400) }
       busy = false; b.disabled = false; draw();
     });

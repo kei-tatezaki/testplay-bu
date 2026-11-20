@@ -37,6 +37,16 @@ button{font:inherit;color:inherit}
 @media (max-width:400px){.logo{font-size:14px;letter-spacing:0}}
 @media (max-width:340px){.logo-t{display:none}}
 .top a.tpb-me{padding:3px!important}
+.ftabs{position:absolute;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:2px;z-index:21}
+.ftabs button{position:relative;min-height:44px;padding:0 9px;border:0;background:none;color:var(--ink);font:700 14px/1 var(--f-rd,var(--f-round));cursor:pointer;text-shadow:0 1px 3px #000a;white-space:nowrap}
+.ftabs button span{display:inline-block;padding:4px 0 3px;border-bottom:2px solid transparent;opacity:.78}
+.ftabs button[aria-selected="true"] span{opacity:1;border-bottom-color:var(--ink)}
+.ftabs .fdot{position:absolute;right:2px;top:9px;box-shadow:0 0 0 2px #0b0e13}
+.fmsg{position:absolute;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translateX(-50%);margin:0;max-width:calc(100% - 32px);background:#2A241E;color:#fff;font-size:13px;line-height:1.5;padding:7px 14px;border-radius:4px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:22}
+.fmsg[hidden]{display:none}
+@media (max-width:600px){.top .logo{display:none}}
+@media (max-width:420px){.top a.back .bk-t{display:none}.top a.back{padding:0 14px}}
+.fl-tag{font-size:11px;font-weight:700;border:1px solid currentColor;border-radius:3px;padding:0 5px;margin-left:6px;white-space:nowrap}
 .top a{color:var(--ink);font-size:13px;text-decoration:none;border:1px solid #ffffff40;border-radius:999px;padding:4px 12px;background:#0006}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
 .slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;overflow:clip;max-width:560px;margin:0 auto;background:#000}
@@ -343,6 +353,7 @@ fieldset.err{outline:2px solid #B0301B}
  .top a.back,.top .logo,.top .sp{display:none}
  .top a{color:var(--ink);background:#FFFDF8;border:1px solid var(--line)}
  .top a.tpb-me.in{background:none;border-color:transparent}
+ .ftabs button{text-shadow:none}.ftabs .fdot{box-shadow:0 0 0 2px #F6F1E7}
  .loading{color:var(--muted)}
  /* ステージ：黒い角丸の枠。動画は切らずに contain */
  .slide{max-width:none;background:transparent;--vt:72px;--sl:24px;--vb:var(--info,200px)}
@@ -448,7 +459,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 <body>
 <a class="skip" href="#feed" id="skip">作品へ飛ぶ</a>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">テストプレイ部：学生のゲームを5分でつまみ食い</h1>
-<div class="top"><a class="back" id="back" href="list.html" aria-label="作品一覧を見る"><span aria-hidden="true">▦</span> 作品一覧</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
+<div class="top"><a class="back" id="back" href="list.html" aria-label="作品一覧を見る"><span aria-hidden="true">▦</span><span class="bk-t">作品一覧</span></a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span><div class="ftabs" role="tablist" aria-label="ショートの切り替え"><button type="button" role="tab" id="tabRec" aria-selected="true"><span>おすすめ</span></button><button type="button" role="tab" id="tabFol" aria-selected="false"><span>フォロー中</span><i class="fdot" hidden aria-label="新しい作品があります"></i></button></div><p class="fmsg" id="fMsg" role="status" hidden>作者をフォローすると、ここに新作が流れます</p></div>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは、作った人に届きます（名前は出ません）</small>
 <button type="button" data-r="controls">操作がわかりにくい</button>
 <button type="button" data-r="heavy">重い・うまく動かない</button>
@@ -585,7 +596,10 @@ async function loadStats(){
 const seen = store.get('seen',{});
 let STATS = store.get('statsCache',null), statsKnown = !!STATS; if(!STATS) STATS={};
 let LIVE = store.get('liveCache',{}) || {};
-const ranked = window.TPBRank ? TPBRank.rank(GAMES,{stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
+const FOLC0=(store.get('folCache',null)||{}).rows||[];
+let FOLH = TPB.follow ? TPB.follow.handles(FOLC0) : {};
+const FOLC=FOLC0;   // フォロー中の作者の作品（端末の記録。無ければ重みなし）
+const ranked = window.TPBRank ? TPBRank.rank(GAMES,{follow:new Set(FOLC.map(r=>r.game_slug)),stats:STATS,hist:{played:[...played],sent:[...sent],reacts,seen,hmmWhy:store.get('hmmWhy',{})},canPlay,today:Date.now(),seed:CLIENT+':'+new Date().toDateString()})
                               : GAMES.slice().reverse().map(g=>({g,s:{feedbacks:-1}}));
 let order = ranked.map(o=>o.g);
 const META = {}; ranked.forEach(o=>META[o.g.slug]=o);
@@ -644,7 +658,7 @@ function whoBtn(g){
 }
 function byLine(g){
   const c=TPB.creatorOf(g,LIVE);
-  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},el('span',{class:'byav','aria-hidden':'true'},TPB.avatar(c,22)),c.name):c.name, g.sample?el('span',{class:'sample'},' ・ 運営のお試し作品'):(c.official&&!/運営|公式/.test(c.name)?' ・ 運営':''), g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
+  return el('div',{class:'by'}, c.handle?el('a',{href:TPB.profileUrl(c.handle)},el('span',{class:'byav','aria-hidden':'true'},TPB.avatar(c,22)),c.name):c.name, c.handle&&FOLH[c.handle]?el('span',{class:'fl-tag'},'フォロー中'):null, g.sample?el('span',{class:'sample'},' ・ 運営のお試し作品'):(c.official&&!/運営|公式/.test(c.name)?' ・ 運営':''), g.x? ' ・ @'+g.x.replace(/^@/,'') : '');
 }
 // スライドのラベル：大事なものだけ2つまで（年齢制限・遊べない端末・まだ遊んでない・感想まだ0件）＋時間。
 // 「確かめたいこと」と「作者が確かめたいこと」は、感想シートと作品ページにまかせる
@@ -707,6 +721,43 @@ order.forEach((g,idx)=>{
 });
 feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。',el('br'),el('b',{style:'color:var(--shu-ink)'},'最初の1本は投稿無料')):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
 
+// ---- おすすめ／フォロー中 ----
+{
+  const endSlide=feed.lastElementChild, SL={}; feed.querySelectorAll('.slide[data-slug]').forEach(sl=>SL[sl.dataset.slug]=sl);
+  let mode='rec', rows=FOLC0, msgT=0;
+  const tabRec=$('tabRec'), tabFol=$('tabFol'), msg=$('fMsg');
+  const t0=g=>{ const t=Date.parse(g.added||''); return isNaN(t)?0:t };
+  const unplayed=g=>canPlay(g)&&!played.has(g.slug);
+  function folList(){   // フォロー中の作者の作品：まだ遊んでいないものが先、そのなかで新しい順（added、同じ日は games.json の後ろほど新しい）
+    const set=new Set(rows.map(r=>r.game_slug));
+    return GAMES.map((g,i)=>({g,i})).filter(o=>set.has(o.g.slug)).sort((a,b)=>(unplayed(a.g)?0:1)-(unplayed(b.g)?0:1)||t0(b.g)-t0(a.g)||b.i-a.i).map(o=>o.g);
+  }
+  function showMsg(){ msg.hidden=false; clearTimeout(msgT); msgT=setTimeout(()=>{ msg.hidden=true },4200) }
+  function put(list){
+    feed.replaceChildren(...list.map(g=>SL[g.slug]).filter(Boolean),endSlide);
+    feed.scrollTop=0; feed.dispatchEvent(new Event('scroll'));
+  }
+  function paint(){ tabRec.setAttribute('aria-selected',String(mode==='rec')); tabFol.setAttribute('aria-selected',String(mode==='fol')) }
+  function dot(){ const d=tabFol.querySelector('.fdot'); d.hidden=!(mode!=='fol'&&TPB.follow&&TPB.follow.newCount(rows)>0) }
+  async function setMode(m){
+    if(m===mode){ if(m==='rec') feed.scrollTo({top:0,behavior:'smooth'}); return }
+    if(m==='fol'){
+      if(!TPB.maybeLoggedIn()) { showMsg(); return }
+      const list=folList(); if(!list.length){ showMsg(); return }
+      msg.hidden=true; mode='fol'; paint(); put(list); TPB.follow.markSeen(); dot();
+    } else { msg.hidden=true; mode='rec'; paint(); put(order); dot() }
+  }
+  tabRec.addEventListener('click',()=>setMode('rec')); tabFol.addEventListener('click',()=>setMode('fol'));
+  [tabRec,tabFol].forEach(b=>b.addEventListener('keydown',e=>{ if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ e.preventDefault(); const o=b===tabRec?tabFol:tabRec; o.focus(); setMode(o===tabFol?'fol':'rec') } }));
+  // PC：タブは、動画の枠の真ん中に置く
+  function place(){ const pc=matchMedia('(min-width:768px) and (hover:hover) and (pointer:fine)').matches, m=feed.querySelector('.slide[data-slug] .media'); const tb=document.querySelector('.ftabs');
+    if(pc&&m){ const r=m.getBoundingClientRect(); if(r.width) tb.style.left=(r.left+r.width/2)+'px'; else tb.style.left='' } else tb.style.left='' }
+  addEventListener('resize',place); setTimeout(place,300); setTimeout(place,1200);
+  // 最新のフォロー中を取りにいく。届いたら、作者名の「フォロー中」・点・?tab=follow を反映（おすすめの並びは入れ替えない）
+  if(TPB.follow&&TPB.maybeLoggedIn()) ready.then(()=>TPB.follow.mine()).then(r=>{ rows=r||[]; FOLH=TPB.follow.handles(rows); refreshCreators(); dot();
+    if(/^(fol|follow)$/.test(new URLSearchParams(location.search).get('tab')||'')) setMode('fol') });
+  dot();
+}
 // 動画の大きさ：題名などの高さを測って動画のおき場を決める。縦長に近い動画は画面いっぱい（cover）、そうでなければ真ん中に大きく
 const infoRO = new ResizeObserver(es=>es.forEach(e=>{ const sl=e.target.closest('.slide'); if(sl) sl.style.setProperty('--info',(Math.ceil(e.target.offsetHeight)+Math.max(16,parseFloat(getComputedStyle(e.target).bottom)||0)+10)+'px') }));
 document.querySelectorAll('.slide .info').forEach(n=>infoRO.observe(n));
