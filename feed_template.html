@@ -250,6 +250,43 @@ fieldset.err{outline:2px solid #B0301B}
 .sheet .ferr,.sheet .msg.err{color:#B0301B}
 .ptinfo{background:var(--shu-soft);color:var(--ink);border-radius:3px}.ptinfo.off{color:var(--muted);background:var(--paper-2)}
 .ptdone{color:var(--shu-ink)}
+/* ===== 感想のコーチ：書き出しチップ・付箋のコメント ===== */
+#sheetBg .sheet{overflow-x:hidden}
+.stems{display:grid;gap:6px;margin:2px 0 6px}
+.stemlab{margin:0;font-family:var(--f-hand);font-weight:600;font-size:13px;color:var(--muted)}
+.stemhint{margin:0;font-family:var(--f-hand);font-weight:600;font-size:12px;color:var(--shu-ink)}
+.chips{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding:3px 3px 6px;margin:0 -3px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.chips[hidden]{display:none}
+.chip{flex:0 0 auto;border:1px solid rgba(42,36,30,.14);border-radius:3px;box-shadow:0 1px 0 rgba(42,36,30,.2);padding:5px 12px;min-height:36px;font:700 13px var(--f-round);color:var(--ink);background:var(--karashi-soft);cursor:pointer;white-space:nowrap}
+.chip.k-bad{background:var(--shu-soft)}.chip.k-idea{background:var(--ao-soft)}
+.chips.c2 .chip{background:#FFFDF8;transform:rotate(-.6deg)}.chips.c2 .chip:nth-child(even){transform:rotate(.6deg)}
+.chips.c2.k-good .chip{border-top:3px solid var(--karashi)}.chips.c2.k-bad .chip{border-top:3px solid var(--shu)}.chips.c2.k-idea .chip{border-top:3px solid var(--ao)}
+.chip.hot{outline:2px dashed var(--shu);outline-offset:1px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip:active{transform:translateY(1px)}
+.fbrow{display:grid;gap:10px}
+.fbmain{min-width:0}
+.coach{display:grid;gap:8px;align-content:start;min-width:0}
+.cnotes{display:grid;gap:8px}
+.cnote{position:relative;font-family:var(--f-hand);font-weight:600;font-size:13px;line-height:1.55;background:var(--karashi-soft);color:var(--ink);padding:9px 11px 8px;border-radius:2px;box-shadow:1px 2px 0 rgba(42,36,30,.22);transform:rotate(-.5deg)}
+.cnote.alt{transform:rotate(.5deg)}
+.cnote::before{content:"";position:absolute;left:50%;top:-6px;width:38px;height:12px;margin-left:-19px;background:rgba(255,255,255,.65);box-shadow:0 0 0 1px rgba(42,36,30,.08);transform:rotate(-2deg)}
+.cnote p{margin:0}
+.cnote.n-tone{background:var(--shu-soft)}.cnote.n-praise{background:#E1EDCF}.cnote.n-ai,.cnote.n-idea{background:var(--ao-soft)}
+.cacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cbtn{border:1px dashed rgba(42,36,30,.45);background:#FFFDF8;color:var(--ink);border-radius:3px;padding:3px 9px;min-height:32px;font:700 12px var(--f-round);cursor:pointer;text-align:left}
+.cbtn.pri{background:var(--ink);color:var(--paper);border-style:solid}
+.cbtn.ai{justify-self:start;min-height:36px;font-size:13px;border-style:solid}
+.cbtn:disabled{opacity:.55;cursor:default}
+.cundo,.cmsg,.cwhy{margin:0;font-family:var(--f-hand);font-weight:600;font-size:12px;color:var(--muted)}
+.cundo[hidden],.cmsg:empty,.cwhy:empty{display:none}
+.cai{display:grid;gap:5px;justify-items:start}
+.cwhy.fail{color:#8A5A00}
+.crewrite{background:#FFFDF8;border:1px solid rgba(42,36,30,.2);border-radius:3px;padding:9px 11px;box-shadow:1px 2px 0 rgba(42,36,30,.18);font-family:var(--f-hand);font-weight:600;font-size:13px;line-height:1.6}
+.crewrite p{margin:0}.crt{font-family:var(--f-round);font-weight:800;font-size:12px;color:var(--ao);margin-bottom:3px!important}.crb{white-space:pre-wrap;overflow-wrap:anywhere}
+@media (min-width:900px){#sheetBg .sheet{max-width:860px}.fbrow{grid-template-columns:minmax(0,1fr) 250px;gap:16px}.cnote:first-child{margin-top:0}}
+@media (prefers-reduced-motion:no-preference){.cnote{animation:cpop .18s ease-out}@keyframes cpop{from{opacity:0;transform:translateY(4px) rotate(-.5deg)}}}
+@media (prefers-reduced-motion:reduce){.cnote,.cnote.alt,.chips.c2 .chip,.chips.c2 .chip:nth-child(even){transform:none;animation:none}.chips{scroll-behavior:auto}}
 .btn{border-radius:6px;font-family:var(--f-round);font-weight:800;box-shadow:0 3px 0 #8E2C14;transition:transform .08s ease,box-shadow .08s ease}
 .btn:active{transform:translateY(3px);box-shadow:0 0 0 #8E2C14}
 .btn.ghost{background:transparent;color:var(--shu-ink);border:2px solid var(--shu);box-shadow:none;font-weight:700}
@@ -427,7 +464,23 @@ fieldset.err{outline:2px solid #B0301B}
     <fieldset data-k="good"><legend>よかったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
     <fieldset data-k="bad"><legend>気になったところ <small>いくつでも</small></legend><div class="opts"></div></fieldset>
     <fieldset data-k="answer" data-single><legend id="qLegend">作者の質問</legend><div class="opts"></div></fieldset>
-    <fieldset><legend>一言 <small id="minNote">任意</small></legend><div class="opts" id="emo"></div><label for="free" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">一言（感想を自由に書く）</label><textarea id="free" maxlength="400" placeholder="🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
+    <fieldset><legend>一言 <small id="minNote">任意</small></legend><div class="opts" id="emo"></div>
+      <div class="fbrow">
+        <div class="fbmain">
+          <div class="stems" id="stems"><p class="stemlab" id="stemLab">書き出しを選ぶ（任意）</p>
+            <div class="chips c1" id="stem1" role="group" aria-labelledby="stemLab"></div>
+            <div class="chips c2" id="stem2" role="group" aria-label="何について書く？" hidden></div>
+            <p class="stemhint" id="stemHint" hidden>★は、作者が確かめたいこと</p></div>
+          <label for="free" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">一言（感想を自由に書く）</label><textarea id="free" maxlength="400" placeholder="🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
+        </div>
+        <aside class="coach" id="coach" aria-label="感想のコーチ">
+          <div class="cnotes" id="cNotes" aria-live="polite"></div>
+          <p class="cundo" id="cUndo" hidden></p>
+          <p class="cmsg" id="cMsg" role="status"></p>
+          <div class="cai"><button type="button" class="cbtn ai" id="aiBtn" disabled aria-describedby="aiWhy">🤖 AIに見てもらう</button><span class="cwhy" id="aiWhy"></span>
+            <p class="cwhy fail" id="aiFail" hidden></p><div id="aiOut" aria-live="polite"></div></div>
+        </aside>
+      </div>
       <label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="dev"> 自分もゲームを作っている（開発者は40文字以上で書いてね）</label>
     </fieldset>
     <p class="pubnote">書いた感想は、作品ページにのります（名前は出ません）。</p>
@@ -453,6 +506,7 @@ fieldset.err{outline:2px solid #B0301B}
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
 <script src="assets/mission.js"></script>
+<script src="assets/coach.js"></script>
 <script>
 const GAMES = __GAMES__;
 const DISCORD_DEFAULT = "__DISCORD__";
@@ -899,8 +953,9 @@ document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
     if(k==='reach') $('stopAt').hidden = !(picks.reach||[]).includes('途中でやめた');
   }},label)) });
 });
-EMO.forEach(e=>$('emo').append(el('button',{class:'opt',type:'button',onclick:()=>{const t=$('free');t.value=(t.value?t.value+' ':'')+e+'：';t.focus();upd()}},e)));
+EMO.forEach(e=>$('emo').append(el('button',{class:'opt',type:'button',onclick:()=>{const t=$('free');t.value=(t.value?t.value+' ':'')+e+'：';t.focus();t.dispatchEvent(new Event('input',{bubbles:true}))}},e)));
 const free=$('free'), dev=$('dev');
+const coach=TPBCoach.mount({ta:free,el,SB_URL,SB_KEY,getSession:()=>getSession()});
 dev.checked = !!store.get('dev',false);
 // ポイントの対象になるかは、空白を除いた字数で見る（データベースと同じ数え方）。もらえない作品（自分の作品など）では、ポイントの案内を出さない
 let ptHint=null;
@@ -959,7 +1014,7 @@ async function openSheet(g){
   sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
-  free.value=''; $('stopAt').value=''; $('stopAt').hidden=true; ptHint=null; $('ptInfo').hidden=true; upd(); loadHint(g);
+  free.value=''; coach.open(g); $('stopAt').value=''; $('stopAt').hidden=true; ptHint=null; $('ptInfo').hidden=true; upd(); loadHint(g);
   if(!$('sheetBg').classList.contains('open')) sheetOpener=openerFor(g);
   $('sheetBg').classList.add('open'); syncInert(); TPB.layer.open('sheet',closeSheet); setTimeout(()=>$('sheet').querySelector('.opt').focus(),50);
 }
@@ -989,7 +1044,7 @@ async function showMissionResult(){
   let r=null; try{ r=await M.afterFeedback() }catch(e){}
   if(!r) return; $('msDone').textContent=r.text; TPB.toast(r.text,4800);
 }
-function closeSheet(){ const was=$('sheetBg').classList.contains('open'); $('sheetBg').classList.remove('open'); syncInert(); TPB.layer.close('sheet'); if(was&&!$('loginBg').classList.contains('open')) restoreFocus(sheetOpener) }
+function closeSheet(){ coach.close(); const was=$('sheetBg').classList.contains('open'); $('sheetBg').classList.remove('open'); syncInert(); TPB.layer.close('sheet'); if(was&&!$('loginBg').classList.contains('open')) restoreFocus(sheetOpener) }
 $('sClose').addEventListener('click',closeSheet);
 $('sDoneClose').addEventListener('click',closeSheet);
 $('sheetBg').addEventListener('click',e=>{ if(e.target===$('sheetBg')) closeSheet() });
