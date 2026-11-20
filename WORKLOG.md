@@ -307,3 +307,14 @@
 - **scripts/fetch_submission_media.py**：署名付きURL＋slug → 動画は `clips/<slug>.mp4`（ffmpeg で無音・長辺960px以下・15秒以内・2MB以下、超えたらビットレートを下げて再エンコード）、画像は `og/<slug>.<拡張子>`。games.json は書き換えず、足す行（`"clip"` / `"cover"`）を表示するだけ。README に使い方。
 - 確かめ：Playwright（google-chrome）390×844・1440×900。ラジオ3つ、2MB超、15秒超、gif 拒否、動画・画像のプレビューと見本、送信成功、rpc 失敗でのアップロード後片付け、upload 413 の文言、ファイル未選択の案内、admin（プレビュー・二度押し削除）、me のチップ。pageerror 0・横スクロールなし。書き込みはすべて route モック（storage・rpc）。エンコードは ok.webm・大きい mp4・17秒超の mp4 で手元確認。
 - スクリーンショット：`/home/claude/shots/media_*.png`（auto／big／long／video／image／video_pv／image_pv／upfail／done／admin／me × 390・1440）。
+
+
+## 遊び方（ブラウザ／ダウンロード）・埋め込み・今日のミッション（画面側。SQLは運営が適用）
+
+- **DB（`supabase/016_missions_playkind.sql`、検証は `016_check.sql`、どちらも未適用）**：`submission_send` に play_kind / size / os / embed_url（itch.io の `embed-upload/数字` のみ。ダウンロードURLは itch.io・Steam・BOOTH・GitHub／github.io のみ、exe・zip などの直リンクは拒否）。ミッション（JST 5時区切り・1日3つ）は DB が付与：感想(b)＋3、新作感想(c)＋5、全達成＋5。`daily_missions_status()`、感想 insert のトリガ、感想を非表示にすると当日分を取り消し。1日上限に含める。拾えるのは client_id 経由。
+- **submit.html**：「遊び方」（ブラウザ（初期）／ダウンロード）。ダウンロードは URL 判定・容量の目安・対応OS、ブラウザは itch 埋め込みコード欄（URLだけ取り出し、HTMLは保存しない）。
+- **ダウンロード型の表示**：games.json の play_kind / size / os。ボタン「⬇ 公開ページへ（ダウンロード）」、チップ「ダウンロード・Windows・約2GB」。新しいタブで開き再生記録は送る。「どうだった？」は出さず、6時間後以降の次の訪問で一度だけ「前に開いた『○○』、遊べた？」。PC扱い（canPlay のグレー規則に従う）。admin に表示と「games.json用」コピー。
+- **埋め込み**：games.json の `embed`、または作者の *.github.io（kei-tatezaki.github.io 以外）の遊ぶURLは枠内 iframe（sandbox・allow・referrerpolicy 指定）。上に「公開ページで遊ぶ」リンク。閉じると「どうだった？」。
+- **今日のミッション**：`assets/mission.js`。スタンプカード（アニメ、reduced-motion は即時）、連続日数、一覧の帯、PC サイドバー／スマホ⋮メニュー、達成トースト、me.html の「スタンプ」タブ。
+- 確かめ：Playwright（google-chrome・route モック）390×844・1440×900ほか。pageerror 0・横スクロールなし・AA最小 4.87。016 は使い捨て Postgres で 65件合格。本番 Supabase には書いていない。
+- スクリーンショット：`/home/claude/shots/f_*.png`。

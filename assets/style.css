@@ -218,6 +218,7 @@ h2.flow-h{margin:6px 0 -2px 0}
 .chip{border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--paper-2);color:var(--ink)}
 .chip.check{background:var(--shu-soft);border-color:transparent;color:var(--ink)}
 .chip.plat{background:var(--ao-soft);border-color:transparent;color:var(--ink)}
+.chip.dl{background:var(--ao);border-color:transparent;color:#fff;font-weight:700}
 .chip.sample{background:var(--karashi-soft);border-color:transparent;color:var(--ink)}
 .chip.rate-r15{background:var(--karashi);border-color:transparent;color:var(--ink)}
 .chip.rate-r18{background:#B3243F;border-color:transparent;color:#fff;font-weight:700}

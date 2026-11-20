@@ -175,6 +175,32 @@ def media_html(g, prefix):
 
 
 PLATFORM = {"pc": "PCのみ", "sp": "スマホのみ", "both": "PC・スマホ"}
+# 遊び方：play_kind が "download" の作品は、ダウンロードして遊ぶ（サイトからは公開ページへ案内する）。対応端末が書いてなければ pc
+# 埋め込み：games.json の "embed"（itch.io の https://itch.io/embed-upload/数字）か、play が作者の *.github.io（kei-tatezaki.github.io 以外）なら、
+#   新しいタブではなく、サイトの中のプレイヤー（iframe）で開く。feed_template.html の embedSrc() と同じ決まり
+EMBED_RE = re.compile(r"^https://itch\.io/embed-upload/[0-9]+(\?[A-Za-z0-9=&_.%#-]*)?$")
+OWN_PAGES = "kei-tatezaki.github.io"
+
+
+def is_download(g):
+    return g.get("play_kind") == "download"
+
+
+def embed_src(g):
+    """サイトの中のプレイヤーで開く外部ゲームの iframe の src。なければ空"""
+    if is_download(g):
+        return ""
+    if g.get("embed") and EMBED_RE.match(g["embed"]):
+        return g["embed"]
+    m = re.match(r"https://([^/?#:@]+)(?:[/?#]|$)", g.get("play", ""))
+    h = m.group(1).lower() if m else ""
+    return g["play"] if h.endswith(".github.io") and h != OWN_PAGES else ""
+
+
+def dl_label(g):
+    """印：ダウンロード・Windows・約2GB"""
+    size = (g.get("size") or "").strip()
+    return "・".join(x for x in ("ダウンロード", g.get("os") or "", ("約" + size) if size and not size.startswith("約") else size) if x)
 CREATORS = json.loads((ROOT / "creators.json").read_text(encoding="utf-8")) if (ROOT / "creators.json").exists() else {}
 
 
@@ -207,6 +233,8 @@ def chips_html(g):
     out = []
     if g.get("rating") in RATING:
         out.append(f'<span class="chip rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>')
+    if is_download(g):
+        out.append(f'<span class="chip dl">{e(dl_label(g))}</span>')
     if g.get("platform") in PLATFORM:
         out.append(f'<span class="chip plat">{PLATFORM[g["platform"]]}</span>')
     if g.get("sample"):
@@ -444,6 +472,7 @@ h2.flow-h{margin:6px 0 -2px 0}
 .chip{border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--paper-2);color:var(--ink)}
 .chip.check{background:var(--shu-soft);border-color:transparent;color:var(--ink)}
 .chip.plat{background:var(--ao-soft);border-color:transparent;color:var(--ink)}
+.chip.dl{background:var(--ao);border-color:transparent;color:#fff;font-weight:700}
 .chip.sample{background:var(--karashi-soft);border-color:transparent;color:var(--ink)}
 .chip.rate-r15{background:var(--karashi);border-color:transparent;color:var(--ink)}
 .chip.rate-r18{background:#B3243F;border-color:transparent;color:#fff;font-weight:700}
@@ -581,7 +610,9 @@ document.addEventListener('click',function(ev){
  try{
   var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
   if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
-  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'), fresh=played.indexOf(a.dataset.play)<0; if(fresh){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  // 今日のミッション：ダウンロード型は公開ページを開いたら達成。ほかの外のタブは、戻ってきて20秒以上たっていたら
+  var M=window.TPB&&TPB.mission; if(M){ if(a.dataset.dl) M.dlOpened(a.dataset.play,fresh); else M.externalStart(a.dataset.play,fresh) }
   fetch('""" + SB_URL + """/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'""" + SB_KEY + """','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
  }catch(e){}
 });
@@ -636,6 +667,7 @@ def page(title, desc, url, image, body, prefix):
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="{prefix}assets/data.js" defer></script>
 <script src="{prefix}assets/tpb.js" defer></script>
+<script src="{prefix}assets/mission.js" defer></script>
 </body>
 </html>
 """
@@ -645,6 +677,11 @@ def play_btn(g):
     """作品ページの「遊ぶ」。このサイトの中のゲームは、枠つきのプレイヤーを開くトップへ。外のサイトのゲームは別タブで開く。"""
     label = f"▶ 遊ぶ{'（' + e(g['minutes']) + '）' if g.get('minutes') else ''}"
     pc = f' data-only="{g["platform"]}"' if g.get("platform") in ("pc", "sp") else ""
+    if is_download(g):
+        # ダウンロード型：新しいタブで公開ページ。押したことは記録する（data-play）。遊べたかは、次にサイトを開いたときに聞く（data-dl）
+        return f'<a class="btn big" data-play="{e(g["slug"])}" data-dl="1"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">⬇ 公開ページへ（ダウンロード）</a>'
+    if embed_src(g):
+        return f'<a class="btn big"{pc} href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
     if re.match(r"https?:", g.get("play", "")):
         return f'<a class="btn big" data-play="{e(g["slug"])}"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">{label}</a>'
     return f'<a class="btn big"{pc} href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
@@ -697,6 +734,15 @@ def card(g, prefix):
 
 def build():
     games = json.loads((ROOT / "games.json").read_text(encoding="utf-8"))
+    for g in games:
+        if g.get("play_kind") not in (None, "browser", "download"):
+            raise SystemExit(f"{g['slug']}: play_kind は browser か download にしてください")
+        if g.get("embed") and not EMBED_RE.match(g["embed"]):
+            raise SystemExit(f"{g['slug']}: embed は https://itch.io/embed-upload/数字 の形にしてください")
+        if is_download(g) and not g.get("platform"):
+            g["platform"] = "pc"   # ダウンロード型は PC 扱い
+        if embed_src(g):
+            g["inpage"] = embed_src(g)   # フィード・メニューの JS が、サイトの中のプレイヤー（iframe）で開く先として使う
     # 一覧のサムネイル：shots/<slug>.png（ゲーム画面）があればそれを使う（OG画像は文字が小さくて、一覧では読めないため）。R18は共通の表紙
     for g in games:
         if not is_r18(g) and (ROOT / f"shots/{g['slug']}.png").exists():
@@ -787,6 +833,7 @@ def build():
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
+<div data-ms-band></div>
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">

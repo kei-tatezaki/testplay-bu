@@ -28,6 +28,7 @@
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
+<div data-ms-band></div>
 <div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b><span class="n2">最初の作品を募集中です。</span></span><b class="lfb">最初の1本は投稿無料</b><a class="btn" href="./submit.html">作品を応募する</a></div>
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">
@@ -212,7 +213,9 @@ document.addEventListener('click',function(ev){
  try{
   var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
   if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
-  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'); if(played.indexOf(a.dataset.play)<0){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'), fresh=played.indexOf(a.dataset.play)<0; if(fresh){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  // 今日のミッション：ダウンロード型は公開ページを開いたら達成。ほかの外のタブは、戻ってきて20秒以上たっていたら
+  var M=window.TPB&&TPB.mission; if(M){ if(a.dataset.dl) M.dlOpened(a.dataset.play,fresh); else M.externalStart(a.dataset.play,fresh) }
   fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
  }catch(e){}
 });
@@ -220,5 +223,6 @@ document.addEventListener('click',function(ev){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="assets/data.js" defer></script>
 <script src="assets/tpb.js" defer></script>
+<script src="assets/mission.js" defer></script>
 </body>
 </html>

@@ -63,6 +63,11 @@
 3. 表示された1行（`"clip": …` か `"cover": …`）を games.json の該当作品に足し、`python3 build.py` → commit / push（games.json は自動では書き換えません）
 4. 管理ページの「ファイルを消す」（二度押し）で、バケットのファイルを消す
 
+## 遊び方（ダウンロード・埋め込み）とミッション
+
+- games.json に `"play_kind":"download"`, `"size":"約2GB"`, `"os":["windows"]` を書くとダウンロード型の表示になる（遊ぶURLは公開ページ）。`"embed":"https://itch.io/embed-upload/数字"` か作者の *.github.io のURLは枠内で遊べる。admin の「games.json用」にそのまま出る。
+- 今日のミッションは `supabase/016_missions_playkind.sql` を適用してから有効になる（未適用でも他は動く）。`016_check.sql` は一時DBで流す検査用（最後にわざと例外で巻き戻す）。
+
 ## データベース（Supabase）
 
 `supabase/001`〜`013` を番号順に SQL Editor で実行する。009 がプロフィール・アイコン画像・報告・応募。010 は `admin_exists()`（管理者がいるかだけを返す。admin.html で、管理者でない人に「管理者にする」を出さないため。未適用でも、管理者がいるものとして動く）。

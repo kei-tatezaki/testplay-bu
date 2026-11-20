@@ -128,6 +128,11 @@ button{font:inherit;color:inherit}
 .chip.rate-r15{border-color:#d4a017;color:#d4a017}
 .chip.rate-r18{border-color:#e05a74;color:#e05a74;font-weight:700}
 .toast a.go{border-radius:999px;padding:6px 12px;font-size:13px;background:#5865F2;color:#fff;text-decoration:none;white-space:nowrap;font-weight:700}
+.vpanel .bigplay.dl{font-size:15px}
+.chip.dl{background:var(--ao);border-color:transparent;color:#fff;font-weight:700}
+.player .pnote{margin:0;padding:0 12px;font-size:12px;line-height:1.5;background:#111;color:#cfc8bd;border-bottom:1px solid #2a2622}
+.player .pnote a{color:#FFB09A;display:inline-flex;align-items:center;min-height:44px;margin:-12px 0;padding:0 4px}
+.ptdone.ms{font-size:16px}
 #sDone{display:none;gap:10px;text-align:center}
 .sheet.done #sDone{display:grid}
 .sheet.done > :not(#sDone){display:none}
@@ -385,6 +390,7 @@ fieldset.err{outline:2px solid #B0301B}
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
   <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" id="pFull" hidden>⛶ 全画面</button><button type="button" class="fb" id="pFb">💬 感想</button></header>
+  <p class="pnote" id="pNote" hidden>うまく動かないときは → <a id="pNoteA" href="#" target="_blank" rel="noopener">公開ページで遊ぶ</a></p>
   <div class="pbody" id="pBody"></div>
 </div>
 
@@ -393,6 +399,8 @@ fieldset.err{outline:2px solid #B0301B}
 <div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった">👍</button><button type="button" class="pick" data-a="hmm" aria-label="うーん">🤔</button><button type="button" class="go" data-a="fb">💬 感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
 
 <div class="toast stack" id="needPlay" role="status"><span id="needPlayText">先に遊んでみてね。遊んでからのほうが、いい感想になります</span><div class="btns"><button type="button" class="go" data-a="play">▶ 遊ぶ</button><button type="button" class="x" data-a="write">それでも書く</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
+
+<div class="toast stack" id="dlAsk" role="status"><span id="dlAskText">前に開いた作品、遊べた？</span><div class="btns"><button type="button" class="go" data-a="ok">遊べた</button><button type="button" class="x" data-a="not">まだ</button><button type="button" class="x" data-a="fail">遊べなかった</button></div></div>
 
 <div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="__DISCORD__" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
 
@@ -432,6 +440,7 @@ fieldset.err{outline:2px solid #B0301B}
     <div id="sDone">
       <h3>送ったよ！ありがとう</h3>
       <p class="ptdone" id="ptDone" role="status"></p>
+      <p class="ptdone ms" id="msDone" role="status"></p>
       <p class="sub">作者が感想を読んで直したら、Discordでお知らせが届きます。新作や毎日17時のおすすめも流れるよ。</p>
       <a class="btn discord join" href="__DISCORD__" target="_blank" rel="noopener">Discordで進捗を見る（参加する）</a>
       <button class="btn ghost" type="button" id="sDoneClose">閉じる</button>
@@ -443,6 +452,7 @@ fieldset.err{outline:2px solid #B0301B}
 <script src="assets/rank.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
+<script src="assets/mission.js"></script>
 <script>
 const GAMES = __GAMES__;
 const DISCORD_DEFAULT = "__DISCORD__";
@@ -461,8 +471,16 @@ let CLIENT = store.get('cid',''); if(!CLIENT){ CLIENT = (crypto.randomUUID?crypt
 // この端末で遊べるか（スマホ＝タッチ中心で画面が小さい）
 const DEVICE = (matchMedia('(pointer:coarse)').matches && Math.min(screen.width,screen.height) < 820) ? 'sp' : 'pc';
 // 作者が選んだ対応端末どおり（PC用はスマホで、スマホ用はPCで遊べない）
-const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
-const PLATNAME = g => g.platform==='pc'?'PC':'スマホ';
+// ダウンロード型（play_kind:"download"）は、対応端末が書いてなければ PC 扱い（build.py も同じ）
+const isDl = g => g.play_kind==='download';
+const platOf = g => g.platform || (isDl(g)?'pc':'both');
+const canPlay = g => platOf(g)==='both' || platOf(g)===DEVICE;
+const PLATNAME = g => platOf(g)==='pc'?'PC':'スマホ';
+// ダウンロード型の印「ダウンロード・Windows・約2GB」
+const dlLabel = g => ['ダウンロード',g.os||'',g.size?(/^約/.test(g.size)?g.size:'約'+g.size):''].filter(Boolean).join('・');
+// 遊ぶボタンの文字（ダウンロード型は公開ページへ。サイト内で遊べるものは今までどおり）
+const playText = g => isDl(g)?'⬇ 公開ページへ（ダウンロード）':'▶ 遊ぶ';
+const playAria = g => canPlay(g)?(isDl(g)?g.title+' の公開ページへ（ダウンロード）':g.title+' を遊ぶ'):g.title+'（'+PLATNAME(g)+'用のゲームです）';
 const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
 // 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
 // 並び順は assets/rank.js（作る人優先：新作・感想が少ない作品を上げつつ、その人の好みも見る）
@@ -543,6 +561,7 @@ function byLine(g){
 function chipsFor(g){
   const imp=[];
   if(g.rating==='r15'||g.rating==='r18') imp.push(el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()));
+  if(isDl(g)) imp.push(el('span',{class:'chip dl'},dlLabel(g)));
   if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},PLATNAME(g)+'用'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
   if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
@@ -572,7 +591,7 @@ order.forEach((g,idx)=>{
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
-    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?'▶ 遊ぶ':PLATNAME(g)+'用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（'+PLATNAME(g)+'用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?(isDl(g)?'⬇ 公開ページへ':'▶ 遊ぶ'):PLATNAME(g)+'用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},playText(g)),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
@@ -581,14 +600,14 @@ order.forEach((g,idx)=>{
     el('div',{class:'vpanel'},
       el('h2',null,g.title), byLine(g),
       el('p',null,g.oneliner),
-      el('button',{class:'bigplay'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（'+PLATNAME(g)+'用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
+      el('button',{class:'bigplay'+(isDl(g)?' dl':'')+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},isDl(g)?playText(g):'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
       g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
       el('div',{class:'fbn'}),
       el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'💬 感想を書く'),
       el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
     el('div',{class:'rail'},
       whoBtn(g),
-      el('button',{class:'rb play'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':canPlay(g)?'遊ぶ':'遊ぶ（PC用のゲームです）',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),el('span',{class:'lb'},'遊ぶ')),
+      el('button',{class:'rb play'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':canPlay(g)?(isDl(g)?'公開ページへ（ダウンロード）':'遊ぶ'):'遊ぶ（'+PLATNAME(g)+'用のゲームです）',onclick:()=>play(g)},el('span',{class:'ic'},isDl(g)?'⬇':'▶'),el('span',{class:'lb'},isDl(g)?'公開ページ':'遊ぶ')),
       likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
@@ -729,11 +748,15 @@ function openPlayer(g){
   playerOpener = ae && ae!==document.body && ae.closest && ae.closest('.slide') ? ae : (sl&&sl.querySelector('.rail .play'));
   $('pTitle').textContent=g.title;
   const fr=document.createElement('iframe'); fr.id='pFrame'; fr.title='ゲーム：'+g.title; fr.allow='fullscreen; autoplay; gamepad';
+  // 外のサイトのゲームは、できることを絞った枠（sandbox）で開く。このサイトの自前のゲーム（play/…）は今までどおり
+  const outer=!!g.inpage;
+  if(outer){ fr.setAttribute('sandbox','allow-scripts allow-same-origin allow-pointer-lock allow-popups allow-forms'); fr.setAttribute('referrerpolicy','no-referrer-when-downgrade') }
+  const pn=$('pNote'); pn.hidden=!outer; if(outer) $('pNoteA').href=g.page||g.play;
   fr.addEventListener('load',()=>{
     fr.focus(); try{ fr.contentWindow.focus() }catch(_){}
     try{ fr.contentDocument.addEventListener('keydown',onPlayerKey) }catch(_){}  // 同じ出どころのゲームなら、ゲームの中でも Esc で閉じられる
   });
-  fr.src=g.play; $('pBody').replaceChildren(fr);
+  fr.src=outer?g.inpage:g.play; $('pBody').replaceChildren(fr);
   $('player').classList.add('open'); syncInert(); TPB.layer.open('player',closePlayer);
   fr.focus();
 }
@@ -741,9 +764,14 @@ function play(g){
   if(g.rating==='r18'&&!age18()) return;
   if(!canPlay(g)){ wrongDevice(g); return }
   closeIntro(); hideAfter(); hideNeedPlay();
+  const wasFresh=!played.has(g.slug);
   markPlayed(g); track(g,'play'); current=g;
-  playing={slug:g.slug,t:Date.now(),external:!isLocal(g.play)};
-  if(!isLocal(g.play)){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
+  // ダウンロード型：新しいタブで公開ページを開く。「どうだった？」は出さない（遊べたかは、次にサイトを開いたときに聞く）。公開ページを開いたら、今日のミッションの(a)は達成
+  if(isDl(g)){ window.open(g.play,'_blank','noopener'); if(window.TPB&&TPB.mission) TPB.mission.dlOpened(g.slug,wasFresh); return }
+  // 埋め込める作品（itch.io の embed／作者の *.github.io）は、サイトの中のプレイヤーで開く（g.inpage は build.py が決める）
+  const ext=!isLocal(g.play)&&!g.inpage;
+  playing={slug:g.slug,t:Date.now(),external:ext,fresh:wasFresh};
+  if(ext){ window.open(g.play,'_blank','noopener'); scheduleNudge(g); return }
   openPlayer(g);
   scheduleNudge(g);
 }
@@ -751,8 +779,9 @@ function play(g){
 let playing=null;
 function endPlay(){
   if(!playing) return;
-  const sec=Math.round((Date.now()-playing.t)/1000), slug=playing.slug; playing=null;
+  const sec=Math.round((Date.now()-playing.t)/1000), slug=playing.slug, fresh=playing.fresh; playing=null;
   if(sec<3||sec>21600) return;  // 3秒より短いものは、まちがってひらいたものとして送らない
+  if(sec>=20&&window.TPB&&TPB.mission) TPB.mission.markA(slug,fresh);   // 今日のミッション(a)：20秒以上遊んだ
   try{ fetch(SB_URL+'/rest/v1/play_sessions',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:slug,client_id:CLIENT,seconds:sec,device:DEVICE})}).catch(()=>{}) }catch(e){}
 }
 // 別のタブで開いたゲームは「このページに戻ってきた」ときを遊び終わりとみなす。20秒以上遊んでいたら「どうだった？」を出す
@@ -780,7 +809,7 @@ function closePlayer(){ if(document.fullscreenElement) document.exitFullscreen()
 // 遊んだあとの案内（どうだった？・Discordの招待・まだ遊んでいません・感想のお願い）は、同時に1つだけ出す。
 // 新しいものが出たら古いものは閉じる。右の列（⋮・感想など）にかからない位置に出し、短い時間で消える。
 // body[data-note] は、TPB.toast（👍など）をずらすための印（top＝上に出ている／bottom＝下に出ている）
-const NOTES=['after','needPlay','invite','toast']; let noteT=0, noteOn='';
+const NOTES=['after','needPlay','invite','toast','dlAsk']; let noteT=0, noteOn='';
 function closeNote(id){
   const n=$(id); if(!n) return; n.classList.remove('show');
   if(id==='toast'){ $('toastText').textContent=TOAST_NUDGE; $('toastGo').hidden=false }
@@ -830,6 +859,23 @@ function wantFeedback(g){
 $('needPlay').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!needG) return; const g=needG, a=b.dataset.a; hideNeedPlay();
   if(a==='play') play(g); if(a==='write') openSheet(g) });
 feed.addEventListener('scroll',hideNeedPlay,{passive:true});
+// ダウンロード型を開いた作品は、次にサイトを開いたとき（6時間以上たって、まだ👍・🤔・感想がない作品だけ）「遊べた？」を1回だけ聞く
+//   遊べた → 感想シート ／ まだ → 閉じる ／ 遊べなかった → 閉じる（記録は残さない）。聞いたものは、答えにかかわらず記録から消す
+let dlG=null;
+function askDownloaded(){
+  if($('sheetBg').classList.contains('open')||$('loginBg').classList.contains('open')||$('player').classList.contains('open')) return;   // 開いている画面があるときは、次の機会に
+  const m=store.get('dlOpen',{}), now=Date.now(); let pick=null, pt=0, ch=false;
+  for(const slug in m){ const t=m[slug], age=now-t;
+    if(age>30*864e5){ delete m[slug]; ch=true; continue }
+    if(age<6*3600e3) continue;
+    delete m[slug]; ch=true;
+    const g=GAMES.find(x=>x.slug===slug); if(g&&!reacts[slug]&&!sent.has(slug)&&t>pt){ pick=g; pt=t }
+  }
+  if(ch) store.set('dlOpen',m);
+  if(!pick) return;
+  dlG=pick; $('dlAskText').textContent='前に開いた「'+pick.title+'」、遊べた？'; showNote('dlAsk',14000);
+}
+$('dlAsk').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!dlG) return; const g=dlG, a=b.dataset.a; closeNote('dlAsk'); dlG=null; if(a==='ok') openSheet(g) });
 // ---- 感想シート ----
 const OPTS = {
   again:['すごく遊びたい','ちょっと遊びたい','もういいかな'],
@@ -937,6 +983,12 @@ async function showPtResult(g){
   if(d.delta>0) box.textContent='+'+d.delta+'pt もらったよ（残り '+d.balance+'pt）';
   else{ box.classList.add('off'); box.textContent='今回はポイントがつきませんでした'+(TPB.ptWhy(d.note)?'：'+TPB.ptWhy(d.note):'')+'（いま '+d.balance+'pt）' }
 }
+// 今日のミッション：送った感想で新しく達成したものがあれば知らせる（ポイントはデータベースの返り値。端末では計算しない）
+async function showMissionResult(){
+  const M=window.TPB&&TPB.mission; if(!M) return;
+  let r=null; try{ r=await M.afterFeedback() }catch(e){}
+  if(!r) return; $('msDone').textContent=r.text; TPB.toast(r.text,4800);
+}
 function closeSheet(){ const was=$('sheetBg').classList.contains('open'); $('sheetBg').classList.remove('open'); syncInert(); TPB.layer.close('sheet'); if(was&&!$('loginBg').classList.contains('open')) restoreFocus(sheetOpener) }
 $('sClose').addEventListener('click',closeSheet);
 $('sDoneClose').addEventListener('click',closeSheet);
@@ -960,7 +1012,7 @@ $('sheet').addEventListener('submit',async e=>{
     if(!error){
       sent.add(g.slug); store.set('sent',[...sent]); msg.textContent='';
       const lab=document.querySelector('.slide[data-slug="'+g.slug+'"] .rb.fbb'); if(lab) lab.lastChild.textContent='送った';
-      $('ptDone').textContent=''; $('sheet').classList.add('done'); $('sheet').scrollTop=0; showPtResult(g);
+      $('ptDone').textContent=''; $('msDone').textContent=''; $('sheet').classList.add('done'); $('sheet').scrollTop=0; showPtResult(g); showMissionResult();
     } else {
       const code=error.code||'', m=error.message||'';
       msg.className='msg err';
@@ -980,6 +1032,7 @@ const m=location.hash.match(/^#fb(f?)-([a-z0-9-]+)$/);
 ready.then(()=>{
   if(restored&&restored.slug){ const s0=document.querySelector('.slide[data-slug="'+restored.slug+'"]'); if(s0) s0.scrollIntoView({behavior:'instant'}) }
   resumePending();
+  setTimeout(askDownloaded,1800);
   if(m){ const g=GAMES.find(x=>x.slug===m[2]); const s=document.querySelector('.slide[data-slug="'+m[2]+'"]'); if(g&&s){ s.scrollIntoView(); setTimeout(()=>m[1]?openSheet(g):wantFeedback(g),300) } history.replaceState(null,'',location.pathname+location.search) }
 });
 // 作品ページの「▶ 遊ぶ」から来たとき（?g=作品ID&play=1）は、その作品のプレイヤーを自動で開く（R18は年齢の確認が先）
