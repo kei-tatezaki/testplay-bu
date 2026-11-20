@@ -115,6 +115,18 @@ language sql stable security definer set search_path = public as $$
   where f.follower = auth.uid() order by f.created_at desc limit 1000;
 $$;
 
+-- ログインした人：自分がフォローしている作者が持つ作品（ショートの「フォロー中」・作品一覧の絞り込み・新作の点に使う）。game_owners で作者と作品を結ぶ。2000まで
+create or replace function public.my_following_slugs()
+returns table (game_slug text, handle text)
+language sql stable security definer set search_path = public as $$
+  select o.game_slug, q.handle
+  from follows f join profiles q on q.user_id = f.followee and not q.hidden
+    join game_owners o on o.user_id = f.followee
+  where f.follower = auth.uid()
+    and not exists (select 1 from banned_users b where b.user_id = f.followee)
+  order by o.created_at desc, o.game_slug limit 2000;
+$$;
+
 -- ログインした人：フォローする／解除する。返すのは {following, followers}
 -- エラー：not_logged_in／banned（BAN の人はフォローできない。解除はできる）／need_profile／no_such_user／self／follow_limit／too_fast
 create or replace function public.follow_set(p_handle text, p_on boolean) returns jsonb
@@ -140,7 +152,7 @@ end $$;
 -- ---------- 権限 ----------
 revoke all on function public.follows_guard(), public.follow_counts(text), public.follow_state(text),
   public.followers_list(text, int, int), public.following_list(text, int, int),
-  public.my_following_handles(), public.follow_set(text, boolean) from public, anon, authenticated;
+  public.my_following_handles(), public.my_following_slugs(), public.follow_set(text, boolean) from public, anon, authenticated;
 grant execute on function public.follow_counts(text), public.follow_state(text),
   public.followers_list(text, int, int), public.following_list(text, int, int) to anon, authenticated;
-grant execute on function public.my_following_handles(), public.follow_set(text, boolean) to authenticated;
+grant execute on function public.my_following_handles(), public.my_following_slugs(), public.follow_set(text, boolean) to authenticated;

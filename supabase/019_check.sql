@@ -96,6 +96,29 @@ begin
   n := n + 1; if not ok then bad := bad || E'\n  x プロフィールがない人はフォローできない（need_profile）'; end if;
   reset role;
 
+  -- ---- フォロー中の作者の作品 ----
+  perform set_config('request.jwt.claim.sub', '', true);
+  insert into game_owners (game_slug, user_id) values ('g-bob1', u2), ('g-bob2', u2), ('g-carol', u3), ('g-dave', u4);
+  perform set_config('request.jwt.claim.sub', u1::text, true);
+  set local role authenticated;
+  select array_agg(game_slug order by game_slug) into arr from my_following_slugs();
+  n := n + 1; if arr is distinct from array['g-bob2','g-bob1','g-carol']::text[] and arr is distinct from array['g-bob1','g-bob2','g-carol']::text[] then bad := bad || E'\n  x my_following_slugs（' || coalesce(arr::text,'null') || '）'; end if;
+  select count(*) into c from my_following_slugs() where handle = 'dave'; n := n + 1; if c <> 0 then bad := bad || E'\n  x フォローしていない作者の作品は出ない'; end if;
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  update profiles set hidden = true where handle = 'carol';
+  perform set_config('request.jwt.claim.sub', u1::text, true);
+  set local role authenticated;
+  select count(*) into c from my_following_slugs() where handle = 'carol'; n := n + 1; if c <> 0 then bad := bad || E'\n  x 非表示の作者の作品は出ない'; end if;
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  update profiles set hidden = false where handle = 'carol';
+  set local role anon;
+  ok := false; begin perform my_following_slugs(); exception when others then ok := true; end;
+  n := n + 1; if not ok then bad := bad || E'\n  x anon は my_following_slugs を呼べない'; end if;
+  reset role;
+  perform set_config('request.jwt.claim.sub', u1::text, true);
+
   -- ---- 解除 ----
   perform set_config('request.jwt.claim.sub', u1::text, true);
   set local role authenticated;
