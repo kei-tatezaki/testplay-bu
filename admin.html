@@ -80,7 +80,7 @@ ol.top .n{display:block;font-size:12px;color:var(--muted)}
 .fbbulk{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 td.sel{width:34px}
 .lb{display:none;color:var(--muted);font-size:12px}
-#ptRows td{overflow-wrap:anywhere}
+#ptRows td,#aiRows td{overflow-wrap:anywhere}
 @media (max-width:760px){
   header{flex-wrap:wrap}header h1{white-space:nowrap;font-size:16px}
   .lb{display:inline}
@@ -132,6 +132,7 @@ td.sel{width:34px}
     <button role="tab" data-tab="reports">報告 <span id="repN"></span></button>
     <button role="tab" data-tab="profiles">プロフィール</button>
     <button role="tab" data-tab="pts">ポイント</button>
+    <button role="tab" data-tab="ai">AIコーチ</button>
     <a href="dev.html" class="btn" style="text-decoration:none">開発者ページを見る</a>
   </div>
 
@@ -219,6 +220,22 @@ td.sel{width:34px}
     <div class="card" style="padding:0 12px;overflow-x:auto"><table>
       <thead><tr><th>名前</th><th>メール</th><th>残高</th><th>感想でもらった</th><th>応募でつかった</th><th>運営の調整</th><th>最後の動き</th><th>操作</th></tr></thead>
       <tbody id="ptRows"></tbody>
+    </table></div>
+  </div>
+
+  <div data-panel="ai" hidden>
+    <p class="muted" style="margin-top:0">感想シートのAIコーチ（Claude）の使われかたです。1人が1日に使える回数は、初期値と、人ごとの上書きで決めます（日本時間の朝5時で切りかわり）。同じ人が60秒に6回を超えると、自動で少し止まります。</p>
+    <div class="card" style="margin-bottom:14px"><h2>今日</h2><p id="aiToday" style="margin:0;font-size:18px;font-weight:700">—</p>
+      <div id="aiSet" style="display:grid;gap:10px;margin-top:10px"></div></div>
+    <div class="card" style="margin-bottom:14px"><h2>この人の上限を変える</h2>
+      <form id="aiForm" style="display:grid;gap:8px" novalidate>
+        <div id="aiWho" class="muted">下の表の「上限を変える」を押して、人を選んでね</div>
+        <div class="bar" style="margin:0"><label>1日の回数（0で停止） <input id="aiLim" type="number" step="1" min="0" max="100000" style="width:7em" inputmode="numeric"></label>
+          <input id="aiNote" maxlength="200" placeholder="メモ（運営だけが見ます）" aria-label="メモ" style="flex:1;min-width:12em"><button class="primary" type="submit" id="aiGo" disabled>保存</button></div></form></div>
+    <div class="bar"><label>期間 <select id="aiDays"><option value="7">7日</option><option value="30">30日</option></select></label></div>
+    <div class="card" style="padding:0 12px;overflow-x:auto"><table>
+      <thead><tr><th>名前</th><th>メール</th><th>今日</th><th>期間の合計</th><th>1日の上限</th><th>メモ</th><th>操作</th></tr></thead>
+      <tbody id="aiRows"></tbody>
     </table></div>
   </div>
 
@@ -314,7 +331,7 @@ document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => {
   document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
-const LOADERS = { overview: () => loadOverview(), fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles(), pts: () => loadPts() };
+const LOADERS = { overview: () => loadOverview(), fb: () => loadFb(), games: () => loadGames(), bans: () => loadBans(), owners: () => loadOwners(), subs: () => loadSubs(), reports: () => loadReports(), profiles: () => loadProfiles(), pts: () => loadPts(), ai: () => loadAi() };
 function setLoadErr(k, failed){
   const panel = document.querySelector('[data-panel="' + k + '"]'); if (!panel) return;
   let box = panel.querySelector(':scope > .loaderr');
@@ -543,7 +560,7 @@ async function loadPts(){
   PTU = users; renderPtSet(set); renderPtUsers();
 }
 function renderPtSet(set){
-  $('ptSet').innerHTML = set.map(r => `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(r.label)}<br><span class="muted">${esc(r.key)}</span></label>
+  $('ptSet').innerHTML = set.filter(r => !/^ai_coach/.test(r.key)).map(r => `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(r.label)}<br><span class="muted">${esc(r.key)}</span></label>
     <input type="number" min="0" max="100000" step="1" value="${Number(r.value)}" data-key="${esc(r.key)}" data-old="${Number(r.value)}" aria-label="${esc(r.label)}" style="width:7em" inputmode="numeric"><button data-setsave="${esc(r.key)}">保存</button></div>`).join('');
 }
 $('ptSet').onclick = async e => {
@@ -571,6 +588,51 @@ $('ptAdj').onsubmit = async e => {
   if (!note) { toast('理由を書いてね'); $('ptNote').focus(); return }
   if (!(await ask('ポイントを調整しますか？', (PTSEL.name || PTSEL.email || '') + ' さんに ' + (d > 0 ? '+' : '') + d + 'pt。理由は本人のマイページに出ます：' + note, false))) return;
   try { toast(await ptRpc('admin_points_adjust', { uid: PTSEL.user_id, delta: d, note })); $('ptDelta').value = ''; $('ptNote').value = ''; $('ptAdjWho').textContent = '下の表の「調整」を押して、人を選んでね'; $('ptGo').disabled = true; PTSEL = null; await loadPts(); loadOverview().catch(() => {}) } catch (err) {}
+};
+
+// ---- AIコーチ ----
+let AIU = [], AISEL = null;
+const AI_ERR = { bad_value: '回数は 0〜100000 の整数にしてね', no_user: 'その人が見つかりません', not_admin: '運営だけが使えます' };
+const aiRpc = async (name, args) => { const { data, error } = await sb.rpc(name, args || {}); if (error) { toast('できませんでした：' + (AI_ERR[error.message] || error.message)); throw error } return data };
+async function loadAi(){
+  const days = Number($('aiDays').value) || 7;
+  const [set, users, today] = await Promise.all([rpc('admin_settings_get'), rpc('admin_ai_usage', { p_days: days }), rpc('admin_ai_today')]);
+  const row = set.find(r => r.key === 'ai_coach_daily_limit');
+  $('aiToday').textContent = '今日、全員あわせて ' + nf(today) + ' 回';
+  $('aiSet').innerHTML = row ? `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(row.label)}<br><span class="muted">${esc(row.key)}</span></label>
+    <input type="number" min="0" max="100000" step="1" value="${Number(row.value)}" data-old="${Number(row.value)}" id="aiDef" aria-label="${esc(row.label)}" style="width:7em" inputmode="numeric"><button id="aiDefSave">保存</button></div>` : '<span class="muted">初期値がまだありません（017 を適用してね）</span>';
+  AIU = users; renderAiUsers();
+}
+$('aiSet').onclick = async e => {
+  if (!e.target.closest('#aiDefSave')) return;
+  const inp = $('aiDef'), v = Number(inp.value);
+  if (!Number.isInteger(v) || v < 0) { toast('0以上の整数を入れてね'); return }
+  try { toast(await aiRpc('admin_settings_set', { p_key: 'ai_coach_daily_limit', p_value: v })); await loadAi() } catch (err) { inp.value = inp.dataset.old }
+};
+function renderAiUsers(){
+  $('aiRows').innerHTML = AIU.map(u => `<tr><td>${esc(u.name || '')}</td><td>${esc(u.email || '')}</td>
+    <td><span class="lb">今日 </span>${nf(u.today)}回</td><td><span class="lb">合計 </span>${nf(u.total)}回</td>
+    <td><span class="lb">上限 </span><b>${u.daily_limit === 0 ? '停止中' : nf(u.daily_limit) + '回'}</b>${u.has_override ? ' <span class="muted">（この人だけ）</span>' : ''}</td><td>${esc(u.note || '')}</td>
+    <td><div class="acts"><button data-ailim="${esc(u.user_id)}">上限を変える</button>${u.has_override ? `<button data-aiclear="${esc(u.user_id)}">初期値に戻す</button>` : ''}</div></td></tr>`).join('') || '<tr><td colspan="7" class="muted">まだ使った人はいません</td></tr>';
+}
+$('aiDays').onchange = () => loadAi().catch(() => {});
+$('aiRows').onclick = async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.ailim) {
+    AISEL = AIU.find(u => u.user_id === b.dataset.ailim); if (!AISEL) return;
+    $('aiWho').innerHTML = '変える人：<b>' + esc(AISEL.name || AISEL.email || '') + '</b>（いま ' + (AISEL.daily_limit === 0 ? '停止中' : nf(AISEL.daily_limit) + '回') + '）';
+    $('aiLim').value = AISEL.daily_limit; $('aiNote').value = AISEL.note || ''; $('aiGo').disabled = false; $('aiLim').focus();
+  } else if (b.dataset.aiclear) {
+    b.disabled = true;
+    try { toast(await aiRpc('admin_ai_limit_clear', { p_user: b.dataset.aiclear })); await loadAi() } catch (err) { b.disabled = false }
+  }
+};
+$('aiForm').onsubmit = async e => {
+  e.preventDefault(); if (!AISEL) return;
+  const v = Number($('aiLim').value);
+  if ($('aiLim').value.trim() === '' || !Number.isInteger(v) || v < 0 || v > 100000) { toast('0〜100000 の整数を入れてね'); $('aiLim').focus(); return }
+  if (v === 0 && !(await ask('この人のAIコーチを止めますか？', (AISEL.name || AISEL.email || '') + ' さんは、AIコーチが使えなくなります（ルールのコーチは使えます）。あとで戻せます。', false))) return;
+  try { toast(await aiRpc('admin_ai_limit_set', { p_user: AISEL.user_id, p_limit: v, p_note: $('aiNote').value.trim() || null })); $('aiWho').textContent = '下の表の「上限を変える」を押して、人を選んでね'; $('aiGo').disabled = true; AISEL = null; await loadAi() } catch (err) {}
 };
 
 async function loadFb(){ FB = await rpc('admin_feedback', { lim: 1000 }); SEL = new Set([...SEL].filter(id => FB.some(f => f.id === id && !f.hidden))); renderFb(); }
