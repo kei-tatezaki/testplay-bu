@@ -119,7 +119,7 @@ def all_sample(games):
     return bool(games) and all(g.get("sample") for g in games)
 
 
-NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span>'
+NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b><span class="n2">最初の作品を募集中です。</span></span>'
                '<b class="lfb">最初の1本は投稿無料</b>'
                '<a class="btn" href="{p}submit.html">作品を応募する</a></div>')
 
@@ -434,8 +434,8 @@ h2.flow-h{margin:6px 0 -2px 0}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}}
 /* フィルター：付箋 */
 .filters button,.ftoggle{border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--karashi-soft);color:var(--ink);box-shadow:0 1px 0 rgba(42,36,30,.18);font-weight:700}
-.fgroup:nth-child(2) .filters button:not([aria-pressed="true"]){background:var(--ao-soft)}
-.fgroup:nth-child(3) .filters button:not([aria-pressed="true"]){background:var(--shu-soft)}
+.fg-m .filters button:not([aria-pressed="true"]){background:var(--ao-soft)}
+.fg-p .filters button:not([aria-pressed="true"]){background:var(--shu-soft)}
 .filters button[aria-pressed="true"],.fgroup .filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .filters button:nth-child(odd){transform:rotate(-.5deg)}.filters button:nth-child(even){transform:rotate(.4deg)}
 .ftoggle{background:var(--ao-soft)}
@@ -477,6 +477,87 @@ dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px 
 .biz .card>.body>h2,.biz .tape{transform:none;clip-path:none;margin-left:0;background:var(--karashi-soft)}
 .biz .notice,.biz .lfbox,.biz .tile,.biz .filters button{transform:none}
 .biz .notice::before,.biz .lfbox::before,.biz .tile::before{display:none}
+/* ===== PC・タブレット（768px以上）：左のサイドバー（assets/side.css・tpb.js）のある骨組み。767px以下は上のまま ===== */
+.cols>.sidecol,.cols>.maincol,.fmore,.fpop{display:contents}
+.applycard,.fmore>button,.fpop-foot,.fchips{display:none}
+.wrap>main.stack,.wrap.wide>main.stack{display:grid;gap:16px}
+.mebio,.mepts{display:none}
+@media (min-width:768px){
+ body:not([data-noside]) .wrap,body:not([data-noside]) .wrap.wide{max-width:1264px;padding:12px 32px 56px;gap:18px}
+ body:not([data-noside]) .wrap>main,body:not([data-noside]) .wrap.wide>main{gap:18px}
+ body:not([data-noside]) .lead{display:none}
+ body:not([data-noside]) .prose,body:not([data-noside]) .stack:not(.cols){max-width:780px;width:100%}
+ /* 上の帯：ブランドと「ショート」ボタンはサイドバーに移った。のこすのは手書きの一言と、右上のログイン／アイコン */
+ body:not([data-noside]) header.bar{background:none;margin:0;padding:0;min-height:52px}
+ body:not([data-noside]) header.bar .brand,body:not([data-noside]) header.bar .bar-r>a,body:not([data-noside]) header.bar>a.btn{display:none}
+ body:not([data-noside]) header.bar .brand-tag{display:block;font-size:16px;margin-left:0}
+ body:not([data-noside]) header.bar .bar-r{margin-left:auto}
+ body:not([data-noside]) footer{justify-content:flex-start;padding-top:8px}
+ /* 作品のカード：ポラロイドを大きめに、テープと傾きが重ならない余白 */
+ body:not([data-noside]) .grid{grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:28px}
+ /* 作品一覧：絞り込みは1段。ジャンルは横1列、ほかの条件は「絞り込み」のポップオーバーに */
+ body:not([data-noside]) .fwrap{display:flex;align-items:center;gap:12px;min-width:0}
+ body:not([data-noside]) .fwrap>.fg-g{flex:1;min-width:0}
+ body:not([data-noside]) .fwrap>.fg-g .flabel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ body:not([data-noside]) .wide .fwrap>.fg-g .filters{margin:0 -6px;padding:6px 10px}
+ body:not([data-noside]) .fmore{display:block;position:relative;flex:none}
+ body:not([data-noside]) .fmore>button{display:inline-flex;align-items:center;gap:6px;font:inherit;font-family:var(--f-round);font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;padding:4px 16px;border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--ao-soft);box-shadow:0 1px 0 rgba(42,36,30,.18)}
+ body:not([data-noside]) .fmore>button[aria-expanded="true"]{background:var(--ink);color:var(--paper)}
+ body:not([data-noside]) .fmore .fn{min-width:20px;height:20px;border-radius:10px;background:var(--shu);color:#fff;font-size:12px;line-height:20px;text-align:center;padding:0 5px}
+ body:not([data-noside]) .fmore .fn:empty{display:none}
+ body:not([data-noside]) .fpop{display:none;position:absolute;right:0;top:calc(100% + 12px);z-index:25;width:min(460px,calc(100vw - 140px));gap:14px;padding:22px 20px 16px;background:var(--card);border-radius:3px;box-shadow:0 1px 0 var(--line),0 16px 34px rgba(60,40,20,.24);transform:rotate(-.4deg)}
+ body:not([data-noside]) .fpop.open{display:grid}
+ body:not([data-noside]) .fpop::before{content:"";position:absolute;left:50%;top:-9px;width:64px;height:18px;margin-left:-32px;background:rgba(226,169,59,.8);transform:rotate(-2deg);clip-path:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%)}
+ body:not([data-noside]) .fpop .fgroup{display:grid;gap:6px}
+ body:not([data-noside]) .fpop .flabel{min-width:0;font-size:13px}
+ body:not([data-noside]) .wide .fpop .filters{flex-wrap:wrap;overflow:visible;margin:0;padding:0;-webkit-mask-image:none;mask-image:none}
+ body:not([data-noside]) .fpop-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #C9B994;padding-top:10px}
+ body:not([data-noside]) .fpop-foot button{font:inherit;font-size:13px;color:var(--shu-ink);background:none;border:0;text-decoration:underline;cursor:pointer;min-height:36px;padding:0 4px}
+ body:not([data-noside]) .fpop-foot span{font-size:12px;color:var(--muted)}
+ body:not([data-noside]) .fchips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:-6px}
+ body:not([data-noside]) .fchips:empty{display:none}
+ body:not([data-noside]) .fchip{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:var(--paper-2);border:1px solid rgba(42,36,30,.16);border-radius:3px;padding:3px 10px;min-height:34px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+ body:not([data-noside]) .fchip:hover{background:var(--shu-soft)}
+ /* 「募集中」の帯は1行に */
+ body:not([data-noside]) .notice{flex-wrap:nowrap;align-items:center;padding:8px 16px;gap:4px 20px}
+ body:not([data-noside]) .notice>span{min-width:0}
+ body:not([data-noside]) .notice .lfb{white-space:nowrap}
+ body:not([data-noside]) .notice a.btn{margin:0 0 0 auto;padding:2px 16px;font-size:14px;min-height:38px;white-space:nowrap}
+}
+@media (min-width:768px) and (max-width:1099px){
+ body:not([data-noside]) .notice .n2{display:none}
+}
+@media (min-width:768px) and (max-width:1199px){
+ body:not([data-noside]) .grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:24px}
+}
+@media (min-width:768px) and (max-width:1023px){
+ body:not([data-noside]) .wrap,body:not([data-noside]) .wrap.wide{padding-left:24px;padding-right:24px}
+}
+@media (min-width:1024px){
+ /* 2カラム：左に本人・説明（sticky）、右に中身。マイページ・プロフィール・応募 */
+ body:not([data-noside]) .cols,body:not([data-noside]) .wrap>main.cols,body:not([data-noside]) .wrap.wide>main.cols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:32px;align-items:start}
+ body:not([data-noside]) .wrap>main.cols.rside{grid-template-columns:minmax(0,1fr) 320px}
+ body:not([data-noside]) .cols>.sidecol{display:grid;gap:16px;position:sticky;top:16px;align-self:start}
+ body:not([data-noside]) .cols>.maincol{display:grid;gap:16px;min-width:0;align-content:start}
+ body:not([data-noside]) .cols>.applycard{display:grid;gap:12px;position:sticky;top:16px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:26px 20px 20px;box-shadow:0 1px 0 var(--line),0 10px 22px rgba(60,40,20,.14);transform:rotate(.4deg)}
+ body:not([data-noside]) .applycard::before{content:"";position:absolute;left:50%;top:-9px;width:64px;height:18px;margin-left:-32px;background:rgba(215,226,241,.92);transform:rotate(-2deg);clip-path:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%)}
+ body:not([data-noside]) .applycard h2{margin:0;font-size:20px;line-height:1.4}
+ body:not([data-noside]) .applycard p{margin:0;font-size:14px}
+ body:not([data-noside]) .applycard .btn{justify-content:center}
+ body:not([data-noside]) .applycard .lfa{background:var(--karashi-soft);padding:10px 12px;border-radius:2px;font-size:14px;line-height:1.6}
+ body:not([data-noside]) .applycard .lfa b{display:block}
+ body:not([data-noside]) .applycard small{color:var(--muted);font-size:12px;line-height:1.6}
+ /* マイページ・プロフィールの本人カード（.mehead の見た目は me.html の中） */
+ body:not([data-noside]) .mebio{display:block;margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+ body:not([data-noside]) .mepts{display:block;width:100%;font-size:13px;color:var(--muted);border-top:1px dashed #C9B994;padding-top:10px}
+ body:not([data-noside]) .mepts b{font-family:var(--f-round);font-size:24px;line-height:1.2;color:var(--shu-ink);margin-right:4px}
+ body:not([data-noside]) .cols>.sidecol .phead{background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 0 var(--line),0 6px 14px rgba(60,40,20,.08);padding:24px 20px}
+ body:not([data-noside]) .cols>.sidecol .phead .links{justify-content:center}
+ body:not([data-noside]) .gamepage{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+ body:not([data-noside]) .gamepage>article{min-width:0}
+ body:not([data-noside]) .gamepage>section.card{position:sticky;top:16px}
+}
+@media (min-width:1200px){ body:not([data-noside]) .wrap>main.cols.wideside{grid-template-columns:360px minmax(0,1fr)} }
 """
 
 
@@ -534,6 +615,7 @@ def page(title, desc, url, image, body, prefix):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{prefix}assets/style.css">
+<link rel="stylesheet" href="{prefix}assets/side.css">
 </head>
 <body>
 {body}
@@ -615,7 +697,7 @@ def build():
         hl = "".join(f"<li>{e(h)}</li>" for h in g.get("highlights", []))
         body = (AGE_GATE if is_r18(g) else "") + f"""<div class="wrap">
 <header class="bar"><a class="brand" href="../../"><img src="../../assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="../../list.html">ほかの作品を見る</a><span data-me></span></span></header>
-<main>
+<main class="gamepage">
 <p class="lead site-lead">学生のゲームを5分でつまみ食い。遊ぶのは登録なし</p>
 <article class="card">
 {media_html(g, '../../')}
@@ -694,11 +776,16 @@ def build():
 {NOTICE_HTML.format(p="./") if all_sample(games) else ""}
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">
-<div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
-<div class="fgroup"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
-<div class="fgroup"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
-<div class="fgroup"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC">{cfilters}</nav></div>
+<div class="fgroup fg-g"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
+<div class="fmore"><button type="button" id="fMore" aria-expanded="false" aria-controls="fpop" aria-haspopup="true">絞り込み <span class="fn" id="fN" aria-hidden="true"></span><span aria-hidden="true">▾</span></button>
+<div class="fpop" id="fpop" role="group" aria-label="絞り込み">
+<div class="fgroup fg-m"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
+<div class="fgroup fg-p"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
+<div class="fgroup fg-c"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC">{cfilters}</nav></div>
+<div class="fpop-foot"><button type="button" id="fPopReset">条件をリセット</button><span>Esc で閉じる</span></div>
+</div></div>
 </div>
+<div class="fchips" id="fChips" aria-live="polite"></div>
 <main id="list" class="grid">
 {cards}
 </main>
@@ -714,7 +801,21 @@ function apply(){{let n=0;document.querySelectorAll('#list .tile').forEach(c=>{{
 document.querySelectorAll('.filters').forEach(n=>{{const f=()=>{{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')}};n.addEventListener('scroll',f,{{passive:true}});addEventListener('resize',f);f()}});
 const fT=document.getElementById('fToggle'),fW=document.getElementById('fwrap');
 fT.addEventListener('click',()=>{{const o=fW.classList.toggle('open');fT.setAttribute('aria-expanded',String(o));fT.lastElementChild.textContent=o?'▴':'▾'}});
-function sumF(){{const t=[];document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)}});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):''}}
+function sumF(){{const t=[];document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)}});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):'';drawChips()}}
+// PC：選んでいる条件を小さなチップで並べる。×（チップ）を押すとその条件だけ外す。「絞り込み」ボタンには、ポップオーバーの中で選んでいる数を出す
+function drawChips(){{const box=document.getElementById('fChips');box.replaceChildren();let k=0;
+ document.querySelectorAll('.filters').forEach(n=>{{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;
+  if(n.closest('#fpop'))k++;
+  const l=document.getElementById(n.getAttribute('aria-labelledby')),c=document.createElement('button');c.type='button';c.className='fchip';
+  c.setAttribute('aria-label',(l?l.textContent+'：':'')+b.textContent+' の絞り込みを外す');c.append((l&&n.closest('#fpop')?l.textContent+'：':'')+b.textContent+' ');const x=document.createElement('span');x.setAttribute('aria-hidden','true');x.textContent='×';c.append(x);
+  c.addEventListener('click',()=>{{n.querySelector('button').click();document.getElementById('fMore').focus()}});box.append(c)}});
+ document.getElementById('fN').textContent=k?String(k):''}}
+const fM=document.getElementById('fMore'),fP=document.getElementById('fpop');
+function popSet(o){{fP.classList.toggle('open',o);fM.setAttribute('aria-expanded',String(o))}}
+fM.addEventListener('click',e=>{{e.stopPropagation();popSet(!fP.classList.contains('open'))}});
+document.addEventListener('click',e=>{{if(fP.classList.contains('open')&&!e.target.closest('.fmore'))popSet(false)}});
+document.addEventListener('keydown',e=>{{if(e.key==='Escape'&&fP.classList.contains('open')){{popSet(false);fM.focus()}}}});
+document.getElementById('fPopReset').addEventListener('click',()=>document.getElementById('fReset').click());
 document.getElementById('fReset').addEventListener('click',()=>{{F=G=M=P='';document.querySelectorAll('.filters').forEach(n=>{{n.querySelectorAll('button').forEach(x=>{{const v=x.dataset.f!==undefined?x.dataset.f:x.dataset.g!==undefined?x.dataset.g:x.dataset.m!==undefined?x.dataset.m:x.dataset.p;x.setAttribute('aria-pressed',String(v===''))}})}});apply();sumF()}});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
@@ -730,7 +831,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
-<main>
+<main class="cols rside"><div class="maincol">
 <section class="card hero-c"><div class="body">
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
 <h1>説明するより、<br>遊んでもらおう。</h1>
@@ -818,6 +919,15 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 </ul>
 </details>
 </div></section>
+</div>
+<aside class="applycard" aria-label="作品を応募する">
+<h2>作品を応募する</h2>
+<div class="lfa"><b>最初の1本は投稿無料</b>ポイントなしで送れます。2本目からは30ポイント。</div>
+<p>必要なのは3つだけ：作品名 ・ 遊べるURL ・ 一言。完成していなくても大丈夫です。</p>
+<a class="btn big" href="./submit.html">作品を応募する</a>
+<a class="btn ghost" href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discordで声をかける</a>
+<small>運営がひとりで遊んでから載せます。1週間ほどかかることがあります。</small>
+</aside>
 </main>
 <footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
@@ -872,7 +982,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
     # プライバシーの説明
     privacy = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn" href="./">▶ ショート</a></header>
-<main>
+<main class="prose">
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>

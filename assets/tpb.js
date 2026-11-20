@@ -341,6 +341,62 @@
   document.head.append(el("style", null, css));
 })();
 
+// ---- PC・タブレットの共通の骨組み：左のサイドバー（assets/side.css が見た目）と、右上のログイン／アイコン ----
+// スマホ（767px以下）では CSS で隠す。ここでは中身を描くだけ。dev・admin（<body data-noside>）は描かない。
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el, BASE = T.base;
+  var IC = {
+    short: '<path d="M8 5.5v13l11-6.5z" fill="currentColor"/>',
+    list: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" fill="currentColor"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" fill="currentColor"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" fill="currentColor"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" fill="currentColor"/>',
+    me: '<circle cx="12" cy="8.5" r="4" fill="currentColor"/><path d="M4.5 20c.6-4 3.8-6 7.5-6s6.9 2 7.5 6z" fill="currentColor"/>',
+    creators: '<path d="M4 20l1.2-4.6L15.6 5a1.8 1.8 0 0 1 2.6 0l.8.8a1.8 1.8 0 0 1 0 2.6L8.6 18.8z" fill="currentColor"/>',
+    submit: '<path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" fill="currentColor"/>',
+    discord: '<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="currentColor"/>'
+  };
+  function icon(k) { var s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ic"); s.setAttribute("aria-hidden", "true"); s.innerHTML = IC[k]; return s }
+  function current() {
+    var p = location.pathname, base = ""; try { base = new URL(BASE, location.href).pathname } catch (e) {}
+    var q = p.replace(/index\.html$/, "");
+    if (q === base || (!base && q === "/")) return "short";
+    if (/\/list(\.html)?$/.test(p) || /\/games\//.test(p)) return "list";
+    if (/\/me(\.html)?$/.test(p)) return "me";
+    if (/\/creators(\.html)?$/.test(p)) return "creators";
+    if (/\/submit(\.html)?$/.test(p)) return "submit";
+    return "";
+  }
+  T.chrome = function () {
+    var b = document.body; if (!b || b.hasAttribute("data-noside") || document.getElementById("tpbSide")) return;
+    var cur = current(), disc = (window.TPB_DATA && window.TPB_DATA.discord) || "";
+    function item(k, href, label, ext) {
+      var a = el("a", { href: href, title: label, "aria-label": label, "aria-current": k === cur ? "page" : null, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, icon(k), el("span", { class: "lb" }, label));
+      return a;
+    }
+    var main = document.querySelector("main"), target = "#feed";
+    if (main) { if (!main.id) main.id = "tpbMain"; target = "#" + main.id }
+    var skip = el("a", { class: "sd-skip", id: "skipIn", href: target }, "本文へ飛ぶ");
+    skip.addEventListener("click", function (e) { var t = document.querySelector(target); if (!t || t.id === "feed") return; e.preventDefault(); t.setAttribute("tabindex", "-1"); t.focus() });
+    var side = el("aside", { class: "tpb-side", id: "tpbSide" },
+      skip,
+      el("a", { class: "sd-brand", href: BASE, "aria-label": "テストプレイ部のトップ（ショート）", title: "テストプレイ部" }, el("img", { src: BASE + "assets/icon-192.png", alt: "", width: 40, height: 40 }), el("span", null, "テストプレイ部")),
+      el("nav", { "aria-label": "メニュー" },
+        item("short", BASE, "ショート"), item("list", BASE + "list.html", "作品一覧"), item("me", BASE + "me.html", "マイページ"),
+        el("hr"),
+        item("creators", BASE + "creators.html", "作品を載せたい人へ"), item("submit", BASE + "submit.html", "作品を応募する"),
+        disc ? item("discord", disc, "Discordに参加する", true) : null),
+      el("div", { class: "sd-foot" }, el("p", null, "学生のゲームを、", el("br"), "学生が遊ぶ部室。"), el("a", { href: BASE + "privacy.html" }, "集める情報と使い道")));
+    var first = b.firstElementChild; if (first && first.classList.contains("skip")) first.after(side); else b.prepend(side);
+    // 右上の自分のアイコン：ページに置いていないときは、PCだけで出す（スマホの見た目は変えない）
+    var hd = document.querySelector("header.bar");
+    if (hd && !hd.querySelector("[data-me]")) {
+      var br = hd.querySelector(".bar-r");
+      if (!br) { br = el("span", { class: "bar-r pc-only" }); hd.append(br) }
+      br.append(el("span", { "data-me": true, class: "pc-only" }));
+    }
+  };
+  T.chrome();
+})();
+
 // 置いてあるだけで動く部品： data-me（右上の自分のアイコン）、data-by（作った人の名前とアイコンを、管理ページで決めた作者に差し替える）
 (function () {
   "use strict";
@@ -358,13 +414,16 @@
       });
     });
   }
-  // PC：カードの画像にマウスをのせると、プレイ動画が流れる
+  // PC：カードの画像にマウスをのせると、プレイ動画（ミュート）が流れる。離すと止めてサムネに戻る。動きを減らす設定のときは流さない
   if (matchMedia("(hover:hover) and (pointer:fine)").matches) {
+    var rm = matchMedia("(prefers-reduced-motion:reduce)");
     document.addEventListener("mouseover", function (e) {
+      if (rm.matches) return;
       var t = e.target.closest && e.target.closest(".thumb[data-clip]"); if (!t || t.querySelector("video")) return;
-      var v = T.el("video", { class: "media hov", src: t.getAttribute("data-clip"), muted: true, loop: true, playsinline: true, "aria-hidden": "true" });
-      v.muted = true; t.append(v); v.play().catch(function () {});
-      t.addEventListener("mouseleave", function () { v.remove() }, { once: true });
+      var v = T.el("video", { class: "media hov", src: t.getAttribute("data-clip"), muted: true, loop: true, playsinline: true, preload: "auto", "aria-hidden": "true" });
+      var im = t.querySelector("img"), tb = im && im.style.getPropertyValue("--tb"); if (tb) v.style.background = tb;
+      v.muted = true; v.style.opacity = "0"; v.addEventListener("playing", function () { v.style.opacity = "1" }); t.append(v); v.play().catch(function () {});
+      t.addEventListener("mouseleave", function () { v.pause(); v.remove() }, { once: true });
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();

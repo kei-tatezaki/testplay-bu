@@ -21,20 +21,26 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/side.css">
 </head>
 <body>
 <div class="wrap wide">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
 <h1 class="sr">作品一覧</h1>
 <p class="lead">学生のゲームを、5分でつまみ食い。画像をタップするとショートで見られます。</p>
-<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b>最初の作品を募集中です。</span><b class="lfb">最初の1本は投稿無料</b><a class="btn" href="./submit.html">作品を応募する</a></div>
+<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b><span class="n2">最初の作品を募集中です。</span></span><b class="lfb">最初の1本は投稿無料</b><a class="btn" href="./submit.html">作品を応募する</a></div>
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">
-<div class="fgroup"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG"><button type="button" aria-pressed="true" data-g="">すべて</button><button type="button" aria-pressed="false" data-g="ランゲーム">ランゲーム</button><button type="button" aria-pressed="false" data-g="反射神経">反射神経</button><button type="button" aria-pressed="false" data-g="パズル">パズル</button><button type="button" aria-pressed="false" data-g="タイミング">タイミング</button><button type="button" aria-pressed="false" data-g="よけゲー">よけゲー</button><button type="button" aria-pressed="false" data-g="記憶">記憶</button><button type="button" aria-pressed="false" data-g="ノベル">ノベル</button><button type="button" aria-pressed="false" data-g="計算">計算</button><button type="button" aria-pressed="false" data-g="観察">観察</button></nav></div>
-<div class="fgroup"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
-<div class="fgroup"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
-<div class="fgroup"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">楽しさ</button><button type="button" aria-pressed="false" data-f="難しさ">難しさ</button></nav></div>
+<div class="fgroup fg-g"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG"><button type="button" aria-pressed="true" data-g="">すべて</button><button type="button" aria-pressed="false" data-g="ランゲーム">ランゲーム</button><button type="button" aria-pressed="false" data-g="反射神経">反射神経</button><button type="button" aria-pressed="false" data-g="パズル">パズル</button><button type="button" aria-pressed="false" data-g="タイミング">タイミング</button><button type="button" aria-pressed="false" data-g="よけゲー">よけゲー</button><button type="button" aria-pressed="false" data-g="記憶">記憶</button><button type="button" aria-pressed="false" data-g="ノベル">ノベル</button><button type="button" aria-pressed="false" data-g="計算">計算</button><button type="button" aria-pressed="false" data-g="観察">観察</button></nav></div>
+<div class="fmore"><button type="button" id="fMore" aria-expanded="false" aria-controls="fpop" aria-haspopup="true">絞り込み <span class="fn" id="fN" aria-hidden="true"></span><span aria-hidden="true">▾</span></button>
+<div class="fpop" id="fpop" role="group" aria-label="絞り込み">
+<div class="fgroup fg-m"><span class="flabel" id="lbM">遊ぶ時間</span><nav class="filters" aria-labelledby="lbM"><button type="button" aria-pressed="true" data-m="">すべて</button><button type="button" aria-pressed="false" data-m="short">〜1分</button><button type="button" aria-pressed="false" data-m="mid">1〜3分</button><button type="button" aria-pressed="false" data-m="long">3分〜</button></nav></div>
+<div class="fgroup fg-p"><span class="flabel" id="lbP">端末</span><nav class="filters" aria-labelledby="lbP"><button type="button" aria-pressed="true" data-p="">どの端末でも</button><button type="button" aria-pressed="false" data-p="pc">PCで遊べる</button><button type="button" aria-pressed="false" data-p="sp">スマホで遊べる</button></nav></div>
+<div class="fgroup fg-c"><span class="flabel" id="lbC">作者が見てほしい点</span><nav class="filters" aria-labelledby="lbC"><button type="button" aria-pressed="true" data-f="">すべて</button><button type="button" aria-pressed="false" data-f="チュートリアル">チュートリアル</button><button type="button" aria-pressed="false" data-f="操作感">操作感</button><button type="button" aria-pressed="false" data-f="楽しさ">楽しさ</button><button type="button" aria-pressed="false" data-f="難しさ">難しさ</button></nav></div>
+<div class="fpop-foot"><button type="button" id="fPopReset">条件をリセット</button><span>Esc で閉じる</span></div>
+</div></div>
 </div>
+<div class="fchips" id="fChips" aria-live="polite"></div>
 <main id="list" class="grid">
 <article class="tile" data-genre="観察" data-min="short" data-check="楽しさ" data-plat="both">
 <a class="thumb" href="./?g=odd" aria-label="ひとつだけちがうをショートで見る" data-clip="clips/odd.mp4"><img class="media shot" style="--tb:#f6f3fb" src="shots/odd.png" alt="" loading="lazy"><span class="dur">30秒</span></a>
@@ -166,7 +172,21 @@ function apply(){let n=0;document.querySelectorAll('#list .tile').forEach(c=>{co
 document.querySelectorAll('.filters').forEach(n=>{const f=()=>{const o=n.scrollWidth>n.clientWidth+2;n.style.setProperty('--fl',o&&n.scrollLeft>4?'28px':'0px');n.style.setProperty('--fr',o&&n.scrollLeft+n.clientWidth<n.scrollWidth-4?'36px':'0px')};n.addEventListener('scroll',f,{passive:true});addEventListener('resize',f);f()});
 const fT=document.getElementById('fToggle'),fW=document.getElementById('fwrap');
 fT.addEventListener('click',()=>{const o=fW.classList.toggle('open');fT.setAttribute('aria-expanded',String(o));fT.lastElementChild.textContent=o?'▴':'▾'});
-function sumF(){const t=[];document.querySelectorAll('.filters').forEach(n=>{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):''}
+function sumF(){const t=[];document.querySelectorAll('.filters').forEach(n=>{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;const l=document.getElementById(n.getAttribute('aria-labelledby'));t.push((l?l.textContent+'：':'')+b.textContent)});document.getElementById('fSum').textContent=t.length?'絞り込み中　'+t.join(' ・ '):'';drawChips()}
+// PC：選んでいる条件を小さなチップで並べる。×（チップ）を押すとその条件だけ外す。「絞り込み」ボタンには、ポップオーバーの中で選んでいる数を出す
+function drawChips(){const box=document.getElementById('fChips');box.replaceChildren();let k=0;
+ document.querySelectorAll('.filters').forEach(n=>{const b=n.querySelector('[aria-pressed="true"]');if(!b)return;const v=b.dataset.f||b.dataset.g||b.dataset.m||b.dataset.p||'';if(!v)return;
+  if(n.closest('#fpop'))k++;
+  const l=document.getElementById(n.getAttribute('aria-labelledby')),c=document.createElement('button');c.type='button';c.className='fchip';
+  c.setAttribute('aria-label',(l?l.textContent+'：':'')+b.textContent+' の絞り込みを外す');c.append((l&&n.closest('#fpop')?l.textContent+'：':'')+b.textContent+' ');const x=document.createElement('span');x.setAttribute('aria-hidden','true');x.textContent='×';c.append(x);
+  c.addEventListener('click',()=>{n.querySelector('button').click();document.getElementById('fMore').focus()});box.append(c)});
+ document.getElementById('fN').textContent=k?String(k):''}
+const fM=document.getElementById('fMore'),fP=document.getElementById('fpop');
+function popSet(o){fP.classList.toggle('open',o);fM.setAttribute('aria-expanded',String(o))}
+fM.addEventListener('click',e=>{e.stopPropagation();popSet(!fP.classList.contains('open'))});
+document.addEventListener('click',e=>{if(fP.classList.contains('open')&&!e.target.closest('.fmore'))popSet(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&fP.classList.contains('open')){popSet(false);fM.focus()}});
+document.getElementById('fPopReset').addEventListener('click',()=>document.getElementById('fReset').click());
 document.getElementById('fReset').addEventListener('click',()=>{F=G=M=P='';document.querySelectorAll('.filters').forEach(n=>{n.querySelectorAll('button').forEach(x=>{const v=x.dataset.f!==undefined?x.dataset.f:x.dataset.g!==undefined?x.dataset.g:x.dataset.m!==undefined?x.dataset.m:x.dataset.p;x.setAttribute('aria-pressed',String(v===''))})});apply();sumF()});
 document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
