@@ -20,7 +20,7 @@ begin
   set local role anon; j := public_result('gx'); reset role;
   n := n + 1; if (j ->> 'plays')::int <> 4 or (j ->> 'sessions')::int <> 4 or (j ->> 'feedbacks')::int <> 4 then bad := bad || E'\n  x 少なくても数は出る（' || j || '）'; end if;
   n := n + 1; if j -> 'again_pct' <> 'null'::jsonb or j -> 'answer_pct' <> 'null'::jsonb or j -> 'median_seconds' <> 'null'::jsonb or j -> 'fi_pct' <> 'null'::jsonb then bad := bad || E'\n  x 5未満は割合・真ん中が null（' || j || '）'; end if;
-  n := n + 1; if (j ->> 'again_n')::int <> 4 then bad := bad || E'\n  x 母数（' || j || '）'; end if;
+  n := n + 1; if (j ->> 'again_n')::int <> 4 or (j ->> 'again_yes')::int <> 4 or (j ->> 'answer_yes')::int <> 4 then bad := bad || E'\n  x 母数と「はい」の人数は出る（' || j || '）'; end if;
 
   -- ================= 5件になると出る。hidden・BAN・作者本人・lazy は数えない =================
   insert into feedback (game_slug, again, reach, answer, free, client_id) values ('gx', 'もういいかな', '途中でやめた', 'いいえ', 'あまり合わなかったです', 'fb-client-0005') returning id into fb;
@@ -28,7 +28,7 @@ begin
   insert into play_sessions (game_slug, client_id, seconds, device) values ('gx', 'play-client-0005', 300, 'sp');
   set local role anon; j := public_result('gx'); reset role;
   n := n + 1; if (j ->> 'again_pct')::int <> 80 or (j ->> 'again_n')::int <> 5 then bad := bad || E'\n  x 5件で割合（4/5=80）（' || j || '）'; end if;
-  n := n + 1; if (j ->> 'answer_pct')::int <> 80 or (j ->> 'answer_n')::int <> 5 then bad := bad || E'\n  x 作者の質問のはいの割合（4/5=80）（' || j || '）'; end if;
+  n := n + 1; if (j ->> 'answer_pct')::int <> 80 or (j ->> 'answer_n')::int <> 5 or (j ->> 'again_yes')::int <> 4 then bad := bad || E'\n  x 作者の質問のはいの割合（4/5=80）（' || j || '）'; end if;
   n := n + 1; if (j ->> 'median_seconds')::int <> 180 then bad := bad || E'\n  x 遊んだ時間の真ん中（60,120,180,240,300→180）（' || j || '）'; end if;
   n := n + 1; if (j ->> 'plays')::int <> 5 or (j ->> 'sessions')::int <> 5 then bad := bad || E'\n  x 人数・回数（' || j || '）'; end if;
 

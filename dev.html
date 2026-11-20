@@ -53,6 +53,11 @@ button,select,input{font:inherit}
 .free{white-space:pre-wrap;word-break:break-word}
 .fb .tools{margin-top:4px}
 .note{font-size:12px;color:var(--muted)}
+.cardbtn{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font-weight:700;text-decoration:none;background:var(--card);font-size:14px;margin-left:4px}
+.cardbtn:hover{background:var(--paper-2)}
+.qpick{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.qpick .k{font-size:13px;color:var(--muted)}
+.wrap .qpick button{min-width:40px;padding:6px 0}
 #msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;display:none;box-shadow:0 8px 30px rgba(42,36,30,.35);z-index:10}
 @media (max-width:420px){.brow{grid-template-columns:96px 1fr 70px}}
 </style>
@@ -96,6 +101,8 @@ button,select,input{font:inherit}
     <a id="gameLink" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;min-height:44px">作品ページを見る</a>
   </div>
 
+  <p id="cardLine" style="margin:0 0 10px;font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px">この数字は、ポートフォリオや企画書に使えます → <a id="cardBtn" class="cardbtn" href="result.html" target="_blank" rel="noopener">テスト結果カードを作る</a><span id="cardNo" class="muted" hidden>R18の作品は、結果カードを作れません</span></p>
+
   <div class="kpis" id="kpis"></div>
 
   <div class="grid2" style="margin-top:14px">
@@ -125,6 +132,7 @@ button,select,input{font:inherit}
   <div class="card" style="margin-top:14px"><h2>届いた感想 <span class="muted" id="fbCount"></span></h2>
     <p class="note" style="margin-top:-6px">だれが書いたかは表示されません。よかった感想に「いいね」を押すと、書いた人のマイページの「送った感想」に「作者のいいね」と出ます。</p>
     <p class="note" id="fbAsk" hidden></p>
+    <p class="note" id="qNote" hidden></p>
     <div id="fbList"></div>
   </div>
   <p class="note">ゲームの中のどこ（ステージごと）で離れたかは、もうすぐ測れるようになります。</p>
@@ -142,7 +150,7 @@ button,select,input{font:inherit}
 const SB_URL='https://jwrzqaxuvmdbroemenng.supabase.co', SB_KEY='sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u';
 const sb=TPB.sb();  // tpb.js が作った1つを使い回す（2つ作ると警告が出る）
 const $=id=>document.getElementById(id);
-let GAMES={}, days=30, FB=[];
+let GAMES={}, days=30, FB=[], MINE=[], QUOTES=null;  // QUOTES：位置→感想のID（作者でないとき・022 未適用のときは null で、選ぶボタンを出さない）
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',2500)}
 function show(id){['loginBox','noneBox','app'].forEach(x=>$(x).hidden=(x!==id))}
@@ -172,7 +180,7 @@ async function start(){
   const m=session.user.user_metadata||{}; let pname=''; try{ const pr=(await sb.rpc('my_profile')).data; pname=(pr&&pr.name)||'' }catch(e){}
   $('who').textContent=(pname||m.full_name||m.name||(session.user.email||'').split('@')[0]||'あなた')+' でログイン中';
   try{ const g=await (await fetch('games.json?'+Date.now())).json(); GAMES={}; g.forEach(x=>GAMES[x.slug]=x) }catch(e){}
-  const mine=(await rpc('dev_games')).map(r=>r.game_slug);
+  const mine=(await rpc('dev_games')).map(r=>r.game_slug); MINE=mine;
   const admin=await rpc('is_admin').catch(()=>false);
   $('adminLink').hidden=admin!==true;
   const slugs = admin ? Object.keys(GAMES) : mine;
@@ -183,6 +191,8 @@ async function start(){
 }
 async function load(){
   const slug=$('game').value; $('gameLink').href='games/'+slug+'/';
+  $('cardBtn').href='result.html?g='+encodeURIComponent(slug); const r18=GAMES[slug]&&GAMES[slug].rating==='r18'; $('cardBtn').hidden=r18; $('cardNo').hidden=!r18;
+  QUOTES=null;
   const [st, fb] = await Promise.all([rpc('dev_stats',{slug,since_days:days}), rpc('dev_feedback',{slug,lim:300})]);
   FB=fb.filter(f=>new Date(f.created_at) >= new Date(Date.now()-days*864e5));
   const s=st;
@@ -210,6 +220,7 @@ async function load(){
   $('fbAsk').hidden=!FBN[fs]; $('fbAsk').textContent=FBN[fs]?'あなたは「'+FBN[fs]+'」を選びました（応募のときに変えられます）':'';
   loadFi(slug);
   renderFb();
+  loadQuotes(slug);
 }
 // 第一印象（020）。まだ適用していないときは、エラーを出さずに書いておく
 async function loadFi(slug){
@@ -222,6 +233,21 @@ async function loadFi(slug){
   box.innerHTML='<div class="bars" id="fiBars"></div>'+((d.recent||[]).length?'<p class="note" style="margin:10px 0 4px">最近のひとこと（新しい順）</p><ul class="list">'+d.recent.map(x=>`<li><span class="tag">${esc(LAB[x.level]||'')}</span> ${esc(x.note)}</li>`).join('')+'</ul>':'');
   bars('fiBars',[['遊びたい',d.want||0],['少し気になる',d.maybe||0],['今はいいかな',d.no||0,'warn']]);
 }
+// 結果カードに載せる感想（022）。作者本人だけ。まだ適用していない・作者でないときは、ボタンを出さない
+async function loadQuotes(slug){
+  let q=null;
+  if(MINE.includes(slug)){ try{ const r=await sb.rpc('dev_result_quotes',{p_slug:slug}); if(!r.error){ q={}; (r.data||[]).forEach(x=>q[x.pos]=x.feedback_id) } }catch(e){} }
+  if(slug!==$('game').value) return;
+  QUOTES=q; renderFb();
+}
+const QERR={not_allowed:'作者として登録されている人だけが選べます',bad_feedback:'この感想はカードに載せられません（非表示か、本文がありません）',bad_position:'位置は1〜3です'};
+async function quoteSet(f,pos){
+  const slug=$('game').value, on=QUOTES&&QUOTES[pos]===f.id;
+  const {error}=on?await sb.rpc('dev_result_quote_clear',{p_slug:slug,p_position:pos}):await sb.rpc('dev_result_quote_set',{p_slug:slug,p_feedback_id:f.id,p_position:pos});
+  if(error){ toast(QERR[error.message]||'できませんでした：'+error.message); return }
+  if(on) delete QUOTES[pos]; else { Object.keys(QUOTES).forEach(k=>{ if(QUOTES[k]===f.id) delete QUOTES[k] }); QUOTES[pos]=f.id }
+  toast(on?'カードから外しました':'カードの'+pos+'番目に載せました'); renderFb();
+}
 function renderFb(){
   $('fbCount').textContent=FB.length+'件';
   $('fbList').innerHTML=FB.map(f=>{
@@ -229,10 +255,14 @@ function renderFb(){
     return `<div class="fb"><div class="muted">${new Date(f.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}${f.is_dev?' <span class="tag dev">開発者</span>':''}</div>
       <div>${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
       ${f.free?`<div class="free">${esc(f.free)}</div>`:''}
+      ${QUOTES&&(f.free||'').trim()?`<div class="qpick" role="group" aria-label="結果カードに載せる位置"><span class="k">カードに載せる</span>${[1,2,3].map(n=>`<button type="button" data-q="${n}" data-fid="${f.id}" aria-pressed="${QUOTES[n]===f.id}" aria-label="カードの${n}番目に載せる">${n}</button>`).join('')}</div>`:''}
       <div class="tools"><button data-id="${f.id}" aria-pressed="${!!f.liked_by_dev}">${f.liked_by_dev?'👍 いいね済み':'👍 いいね'}</button><button data-rep="${f.id}" class="ghostb">🚩 運営に報告</button></div></div>`;
   }).join('')||'<span class="muted">まだ感想はありません</span>';
+  const qn=$('qNote'); qn.hidden=!QUOTES; if(QUOTES) qn.textContent='「カードに載せる」で選んだ感想（最大3件、いま '+Object.keys(QUOTES).length+'件）は、テスト結果カードに名前なしで出ます（先頭120字と日付だけ）。もう一度押すと外れます。';
 }
 $('fbList').onclick=async e=>{
+  const qb=e.target.closest('button[data-q]');
+  if(qb){ const f=FB.find(x=>x.id===qb.dataset.fid); if(f) quoteSet(f,+qb.dataset.q); return }
   const r=e.target.closest('button[data-rep]');
   if(r){ const f=FB.find(x=>x.id===r.dataset.rep); if(!f) return;
     // 報告の種類は「作品」。どの感想かは、くわしくの先頭に書いて運営に伝える（感想のIDと、書き出しの40文字）

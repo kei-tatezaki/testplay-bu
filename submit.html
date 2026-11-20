@@ -135,11 +135,12 @@ function drawPts(){
   const m=document.getElementById('ptShort'); if(m) m.textContent=short?'ポイントがたまると、応募できます。':'';
 }
 function sel(opts,val){ const s=el('select',null,opts.map(o=>el('option',{value:Array.isArray(o)?o[0]:o},Array.isArray(o)?o[1]:o))); if(val) s.value=val; return s }
-function done(text){
+function done(text,card){
   main.replaceChildren(el('section',{class:'card'},el('div',{class:'body',style:'text-align:center'},
     el('img',{class:'art-top art-cheer',src:'./assets/art/cheer.webp',alt:'応募を喜ぶ3人の部員',width:640,height:332}),
     el('h1',{style:'font-size:22px;margin:0'},'送ったよ！ありがとう'),
     el('p',{style:'margin:0'},text),
+    card?el('p',{style:'margin:0;font-size:14px'},'遊ばれた数と感想は、あとで実績として使えます'):null,
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。進みぐあいは、マイページの「自分の作品」で見られます。'),
     el('div',{class:'row',style:'justify-content:center'},el('a',{class:'btn',href:'./me.html#games'},'マイページで見る'),el('a',{class:'btn ghost',href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discordを開く')))));
   scrollTo(0,0);
@@ -333,7 +334,7 @@ function newForm(){
     }
     const r=await send('new',null,d,btn,msg);
     if(!r&&upPath){ try{ await sb.storage.from('submission-media').remove([upPath]) }catch(e){} }
-    if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。（見送りになったときは、無料がもう一度使えます）':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':''))) });
+    if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。（見送りになったときは、無料がもう一度使えます）':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':'')),true) });
   // 見本：スマホ・タブレットは、作品名の欄の上に置く（畳んでおく）。PC（1200px以上）は左の列（付箋・ポイントの下）に置く
   const sideCol=el('div',{class:'sidecol'},lfBox,ptBox), mq=matchMedia('(min-width:1200px)');
   function placePv(){ if(mq.matches) sideCol.append(pv); else form.insertBefore(pv,form.querySelector(':scope > label')||form.firstElementChild) }

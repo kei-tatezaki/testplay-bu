@@ -8,7 +8,7 @@
 -- 数え方
 --   ・hidden の感想、BAN された端末・アカウントのもの、作者本人の感想、ポイントの記録で「lazy（同じ文字のくり返し）」とされた感想は数えない
 --   ・遊んだ人数・いいね：game_events の play／like を端末ごとに1人。遊んだ回数・時間：play_sessions（BAN の端末は除く）
---   ・母数が5未満の項目は、割合を null で返す（画面は「まだ少ない」）。遊んだ時間の真ん中も、遊んだ回数が5未満なら null
+--   ・母数が5未満の項目は、割合（*_pct）を null で返す（人数 *_n と「はい」の人数 *_yes は返す）（画面は「まだ少ない」）。遊んだ時間の真ん中も、遊んだ回数が5未満なら null
 --   ・日付は日本時間
 --   ・選ばれた感想は、本文の先頭120字と日付だけ（名前・端末ID・アカウントは返さない）。表示中でなくなった（hidden など）感想は出ない
 
@@ -147,9 +147,9 @@ begin
     'plays', coalesce(v_plays, 0), 'sessions', coalesce(v_sessions, 0),
     'median_seconds', case when v_sessions >= min_n then round(v_median) end,
     'feedbacks', coalesce(v_fb, 0), 'likes', coalesce(v_likes, 0),
-    'again_n', coalesce(v_again_n, 0), 'again_pct', case when v_again_n >= min_n then round(v_again_y * 100.0 / v_again_n) end,
-    'answer_n', coalesce(v_ans_n, 0), 'answer_pct', case when v_ans_n >= min_n then round(v_ans_y * 100.0 / v_ans_n) end,
-    'fi_n', coalesce(v_fi_n, 0), 'fi_pct', case when v_fi_n >= min_n then round(v_fi_y * 100.0 / v_fi_n) end,
+    'again_n', coalesce(v_again_n, 0), 'again_yes', coalesce(v_again_y, 0), 'again_pct', case when v_again_n >= min_n then round(v_again_y * 100.0 / v_again_n) end,
+    'answer_n', coalesce(v_ans_n, 0), 'answer_yes', coalesce(v_ans_y, 0), 'answer_pct', case when v_ans_n >= min_n then round(v_ans_y * 100.0 / v_ans_n) end,
+    'fi_n', coalesce(v_fi_n, 0), 'fi_yes', coalesce(v_fi_y, 0), 'fi_pct', case when v_fi_n >= min_n then round(v_fi_y * 100.0 / v_fi_n) end,
     'first_day', (v_first at time zone 'Asia/Tokyo')::date, 'last_day', (v_last at time zone 'Asia/Tokyo')::date,
     'generated_at', now(), 'quotes', v_quotes);
 end $$;

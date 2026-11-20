@@ -1157,7 +1157,11 @@ addEventListener('load',()=>{{if(!(window.TPB&&TPB.follow))return;TPB.follow.min
 <figure class="ch-photo"><img src="assets/art/clubroom.webp" alt="コルクボードにゲームの写真が貼られた部室" width="1100" height="839" loading="lazy"></figure>
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
 <h1 data-headline><span class="hu-k">説明するより、</span><br>遊んでもらおう。</h1>
-<p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
+<ul class="checks why">
+<li><b>遊んでもらえる</b>：小さく遊べる版を出すだけで、同じ学生が遊んでくれます。</li>
+<li><b>感想がもらえる</b>：「もう一回遊びたい？」などの選ぶ質問と一言が、名前なしで届きます。</li>
+<li><b>数字が実績になる</b>：「面白いと思う」じゃなくて、「30人が遊んで、21人がもう一回やりたいと言った」と言えるようになります。ポートフォリオや企画書に、そのまま書けます。</li>
+</ul>
 <div class="lfhero"><b>最初の1本は投稿無料</b><span>はじめての応募は、ポイントなしで送れます。2本目からは30ポイント（感想を書くとたまります）。</span></div>
 <div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small><small>ショートに出す動画か画像（動画60秒・50MBまで・任意。なければ運営が撮ります）</small></div>
 <h2 class="flow-h">載るまでの流れ</h2>
@@ -1174,6 +1178,7 @@ addEventListener('load',()=>{{if(!(window.TPB&&TPB.follow))return;TPB.follow.min
 <ul class="checks">
 <li><b>遊べる作品ページ</b>：遊ぶボタン・動画・確かめたいことが1ページに。URLを1本貼るだけでポートフォリオになります</li>
 <li><b>数字が自動で並ぶ</b>：遊んだ人の数、「また遊びたい」の割合、感想</li>
+<li><b>テスト結果カード</b>：遊んだ人数・「もう一回やりたい」の割合・感想を1枚にまとめた公開ページ。画像で保存して、ポートフォリオや企画書に貼れます</li>
 <li><b>直した記録が残る</b>：感想を読んで直すと「感想でアップデート」に残ります（例：{sample_link}）</li>
 </ul>
 <details class="mini"><summary>見本の画面を見る</summary>
@@ -1330,6 +1335,14 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
                                              "説明するより、遊んでもらおう。小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録が残る作品ページができます。",
                                              f"{BASE}/creators.html", f"{BASE}/og/site.png", creators, ""), encoding="utf-8")
 
+    # テスト結果カード（result.html?g=<slug>）：1ページ。数字は表示のときに public_result（022）から読む。R18 は JS も DB も数字を出さない
+    result_body = (ROOT / "src/result.html").read_text(encoding="utf-8")
+    result = page("テスト結果カード｜テストプレイ部",
+                  "遊んでもらった記録から集計した、作品のテスト結果カード。遊んだ人数・もう一回やりたい割合・感想など。",
+                  f"{BASE}/result.html", f"{BASE}/og/site.png", result_body, "")
+    result = result.replace("<body>", '<body class="rc-page" data-noside>', 1).replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n<meta name="theme-color"', 1)
+    (ROOT / "result.html").write_text(result, encoding="utf-8")
+
     # プライバシーの説明
     privacy = f"""<div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn ghost" href="./">▶ ショート</a></header>
@@ -1366,6 +1379,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <h2>だれに見えるか</h2>
 <ul>
 <li><b>作った人</b>：自分の作品の合計の数字と、感想の本文。だれが書いたかは見えません</li>
+<li><b>テスト結果カード</b>：作者が「カードを作る」で開く公開ページ（result.html?g=作品ID）。遊んだ人数・遊んだ回数・遊んだ時間の真ん中・「もう一回遊びたい」と作者の質問の「はい」の割合・第一印象の割合・感想の件数・いいねの数・集計した期間が、URLを知っている人ならだれでも見られます。割合は、答えた人が5人になるまで出しません。作者が「カードに載せる」と選んだ感想（最大3件）は、先頭120字と日付だけが、名前・アカウント・端末のIDなしで載ります（選びなおし・外すのは作者がいつでもできます。非表示になった感想は出ません）。R18の作品、BANされた端末やアカウントの記録、作者自身の感想は含めません</li>
 <li><b>運営</b>：上のすべて。感想を書いたアカウントの名前は、荒らし対策のためにだけ使います</li>
 <li><b>みんな</b>：作品ページの感想の本文と、遊んだ人の数などの合計。プロフィールに自分で書いたもの</li>
 <li><b>いいね</b>：自分だけが見られます。マイページで「いいねした作品を公開する」をオンにしたときだけ、公開プロフィールに出ます（最初はオフ。いつでもオフに戻せます）</li>
@@ -1381,7 +1395,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <p>自分の感想やアカウントの情報を消してほしいときは、<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
 <p>いいねは<a href="./me.html#likes">マイページの「いいね」</a>から1本ずつ外せます。履歴は<a href="./me.html#history">マイページの「履歴」</a>の「履歴を消す」で、まとめて消せます（このブラウザの記録も一緒に消えます）。フォローは、相手のプロフィールの「フォロー中」を押すと、いつでもやめられます。</p>
-<p class="muted">2026年11月21日 フォローについて追記（同日 いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
+<p class="muted">2026年11月21日 テスト結果カードについて追記（同日 フォローについて追記、いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
 </div></section>
 </main>
 <footer><a href="./list.html">← 作品一覧に戻る</a></footer>

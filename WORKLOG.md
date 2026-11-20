@@ -398,3 +398,16 @@
 - **creators.html**：「スマホですぐ遊んでもらうには」「企画・プランナーの人へ」、確かめたいことに「企画の芯」。
 - 確かめ：Playwright モック（`/home/claude/tools/w_test.py`、list／feed／game／submit／me／dev／pwa／coach）で pageerror 0・横スクロールなし・絵文字なし。SW 登録・オフライン・iOS／Android の案内を確認。
 - 残し：Lighthouse の installable は未実行。Edge Function は未デプロイ。第一印象メモの非表示は画面なし。
+
+
+## テスト結果カード（11月21日）
+
+- **言葉**：軸の文「『面白いと思う』じゃなくて、『30人が遊んで、21人がもう一回やりたいと言った』と言えるようになります。」。creators.html の一番上を3つの理由（遊んでもらえる／感想がもらえる／数字が実績になる）に、dev.html の集計の上に「この数字は、ポートフォリオや企画書に使えます → テスト結果カードを作る」、submit.html の送ったよ画面（新規応募のみ）に「遊ばれた数と感想は、あとで実績として使えます」。
+- **SQL 022（未適用）**：`supabase/022_result_card.sql`＋`022_check.sql`（使い捨て Postgres で41件合格。016〜020 のチェックも通る）。`public_result(slug)`（だれでも）、`result_quotes`、`dev_result_quote_set／clear／dev_result_quotes`（game_owners の本人だけ）、`game_ratings`＋`admin_set_game_rating`（R18 は public_result が `blocked:true` だけ返す）。母数5未満の割合は null、人数と「はい」の人数は返す。
+- **決めたこと**：感想は hidden・BAN（端末／アカウント）・作者本人・ポイント記録が lazy のものを数えない。遊んだ時間は「中央値」（遊んだ回数5回未満は null）。R18 は DB に作品表がないので `game_ratings` を新設（運営が入れる）。画面側は games.json の rating も見て、R18 なら RPC を呼ばない。作者でない運営は感想を選べない（game_owners 登録が必要）。
+- **result.html?g=slug**（build.py が `src/result.html` から生成、noindex、サイドバーなし）：16:9 の紙色カード。大きい数字4つ、第一印象・感想・いいね、選ばれた感想（3列）、集計期間と時点、URL、「数字は直接集計」の一文。人数5未満は上に注記。画像保存は canvas に自前描画（外部ライブラリなし、高さは内容で伸びる）。リンクコピー。印刷は A4 横1枚。
+- **dev.html**：「テスト結果カードを作る」（新しいタブ）、各感想に「カードに載せる 1/2/3」（作者本人だけ・022 未適用なら出さない）。
+- **privacy.html**：公開される数字と、選んだ感想が名前なしで出ることを追記。
+- `supabase/tests/run_local.sh` を UTF8 で initdb するように変更（文字数の確認が正しくなる）。
+- 確かめ：Playwright モック（`/home/claude/tools/rc_test.py`・`rc_dev_test.py`）、390×844・1440×900、pageerror 0・横スクロールなし・絵文字なし・文字コントラスト AA、書き込みなし、スクショ `/home/claude/shots/rc_*.png`。
+- 残し：本番の R18 作品の slug を `admin_set_game_rating` で入れる必要あり。画像保存は iOS Safari でダウンロード動作が違う場合がある（未確認）。

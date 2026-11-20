@@ -1,0 +1,236 @@
+<div class="wrap rc-wrap">
+<header class="bar noprint"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="./list.html">作品一覧</a><span data-me></span></span></header>
+<main class="rc-main">
+<p class="rc-lead noprint">遊んでもらった記録から、数字を自動で集計したページです。ポートフォリオや企画書に、画像にして貼れます。</p>
+<div id="rcBox" aria-live="polite"><div class="rc-state"><p>数字を読み込み中…</p></div></div>
+<div class="rc-tools noprint" id="rcTools" hidden>
+<button type="button" class="btn" id="rcSave">画像で保存</button>
+<button type="button" class="btn ghost" id="rcCopy">リンクをコピー</button>
+<a class="ghost-link" id="rcGame" href="./list.html">作品ページを見る</a>
+<a class="ghost-link" id="rcDev" href="./dev.html">感想を選ぶ（作者のページ）</a>
+</div>
+<p class="rc-msg noprint" id="rcMsg" role="status"></p>
+<p class="rc-help noprint">画像は、いま表示している数字をそのまま描いたものです。印刷するときは、ブラウザの印刷から「横向き」で出すと、1枚におさまります。</p>
+</main>
+<footer class="noprint"><a href="./list.html">← 作品一覧に戻る</a><a href="./creators.html">作品を載せたい人へ</a><a href="./privacy.html">集める情報と使い道</a></footer>
+</div>
+<style>
+body.rc-page{background:var(--paper-2)}
+.rc-wrap{max-width:1120px}
+.rc-lead{margin:0 0 12px;color:var(--muted);font-size:14px}
+.rc-state{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:28px 20px;text-align:center}
+.rc-state p{margin:0 0 10px}
+.rc-state p:last-child{margin:0}
+.rc-state b{font-size:18px}
+/* ---- カード本体：紙色の地・細い罫線・ロゴ ---- */
+.rc{background:var(--paper);color:var(--ink);border:1px solid var(--ink);box-shadow:0 1px 2px rgba(60,40,20,.07);padding:18px 16px 14px;display:grid;gap:14px;align-content:start;font-feature-settings:"palt"}
+.rc-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.rc-thumb{width:96px;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--paper-2);display:grid;place-items:center;overflow:hidden}
+.rc-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.rc-thumb span{font-size:28px;font-weight:800;color:var(--ink)}
+.rc-title{margin:0;font-size:20px;line-height:1.35;font-weight:800;overflow-wrap:anywhere}
+.rc-by{margin:2px 0 0;color:var(--muted);font-size:13px}
+.rc-logo{display:none;align-items:center;gap:8px;font-weight:800;font-size:15px;letter-spacing:.04em;white-space:nowrap}
+.rc-logo img{width:28px;height:28px;border-radius:50%}
+.rc-note{margin:0;background:var(--karashi-soft);color:var(--ink);padding:7px 12px;font-size:14px;font-weight:700;border-left:4px solid var(--karashi)}
+.rc-stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.rc-st{padding:12px 10px 12px 0;display:grid;gap:2px;align-content:start;min-width:0}
+.rc-st:nth-child(even){padding-left:12px;border-left:1px solid var(--rule)}
+.rc-st:nth-child(n+3){border-top:1px solid var(--rule)}
+.rc-lb{font-size:13px;font-weight:700;color:var(--muted);line-height:1.4}
+.rc-big{font-size:38px;line-height:1.15;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rc-big .u{font-size:.5em;font-weight:700;margin-left:2px}
+.rc-big.few{font-size:20px;line-height:1.9;color:var(--muted)}
+.rc-sub{font-size:12.5px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.rc-row{display:grid;grid-template-columns:1fr;gap:6px 18px;font-size:14px}
+.rc-row b{font-size:17px;font-variant-numeric:tabular-nums}
+.rc-row span.k{color:var(--muted);font-size:13px;margin-right:6px}
+.rc-q h2{margin:0 0 6px;font-size:14px;font-weight:800;color:var(--ink)}
+.rc-qs{display:grid;gap:10px}
+.rc-quote{margin:0;border-left:4px solid var(--karashi);padding:2px 0 2px 12px;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.rc-quote small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.rc-foot{border-top:1px solid var(--rule);padding-top:8px;display:grid;gap:2px;font-size:12px;color:var(--muted);line-height:1.6}
+.rc-foot b{color:var(--ink);font-weight:700}
+.rc-foot .url{overflow-wrap:anywhere;color:var(--ink)}
+.rc-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.rc-tools .btn{min-height:44px}
+.rc-msg{min-height:1.5em;margin:8px 0 0;font-size:14px;font-weight:700;color:var(--ink)}
+.rc-help{margin:6px 0 0;color:var(--muted);font-size:13px}
+@media (min-width:900px){
+ .rc{aspect-ratio:16/9;padding:30px 40px 22px;gap:18px}
+ .rc-head{grid-template-columns:auto minmax(0,1fr) auto;gap:20px}
+ .rc-thumb{width:160px}
+ .rc-title{font-size:30px}
+ .rc-by{font-size:16px}
+ .rc-logo{display:flex}
+ .rc-stats{grid-template-columns:repeat(4,1fr)}
+ .rc-st,.rc-st:nth-child(even){padding:16px 14px 16px 18px;border-left:1px solid var(--rule);border-top:0}
+ .rc-st:first-child{padding-left:0;border-left:0}
+ .rc-st:nth-child(n+3){border-top:0}
+ .rc-lb{font-size:14px}
+ .rc-big{font-size:56px}
+ .rc-big.few{font-size:26px;line-height:2.2}
+ .rc-sub{font-size:13px}
+ .rc-row{grid-template-columns:repeat(3,auto);justify-content:start;gap:6px 44px;font-size:15px}
+ .rc-qs{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+ .rc-quote{font-size:14px}
+ .rc-foot{font-size:13px}
+}
+@media print{
+ @page{size:A4 landscape;margin:8mm}
+ html,body,body.rc-page{background:#fff!important;padding:0!important}
+ body::before{display:none!important}
+ .noprint,.tpb-side,[data-ms-band],.tpb-nav{display:none!important}
+ .wrap,.rc-wrap,.rc-main{max-width:none;width:100%;margin:0;padding:0}
+ .rc{width:100%;box-shadow:none;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8mm 10mm 6mm;gap:12px}
+ .rc-head{grid-template-columns:auto minmax(0,1fr) auto;gap:20px}
+ .rc-thumb{width:120px}.rc-title{font-size:26px}.rc-logo{display:flex}
+ .rc-stats{grid-template-columns:repeat(4,1fr)}
+ .rc-st,.rc-st:nth-child(even){padding:12px 12px 12px 16px;border-left:1px solid var(--rule);border-top:0}
+ .rc-st:first-child{padding-left:0;border-left:0}.rc-st:nth-child(n+3){border-top:0}
+ .rc-big{font-size:46px}.rc-big.few{font-size:22px;line-height:2.2}
+ .rc-row{grid-template-columns:repeat(3,auto);justify-content:start;gap:6px 40px}
+ .rc-qs{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded",function(){"use strict";
+var T=window.TPB,$=function(i){return document.getElementById(i)},esc=T.esc;
+var SLUG=new URLSearchParams(location.search).get("g")||"";
+var G=/^[a-z0-9-]{1,40}$/.test(SLUG)?T.game(SLUG):null;
+var MIN=5, M=null;
+function say(t){$("rcMsg").textContent=t||""}
+function state(h){$("rcBox").innerHTML='<div class="rc-state">'+h+'</div>';$("rcTools").hidden=true}
+function md(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||"");return m?(+m[2])+"月"+(+m[3])+"日":""}
+function mdIso(s){try{return new Date(s).toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo",month:"long",day:"numeric"})}catch(e){return ""}}
+function fmtSec(s){s=Math.round(s);return s<60?[String(s),"秒"]:[Math.floor(s/60)+"分"+String(s%60).padStart(2,"0"),"秒"]}
+function pageUrl(){return location.origin+location.pathname+"?g="+SLUG}
+
+// 画面にも画像にも同じ中身を使う
+function model(d,author){
+  var few=function(n){return n<MIN};
+  var smallN=(d.plays||0)<MIN;
+  var q=(G.question||"").trim();
+  var st=[];
+  st.push({lb:"遊んだ人数",v:String(d.plays||0),u:"人",sub:"遊んだ回数 "+(d.sessions||0)+"回"});
+  st.push(d.again_pct!=null
+    ?{lb:"もう一回やりたい",v:String(d.again_pct),u:"%",sub:d.again_n+"人中 "+d.again_yes+"人が「もう一回」と答えた"}
+    :{lb:"もう一回やりたい",few:"まだ少ない",sub:d.again_n?"感想 "+d.again_n+"人（"+MIN+"人から出します）":"感想がまだ届いていません"});
+  st.push(d.answer_pct!=null
+    ?{lb:"作者の質問に「はい」",v:String(d.answer_pct),u:"%",sub:d.answer_n+"人中 "+d.answer_yes+"人",sub2:q?"「"+q+"」":""}
+    :{lb:"作者の質問に「はい」",few:q||d.answer_n?"まだ少ない":"質問なし",sub:q?(d.answer_n?"答え "+d.answer_n+"人（"+MIN+"人から出します）":"まだ答えがありません"):"この作品には作者の質問がありません",sub2:q?"「"+q+"」":""});
+  if(d.median_seconds!=null){var t=fmtSec(d.median_seconds);st.push({lb:"遊んだ時間（真ん中）",v:t[0],u:t[1],sub:"半分の人は、これより長く遊びました"})}
+  else st.push({lb:"遊んだ時間（真ん中）",few:"まだ少ない",sub:"遊ばれた回数が"+MIN+"回になると出します"});
+  var fi=d.fi_pct!=null?{v:"「遊びたい」"+d.fi_pct+"%",s:"（"+d.fi_n+"人中 "+d.fi_yes+"人）"}:{v:d.fi_n?"まだ少ない":"まだありません",s:d.fi_n?"（"+d.fi_n+"人）":""};
+  var from=md(d.first_day),to=md(d.last_day),at=mdIso(d.generated_at);
+  var period=from&&to?(from===to?from:from+"〜"+to)+"、":"";
+  return {title:G.title,author:author,small:smallN,stats:st,
+    row:[{k:"動画を見た第一印象",v:fi.v,s:fi.s},{k:"感想",v:(d.feedbacks||0)+"件"},{k:"いいね",v:String(d.likes||0)}],
+    quotes:(d.quotes||[]).map(function(x){return {text:x.text+(x.truncated?"…":""),at:md(x.at)}}),
+    foot:"テストプレイ部で集計（"+period+at+"時点）",url:pageUrl(),truth:"数字は、遊んでもらった記録から直接集計しています（作者が書き換えたものではありません）。感想は、作者が選んだものを名前なしで載せています。"};
+}
+function thumbHtml(){return G.thumb?'<img src="'+esc(G.thumb)+'" alt="" width="160" height="90">':'<span aria-hidden="true">'+esc((G.title||"").slice(0,1))+'</span>'}
+function render(m){
+  var h='<article class="rc" id="rc" aria-label="'+esc(m.title)+' のテスト結果カード">'
+   +'<div class="rc-head"><div class="rc-thumb">'+thumbHtml()+'</div><div><h1 class="rc-title">'+esc(m.title)+'</h1><p class="rc-by">'+esc(m.author)+' の作品 ・ テスト結果</p></div>'
+   +'<div class="rc-logo"><img src="assets/icon-192.png" alt="" width="28" height="28">テストプレイ部</div></div>'
+   +(m.small?'<p class="rc-note">まだ遊ばれた数が少ないので、数字は参考です</p>':'')
+   +'<div class="rc-stats">'+m.stats.map(function(s){return '<div class="rc-st"><span class="rc-lb">'+esc(s.lb)+'</span>'
+     +(s.few?'<span class="rc-big few">'+esc(s.few)+'</span>':'<span class="rc-big">'+esc(s.v)+'<span class="u">'+esc(s.u)+'</span></span>')
+     +'<span class="rc-sub">'+esc(s.sub)+'</span>'+(s.sub2?'<span class="rc-sub">'+esc(s.sub2)+'</span>':'')+'</div>'}).join("")+'</div>'
+   +'<div class="rc-row">'+m.row.map(function(r){return '<div><span class="k">'+esc(r.k)+'</span><b>'+esc(r.v)+'</b>'+(r.s?'<span class="k" style="margin:0 0 0 4px">'+esc(r.s)+'</span>':'')+'</div>'}).join("")+'</div>'
+   +(m.quotes.length?'<div class="rc-q"><h2>遊んだ人の感想（作者が選んだもの）</h2><div class="rc-qs">'+m.quotes.map(function(x){return '<blockquote class="rc-quote">'+esc(x.text)+'<small>'+esc(x.at)+'</small></blockquote>'}).join("")+'</div></div>':'')
+   +'<div class="rc-foot"><b>'+esc(m.foot)+'</b><span class="url">'+esc(m.url)+'</span><span>'+esc(m.truth)+'</span></div></article>';
+  $("rcBox").innerHTML=h; $("rcTools").hidden=false;
+}
+
+// ---- 画像で保存：canvas に自前で描く（外部ライブラリなし） ----
+function loadImg(src){return new Promise(function(ok){var i=new Image();var t=setTimeout(function(){ok(null)},4000);i.onload=function(){clearTimeout(t);ok(i)};i.onerror=function(){clearTimeout(t);ok(null)};i.src=src})}
+async function draw(m){
+  var F='"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif';
+  try{await Promise.all([document.fonts.load('400 24px "Noto Sans JP"',m.title),document.fonts.load('700 24px "Noto Sans JP"',m.title),document.fonts.load('800 24px "Noto Sans JP"',m.title)])}catch(e){}
+  var imgs=await Promise.all([G.thumb?loadImg(G.thumb):null,loadImg("assets/icon-192.png")]);
+  var W=1600,P=60,INK="#2A241E",MUT="#6B6158",RULE="#CDBF9F";
+  function mk(h){var c=document.createElement("canvas");c.width=W;c.height=h;var x=c.getContext("2d");x.textBaseline="alphabetic";return [c,x]}
+  var probe=mk(10)[1];
+  function font(x,w,s){x.font=w+" "+s+"px "+F}
+  function wrap(x,s,maxW,maxLines){var out=[],cur="";for(var i=0;i<s.length;i++){var ch=s[i];if(x.measureText(cur+ch).width>maxW&&cur){out.push(cur);cur=ch;if(maxLines&&out.length===maxLines)break}else cur+=ch}
+    if(!maxLines||out.length<maxLines)out.push(cur);else{var l=out[maxLines-1];while(l&&x.measureText(l+"…").width>maxW)l=l.slice(0,-1);out[maxLines-1]=l+"…"}return out}
+  // まず高さを決める（引用の行数しだい）
+  font(probe,"400",22);
+  var qw=(W-2*P-2*36)/3, qLines=m.quotes.map(function(q){return wrap(probe,q.text,qw-26,6)});
+  var qh=qLines.length?Math.max.apply(null,qLines.map(function(l){return l.length}))*34+50+44:0;
+  var H=Math.max(900,(m.small?290:236)+240+70+qh+190);
+  var cv=mk(H),c=cv[0],x=cv[1];
+  x.fillStyle="#F6F1E7";x.fillRect(0,0,W,H);
+  x.strokeStyle=INK;x.lineWidth=2;x.strokeRect(22,22,W-44,H-44);
+  // 見出し
+  var ty=58,th=108,tw=192;
+  x.fillStyle="#EFE6D3";x.fillRect(P,ty,tw,th);
+  if(imgs[0]){var r=Math.max(tw/imgs[0].width,th/imgs[0].height);x.save();x.beginPath();x.rect(P,ty,tw,th);x.clip();x.drawImage(imgs[0],P+(tw-imgs[0].width*r)/2,ty+(th-imgs[0].height*r)/2,imgs[0].width*r,imgs[0].height*r);x.restore()}
+  else{x.fillStyle=INK;font(x,"800",56);x.textAlign="center";x.fillText((m.title||"").slice(0,1),P+tw/2,ty+th/2+20);x.textAlign="left"}
+  x.strokeStyle=RULE;x.lineWidth=1.5;x.strokeRect(P,ty,tw,th);
+  font(x,"800",46);x.fillStyle=INK;
+  var tl=wrap(x,m.title,W-2*P-tw-30-300,2);tl.forEach(function(l,i){x.fillText(l,P+tw+30,ty+44+i*54)});
+  font(x,"400",26);x.fillStyle=MUT;x.fillText(m.author+" の作品 ・ テスト結果",P+tw+30,ty+44+tl.length*54+4);
+  font(x,"800",30);x.fillStyle=INK;x.textAlign="right";x.fillText("テストプレイ部",W-P,ty+44);
+  var lw=x.measureText("テストプレイ部").width;if(imgs[1]){x.save();x.beginPath();x.arc(W-P-lw-18-20,ty+34,20,0,7);x.clip();x.drawImage(imgs[1],W-P-lw-18-40,ty+14,40,40);x.restore()}
+  x.textAlign="left";
+  var y=ty+th+26;
+  x.fillStyle=RULE;x.fillRect(P,y,W-2*P,1.5);y+=18;
+  if(m.small){x.fillStyle="#F8E6B0";x.fillRect(P,y,W-2*P,46);x.fillStyle="#E2A93B";x.fillRect(P,y,6,46);x.fillStyle=INK;font(x,"700",24);x.fillText("まだ遊ばれた数が少ないので、数字は参考です",P+24,y+31);y+=46+16}
+  // 大きい数字 4つ
+  var cw=(W-2*P)/4,sh=240;
+  m.stats.forEach(function(s,i){var cx=P+i*cw+(i?22:0),mw=cw-(i?22:0)-20;
+    if(i){x.fillStyle=RULE;x.fillRect(P+i*cw,y,1.5,sh)}
+    font(x,"700",23);x.fillStyle=MUT;x.fillText(s.lb,cx,y+36);
+    if(s.few){font(x,"800",38);x.fillStyle=MUT;x.fillText(s.few,cx,y+120)}
+    else{font(x,"800",104);x.fillStyle=INK;x.fillText(s.v,cx,y+130);var w=x.measureText(s.v).width;font(x,"700",44);x.fillText(s.u,cx+w+6,y+130)}
+    font(x,"400",21);x.fillStyle=MUT;var ls=wrap(x,s.sub,mw,2).concat(s.sub2?wrap(x,s.sub2,mw,2):[]);ls.slice(0,4).forEach(function(l,k){x.fillText(l,cx,y+168+k*27)})});
+  y+=sh;x.fillStyle=RULE;x.fillRect(P,y,W-2*P,1.5);
+  // 第一印象・感想・いいね
+  var rx=P;y+=50;
+  m.row.forEach(function(r){font(x,"400",24);x.fillStyle=MUT;x.fillText(r.k,rx,y);rx+=x.measureText(r.k).width+14;font(x,"800",30);x.fillStyle=INK;x.fillText(r.v,rx,y);rx+=x.measureText(r.v).width;
+    if(r.s){font(x,"400",22);x.fillStyle=MUT;x.fillText(r.s,rx+8,y);rx+=x.measureText(r.s).width+8}rx+=56});
+  y+=26;
+  if(qLines.length){y+=22;font(x,"800",24);x.fillStyle=INK;x.fillText("遊んだ人の感想（作者が選んだもの）",P,y+10);y+=34;
+    qLines.forEach(function(ls,i){var qx=P+i*(qw+36);x.fillStyle="#E2A93B";x.fillRect(qx,y,5,ls.length*34+30);font(x,"400",22);x.fillStyle=INK;ls.forEach(function(l,k){x.fillText(l,qx+20,y+26+k*34)});font(x,"400",19);x.fillStyle=MUT;x.fillText(m.quotes[i].at,qx+20,y+26+ls.length*34+6)})}
+  // 最下部
+  var fy=H-130;x.fillStyle=RULE;x.fillRect(P,fy,W-2*P,1.5);
+  font(x,"700",24);x.fillStyle=INK;x.fillText(m.foot,P,fy+38);
+  font(x,"400",22);x.fillStyle=INK;x.fillText(m.url,P,fy+68);
+  font(x,"400",19);x.fillStyle=MUT;x.fillText(m.truth,P,fy+96);
+  return c;
+}
+$("rcSave").onclick=async function(){
+  if(!M)return; var b=this; b.disabled=true; say("画像をつくっています…");
+  try{
+    var c=await draw(M); var blob=await new Promise(function(ok){c.toBlob(ok,"image/png")});
+    if(!blob){say("画像をつくれませんでした。スクリーンショットを使ってください");return}
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="test-result-"+SLUG+".png"; document.body.append(a); a.click(); a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},4000); say("画像を保存しました（"+c.width+"×"+c.height+"）");
+  }catch(e){say("画像をつくれませんでした。スクリーンショットを使ってください")}
+  b.disabled=false;
+};
+$("rcCopy").onclick=async function(){
+  var u=pageUrl();
+  try{await navigator.clipboard.writeText(u);say("リンクをコピーしました")}
+  catch(e){var t=document.createElement("textarea");t.value=u;t.setAttribute("readonly","");t.style.cssText="position:fixed;left:-9999px";document.body.append(t);t.select();var ok=false;try{ok=document.execCommand("copy")}catch(_){}t.remove();say(ok?"リンクをコピーしました":"コピーできませんでした。アドレスバーのリンクを使ってください")}
+};
+
+async function start(){
+  if(!G){state('<p><b>この作品の結果カードは見つかりません</b></p><p>リンクが古いか、まちがっているかもしれません。</p><p><a href="./list.html">作品一覧にもどる</a></p>');return}
+  document.title=G.title+" のテスト結果｜テストプレイ部";
+  $("rcGame").href="./games/"+SLUG+"/"; $("rcDev").href="./dev.html?g="+encodeURIComponent(SLUG);
+  if(G.rating==="r18"){state('<p><b>この作品は、結果カードを出せません</b></p><p>18歳以上向けの作品は、数字を公開するカードを作っていません。</p><p><a href="./list.html">作品一覧にもどる</a></p>');return}
+  var res=await Promise.all([T.pub("public_result",{p_slug:SLUG}),T.liveCreators?T.liveCreators():null]);
+  var d=res[0],live=res[1]||{};
+  if(!d){state('<p><b>数字を読み込めませんでした</b></p><p>通信がうまくいかなかったか、まだ準備中です。時間をおいて、もう一度開いてください。</p><p><button type="button" class="btn ghost" id="rcRetry">もう一度読み込む</button></p>');$("rcRetry").onclick=function(){state("<p>数字を読み込み中…</p>");start()};return}
+  if(d.blocked){state('<p><b>この作品は、結果カードを出せません</b></p><p>18歳以上向けの作品は、数字を公開するカードを作っていません。</p>');return}
+  var c=(window.TPB_DATA.creators||{})[G.creator||""];
+  var author=(live[SLUG]&&live[SLUG].name)||(c&&c.name)||G.author||"ななし";
+  M=model(d,author); render(M);
+}
+start();
+});
+</script>
