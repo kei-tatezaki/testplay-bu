@@ -231,10 +231,10 @@ button.mk:hover{background:var(--paper-2)}
 .gt-t:hover{text-decoration:underline;text-underline-offset:3px}
 .gt-k{position:absolute;top:0;right:0;width:44px;height:44px;border:0;background:none;padding:0;display:grid;place-items:center;cursor:pointer;color:#fff}
 .gt-k span{width:26px;height:26px;border-radius:50%;background:rgba(20,16,12,.78);display:grid;place-items:center}
-.pane-eb{display:grid;justify-items:center;gap:2px;text-align:center;padding:14px 8px 6px}
+.pane-eb{display:grid;justify-items:center;gap:2px;text-align:center;padding:8px 8px 0}
 .pane-eb .eb-img{width:120px;max-width:40%;height:auto;margin:0}
 .pane-eb .eb-t{margin:0;font-size:15px;line-height:1.6}
-.pane-eb a{display:inline-flex;align-items:center;min-height:44px;color:var(--ao);font-size:14px;font-weight:700;text-underline-offset:3px}
+.pane-eb a{display:inline-flex;align-items:center;min-height:40px;color:var(--ao);font-size:14px;font-weight:700;text-underline-offset:3px}
 .pane-eb .btn{margin-top:4px}
 /* 箱（編集・ポイント・人の一覧） */
 .tpb-sh{max-width:560px}
