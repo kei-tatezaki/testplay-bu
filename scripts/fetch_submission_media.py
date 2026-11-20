@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """応募で届いた動画・画像を、サイトの clips/ か og/ に取りこむ（運営用・手元で使う）。
 
-  python3 scripts/fetch_submission_media.py '<署名付きURL>' <slug>
+  python3 scripts/fetch_submission_media.py '<署名付きURL>' <slug> [切り出しはじめの秒]
 
 署名付きURL：管理ページの「応募」タブの「ダウンロード（10分だけ有効）」のリンクをコピーする。
-  動画 → clips/<slug>.mp4 に保存（webm は mp4 に変換。音を消し、長辺960px以下・15秒以内・2MB以下に収める）
+  動画 → clips/<slug>.mp4 に保存（mp4 / mov / webm を mp4 に変換。音を消し、長辺960px以下・15秒以内・2MB以下に収める。
+          作者は60秒・50MBまで送れるので、見どころの始まりの秒を3つめの引数で指定できる。省略すると頭から15秒）
+  画像は10MBまで届く。長辺1280px以下の jpg に縮めて保存
   画像 → og/<slug>.<jpg|png|webp> に保存
 games.json は自動では書き換えない。終わりに、足す行を表示するだけ。
 """
@@ -55,10 +57,11 @@ def probe(path):
     return v["width"], v["height"], dur
 
 
-def encode(src, dst, w, h, dur):
-    t = min(dur, MAX_SEC)
+def encode(src, dst, w, h, dur, start=0.0):
+    start = max(0.0, min(start, max(dur - 1, 0)))
+    t = min(dur - start, MAX_SEC)
     scale = "scale='if(gte(iw,ih),min(%d,iw),-2)':'if(gte(iw,ih),-2,min(%d,ih))',format=yuv420p" % (MAX_SIDE, MAX_SIDE)
-    base = ["ffmpeg", "-y", "-v", "error", "-i", str(src), "-t", str(t), "-an", "-vf", scale, "-c:v", "libx264", "-movflags", "+faststart"]
+    base = ["ffmpeg", "-y", "-v", "error", "-ss", str(start), "-i", str(src), "-t", str(t), "-an", "-vf", scale, "-c:v", "libx264", "-movflags", "+faststart"]
     # まず画質を決め打ち（crf）。2MBを超えたら、ビットレートを指定して下げながらやりなおす
     subprocess.run(base + ["-crf", "26", "-preset", "slow", str(dst)], check=True)
     kbps = int((MAX_BYTES * 8 * 0.85) / max(t, 1) / 1000)
@@ -75,6 +78,10 @@ def main():
         print(__doc__)
         sys.exit(0 if len(sys.argv) == 2 else 2)
     url, slug = sys.argv[1], sys.argv[2]
+    try:
+        start = float(sys.argv[3]) if len(sys.argv) > 3 else 0.0
+    except ValueError:
+        die("切り出しはじめの秒は数字にしてください（例：12.5）")
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,60}", slug):
         die("slug は半角の英小文字・数字・ハイフンだけにしてください")
     if not url.startswith("https://"):
@@ -92,24 +99,26 @@ def main():
                     if not c:
                         break
                     n += len(c)
-                    if n > 8 * 1024 * 1024:
-                        die("ファイルが大きすぎます（想定は2MBまで）")
+                    if n > 52 * 1024 * 1024:
+                        die("ファイルが大きすぎます（想定は50MBまで）")
                     f.write(c)
         except Exception as ex:  # 期限切れ（400/403）など
             die("ダウンロードできませんでした（URLの期限は10分です。管理ページで開きなおしてください）：%s" % ex)
         kind, ext = sniff(tmp.read_bytes()[:16])
         if not kind:
-            die("動画（mp4/webm）か画像（jpg/png/webp）ではないようです")
+            die("動画（mp4/mov/webm）か画像（jpg/png/webp）ではないようです")
         if kind == "image":
-            dst = ROOT / "og" / ("%s.%s" % (slug, ext))
-            shutil.copyfile(tmp, dst)
+            dst = ROOT / "og" / ("%s.jpg" % slug)
+            ext = "jpg"
+            subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(tmp), "-vf",
+                            "scale='if(gte(iw,ih),min(1280,iw),-2)':'if(gte(iw,ih),-2,min(1280,ih))'", "-q:v", "4", str(dst)], check=True)
             print("保存しました：%s（%.2fMB）" % (dst.relative_to(ROOT), dst.stat().st_size / 1048576))
             field = '"cover": "og/%s.%s"' % (slug, ext)
         else:
             w, h, dur = probe(tmp)
             print("元の動画：%d×%d・%.1f秒・%s" % (w, h, dur, ext))
             dst = ROOT / "clips" / ("%s.mp4" % slug)
-            encode(tmp, dst, w, h, dur)
+            encode(tmp, dst, w, h, dur, start)
             w2, h2, d2 = probe(dst)
             print("保存しました：%s（%d×%d・%.1f秒・%.2fMB・音なし）" % (dst.relative_to(ROOT), w2, h2, d2, dst.stat().st_size / 1048576))
             field = '"clip": "clips/%s.mp4"' % slug

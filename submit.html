@@ -65,12 +65,12 @@ const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
   banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
   bad_media:'動画か画像の指定が合っていません。ファイルを選びなおしてね',media_missing:'動画か画像が見つかりませんでした。もう一度選んで送ってね'};
-const MAXB=2097152, MAXSEC=15.5, VT=['video/mp4','video/webm'], IT=['image/jpeg','image/png','image/webp'], EXT={'video/mp4':'mp4','video/webm':'webm','image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
-const BIGMSG='2MBより大きいです。短く切る・解像度を下げると小さくなります';
+const MAXV=52428800, MAXI=10485760, MAXSEC=60.5, VT=['video/mp4','video/webm','video/quicktime'], IT=['image/jpeg','image/png','image/webp'], EXT={'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov','image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+const BIGMSG='大きすぎます（動画は50MB・画像は10MBまで）。短く切る・解像度を下げると小さくなります';
 function upErr(e){ const m=String((e&&(e.message||e.error))||'').toLowerCase();
   if(/exceed|too large|payload|413|maximum allowed/.test(m)) return BIGMSG;
   if(/mime|not supported|invalid.*type/.test(m)) return 'このファイルの形式は使えません。動画は mp4 / webm、画像は jpg / png / webp にしてね';
-  if(/row-level|policy|violates|unauthorized|403/.test(m)) return '置けませんでした。アップロードできるのは1人10個までです。古いものが残っているときは、運営にDiscordで声をかけてね';
+  if(/row-level|policy|violates|unauthorized|403/.test(m)) return '置けませんでした。アップロードできるのは1人5個までです。古いものが残っているときは、運営にDiscordで声をかけてね';
   if(/exists|duplicate/.test(m)) return '同じ名前のファイルがあります。もう一度送ってね';
   if(/jwt|token|not_logged/.test(m)) return ERR.not_logged_in;
   return 'ファイルを送れなかった…時間をおいてもう一度試してね' }
@@ -160,30 +160,30 @@ function newForm(){
   const mRemove=el('button',{type:'button',id:'mediaClear'},'ファイルをはずす');
   const mPanel=el('div',{class:'mpanel',id:'mediaPanel',hidden:true},mHint,filePick,mErr,mTip,mPrev,el('div',{class:'mgo'},mRemove));
   const MOPT=[['auto','運営におまかせ','運営が遊んで、プレイ動画を撮ります。自分で用意しなくて大丈夫です。'],
-    ['video','動画をのせる','mp4 / webm・2MBまで・15秒まで。音は出しません（無音で流れます）。'],
-    ['image','画像をのせる','jpg / png / webp・2MBまで。縦長がおすすめですが、9:16〜4:3 どれでもOK。切らずにそのまま表示します。']];
+    ['video','動画をのせる','mp4 / mov / webm・60秒・50MBまで。スマホで撮ったままでOK。運営が見どころを8〜15秒に切って、音なし・軽い動画にしてからのせます。'],
+    ['image','画像をのせる','jpg / png / webp・10MBまで。スクショのままでOK。縦長がおすすめですが、9:16〜4:3 どれでもOK。切らずにそのまま表示します。']];
   const radios=MOPT.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:mName,value:o[0],checked:o[0]==='auto'}),el('span',null,o[1])));
   const mDesc=el('p',{class:'hint',id:'mediaDesc','aria-live':'polite'},MOPT[0][2]);
   const mSet=el('fieldset',{class:'mset',id:'mediaSet'},el('legend',null,'ショートに出すもの ',el('small',{style:'font-weight:400;color:var(--muted);font-size:12px'},'任意')),
     el('div',{class:'mopts',role:'presentation'},radios),mDesc,mPanel);
   function mReset(keepErr){ if(media.url) URL.revokeObjectURL(media.url); media.file=null; media.url=''; media.dur=0; fileIn.value=''; mPrev.replaceChildren(); mPrev.hidden=true; mInfo.textContent=''; pvMedia.replaceChildren(); if(!keepErr){ mErr.textContent=''; mTip.hidden=true; mTip.replaceChildren() } mRemove.hidden=true }
-  function mBig(){ mErr.textContent=BIGMSG; mTip.replaceChildren('縮めかた：',el('ul',null,el('li',null,'スマホの編集で、15秒以内に切る'),el('li',null,'書き出しを 720p（解像度を下げる）にする'),el('li',null,'画像は、サイズを小さくして jpg で書き出す'))); mTip.hidden=false }
+  function mBig(){ mErr.textContent=BIGMSG; mTip.replaceChildren('縮めかた：',el('ul',null,el('li',null,'スマホの編集で、60秒以内に切る'),el('li',null,'書き出しを 720p（解像度を下げる）にする'),el('li',null,'画像は、サイズを小さくして jpg で書き出す'))); mTip.hidden=false }
   function setKind(k){ media.kind=k; mReset(); const o=MOPT.find(x=>x[0]===k); mDesc.textContent=o[2];
-    mPanel.hidden=k==='auto'; fileIn.accept=k==='video'?'video/mp4,video/webm,.mp4,.webm':k==='image'?'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp':'';
+    mPanel.hidden=k==='auto'; fileIn.accept=k==='video'?'video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov':k==='image'?'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp':'';
     mHint.textContent=k==='video'?'ファイルを選ぶと、ここで長さと大きさを確かめます。':k==='image'?'ファイルを選ぶと、ここで大きさを確かめます。':'' }
   radios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setKind(e.target.value); drawPv() }));
   mRemove.addEventListener('click',()=>{ mReset(); fileIn.focus() });
   fileIn.addEventListener('change',async()=>{
     const file=fileIn.files&&fileIn.files[0]; mReset(); if(!file) return;
     const isV=media.kind==='video', okT=isV?VT:IT;
-    if(!okT.includes(file.type)){ mErr.textContent=isV?'動画は mp4 か webm にしてね（いまのファイル：'+(file.type||'不明')+'）':'画像は jpg・png・webp にしてね（いまのファイル：'+(file.type||'不明')+'）'; fileIn.value=''; return }
-    if(file.size>MAXB){ mBig(); fileIn.value=''; return }
+    if(!okT.includes(file.type)){ mErr.textContent=isV?'動画は mp4・mov・webm にしてね（いまのファイル：'+(file.type||'不明')+'）':'画像は jpg・png・webp にしてね（いまのファイル：'+(file.type||'不明')+'）'; fileIn.value=''; return }
+    if(file.size>(isV?MAXV:MAXI)){ mBig(); fileIn.value=''; return }
     const url=URL.createObjectURL(file);
     try{
       if(isV){
         const v=el('video',{muted:true,loop:true,playsinline:true,preload:'metadata'}); v.muted=true;
         await new Promise((ok,ng)=>{ v.onloadedmetadata=ok; v.onerror=()=>ng(new Error('load')); v.src=url; setTimeout(()=>ng(new Error('time')),8000) });
-        if(!(v.duration<=MAXSEC)){ URL.revokeObjectURL(url); mErr.textContent='長さは15秒までです（いま '+(isFinite(v.duration)?v.duration.toFixed(1)+'秒':'不明')+'）。スマホの編集で15秒以内に切ってね'; fileIn.value=''; return }
+        if(!(v.duration<=MAXSEC)){ URL.revokeObjectURL(url); mErr.textContent='長さは60秒までです（いま '+(isFinite(v.duration)?v.duration.toFixed(1)+'秒':'不明')+'）。スマホの編集で60秒以内に切ってね'; fileIn.value=''; return }
         media.dur=v.duration; v.autoplay=true; v.setAttribute('aria-label','選んだ動画のプレビュー（音なし）'); mPrev.replaceChildren(v); v.play&&v.play().catch(()=>{});
         mInfo.textContent=file.name+'　'+(file.size/1048576).toFixed(2)+'MB ・ '+v.duration.toFixed(1)+'秒';
       }else{
@@ -191,7 +191,8 @@ function newForm(){
         await new Promise((ok,ng)=>{ im.onload=ok; im.onerror=()=>ng(new Error('load')); im.src=url });
         mPrev.replaceChildren(im); mInfo.textContent=file.name+'　'+(file.size/1048576).toFixed(2)+'MB ・ '+im.naturalWidth+'×'+im.naturalHeight;
       }
-    }catch(e){ URL.revokeObjectURL(url); mErr.textContent=isV?'この動画は読み込めませんでした。mp4（H.264）か webm で書き出しなおしてね':'この画像は読み込めませんでした。別のファイルを選んでね'; fileIn.value=''; return }
+    }catch(e){ if(isV&&file.type==='video/quicktime'){ mPrev.replaceChildren(); mInfo.textContent=file.name+'　'+(file.size/1048576).toFixed(2)+'MB ・ このブラウザではプレビューできない形式ですが、そのまま送れます（運営が変換します）'; media.file=file; media.url=url; mPrev.append(mInfo); mPrev.hidden=false; mRemove.hidden=false; return }
+      URL.revokeObjectURL(url); mErr.textContent=isV?'この動画は読み込めませんでした。mp4（H.264）か webm で書き出しなおしてね':'この画像は読み込めませんでした。別のファイルを選んでね'; fileIn.value=''; return }
     media.file=file; media.url=url; mPrev.append(mInfo); mPrev.hidden=false; mRemove.hidden=false; drawPv();
   });
   setKind('auto'); mRemove.hidden=true;
@@ -260,7 +261,7 @@ async function start(){
   if(!SES){ drawLf(); main.replaceChildren(lfBox,T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
     el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
       el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
-        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'ショートに出す動画か画像は、選べます（2MBまで・任意）。選ばなければ、運営がプレイ動画を撮ります')),
+        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'ショートに出す動画か画像は、選べます（動画60秒・50MBまで、画像10MBまで・任意）。選ばなければ、運営がプレイ動画を撮ります')),
       el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
   if(!editSlug) await loadPts();

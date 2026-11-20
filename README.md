@@ -59,7 +59,7 @@
 作者は応募のとき、ショートに出す動画（mp4/webm・15秒・2MB）か画像（jpg/png/webp・2MB）を選べます（Supabase の非公開バケット `submission-media`）。載せると決めたら：
 
 1. 管理ページ「応募」タブの「ダウンロード（10分だけ有効）」のリンクをコピーする
-2. `python3 scripts/fetch_submission_media.py '<コピーしたURL>' <slug>`（動画は `clips/<slug>.mp4`、画像は `og/<slug>.<拡張子>` に保存。動画は無音・長辺960px以下・15秒以内・2MB以下に直す。ffmpeg が要る）
+2. `python3 scripts/fetch_submission_media.py '<コピーしたURL>' <slug> [見どころの始まりの秒]`（動画は `clips/<slug>.mp4`、画像は `og/<slug>.<拡張子>` に保存。動画は無音・長辺960px以下・15秒以内・2MB以下に直す。ffmpeg が要る）
 3. 表示された1行（`"clip": …` か `"cover": …`）を games.json の該当作品に足し、`python3 build.py` → commit / push（games.json は自動では書き換えません）
 4. 管理ページの「ファイルを消す」（二度押し）で、バケットのファイルを消す
 
