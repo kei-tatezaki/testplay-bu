@@ -43,6 +43,14 @@
 .mgo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
 .mgo button{font:inherit;font-size:13px;min-height:44px;padding:4px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
 .mpick:focus-within{outline:3px solid var(--ao);outline-offset:2px}
+.pkset .mopts{gap:8px}
+.pkset textarea{min-height:84px}
+.pkpanel{display:grid;gap:10px;padding:12px;border:1px dashed var(--muted);border-radius:4px;background:var(--paper)}.pkpanel[hidden]{display:none}
+.pkpanel .two{align-items:start}
+.pkpanel label.sz{display:grid;gap:4px;font-weight:700;font-size:14px}
+.pkok{margin:0;font-size:13px;color:#1F5C2E;font-weight:700;overflow-wrap:anywhere}.pkok:empty{display:none}
+.pkok.bad{color:#8C2A12}
+.pkfix{margin:0;font-size:12px;color:var(--ink);background:var(--karashi-soft);padding:6px 10px;border-radius:2px;line-height:1.6}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +65,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
+<script src="assets/mission.js"></script>
 <script>
 (function(){
 "use strict";
@@ -64,8 +73,22 @@ const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.repla
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
   banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
+  bad_play_kind:'遊び方の選びかたが合っていません。もう一度選んでね',bad_embed:'itch.io の埋め込みコード（https://itch.io/embed-upload/数字 を含むもの）を貼りなおしてね。ダウンロード型には置けません',
+  bad_download_url:'ダウンロード型のURLは、itch.io・Steam・BOOTH・GitHub の公開ページにしてね（exe や zip などのファイルへの直リンクは使えません）',bad_os:'対応OSを選びなおしてね',
   bad_media:'動画か画像の指定が合っていません。ファイルを選びなおしてね',media_missing:'動画か画像が見つかりませんでした。もう一度選んで送ってね'};
 const MAXV=52428800, MAXI=10485760, MAXSEC=60.5, VT=['video/mp4','video/webm','video/quicktime'], IT=['image/jpeg','image/png','image/webp'], EXT={'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov','image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+// ダウンロード型のURL：公開ページだけ（itch.io・Steam・BOOTH・GitHub）。ファイルへの直リンクは不可（データベースでも同じ確認をします）
+const DL_FILE=/\.(exe|zip|7z|rar|msi|dmg|pkg|apk|ipa|app|tar|gz|tgz|bz2|xz|iso|jar|bat|sh|appimage|deb|rpm|cab)$/i;
+function dlCheck(u){ let x; try{ x=new URL(u) }catch(e){ return 'host' }
+  if(x.protocol!=='https:'||x.username||x.password||x.port) return 'host';
+  const h=x.hostname.toLowerCase(), gh=h==='github.com'||h==='www.github.com';
+  if(!(h==='itch.io'||h.endsWith('.itch.io')||h==='store.steampowered.com'||h==='booth.pm'||h.endsWith('.booth.pm')||gh||h.endsWith('.github.io'))) return 'host';
+  const p=x.pathname.replace(/\/+$/,'');
+  if(DL_FILE.test(p)||(gh&&/\/(releases\/download|archive|raw)\//.test(p))) return 'file';
+  return '' }
+const DL_MSG={host:'ダウンロード型のURLは、itch.io・Steam（store.steampowered.com）・BOOTH・GitHub（github.com か ○○.github.io）の公開ページにしてね',file:'ファイルへの直リンク（exe・zip など）は使えません。ダウンロードボタンがある公開ページのURLを入れてね'};
+// itch.io の埋め込みコードから https://itch.io/embed-upload/数字 のURLだけを抜き出す（HTMLは保存しない）
+function embedFrom(t){ const m=String(t||'').match(/https:\/\/itch\.io\/embed-upload\/\d+(?:\?[A-Za-z0-9=&_.%#-]*)?/); return m?m[0]:'' }
 const BIGMSG='大きすぎます（動画は50MB・画像は10MBまで）。短く切る・解像度を下げると小さくなります';
 function upErr(e){ const m=String((e&&(e.message||e.error))||'').toLowerCase();
   if(/exceed|too large|payload|413|maximum allowed/.test(m)) return BIGMSG;
@@ -150,6 +173,28 @@ function newForm(){
     image_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://…（なければ空でOK）'}),
     note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと、プレイ動画のURLなど（なければ空でOK）'})
   };
+  // ---- 遊び方（ブラウザ／ダウンロード） ----
+  const pk={kind:'browser',embed:''};
+  const PK=[['browser','ブラウザで遊べる','ブラウザで開いてすぐ遊べるURL（unityroom・itch.io・GitHub Pagesなど）を入れてください。'],
+            ['download','ダウンロードが必要','exe などをダウンロードして遊ぶ作品です。ダウンロードボタンがある公開ページ（itch.io・Steam・BOOTH・GitHub）のURLを入れてください。サイトからは、この公開ページへの案内になります（PCで遊ぶ作品になります）。']];
+  const pkRadios=PK.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:'playkind',value:o[0],checked:o[0]==='browser'}),el('span',null,o[1])));
+  const pkDesc=el('p',{class:'hint',id:'pkDesc','aria-live':'polite'},PK[0][2]);
+  const sizeIn=el('input',{type:'text',maxlength:20,id:'dlSize',placeholder:'例：2GB'});
+  const osWin=el('input',{type:'checkbox',id:'osWin',checked:true}), osMac=el('input',{type:'checkbox',id:'osMac'});
+  const dlPanel=el('div',{class:'pkpanel',id:'dlPanel',hidden:true},
+    el('div',{class:'two'},el('label',{class:'sz'},el('span',null,'容量の目安 ',el('small',{style:'font-weight:400;color:var(--muted)'},'任意')),sizeIn),
+      el('div',{role:'group','aria-labelledby':'osLg',style:'display:grid;gap:4px'},el('span',{id:'osLg',style:'font-weight:700;font-size:14px'},'対応OS'),
+        el('div',{class:'mopts'},el('label',{class:'mopt'},osWin,el('span',null,'Windows')),el('label',{class:'mopt'},osMac,el('span',null,'Mac'))))),
+    el('p',{class:'pkfix'},'ファイルへの直リンク（exe・zip・GitHub の releases/download など）は使えません。ダウンロードボタンがある公開ページのURLを入れてね。'));
+  const embedIn=el('textarea',{id:'embedCode',maxlength:1500,placeholder:'<iframe frameborder="0" src="https://itch.io/embed-upload/12345?color=333333" …></iframe>'});
+  const embedMsg=el('p',{class:'pkok','aria-live':'polite'});
+  const brPanel=el('div',{class:'pkpanel',id:'brPanel'},
+    el('label',null,el('span',null,'itch.io の埋め込みコード ',el('small',{style:'font-weight:400;color:var(--muted)'},'任意')),
+      el('small',{style:'display:block;margin:2px 0 6px;line-height:1.5;font-weight:400;color:var(--muted)'},'itch.io の「Distribute → Embed game」で出る埋め込みコード（https://itch.io/embed-upload/数字 を含む iframe）を貼ると、サイトの中で遊べます。コードのうち、URL だけを保存します。GitHub Pages（○○.github.io）のURLなら、貼らなくてもサイトの中で遊べます。'),embedIn),embedMsg);
+  function readEmbed(){ const t=embedIn.value.trim(); pk.embed=embedFrom(t); embedMsg.classList.toggle('bad',!!t&&!pk.embed);
+    embedMsg.textContent=!t?'':pk.embed?'読み取れました：'+pk.embed:'https://itch.io/embed-upload/数字 を含むコードが見つかりません。貼りなおすか、空にしてね' }
+  embedIn.addEventListener('input',readEmbed);
+  const pkSet=el('fieldset',{class:'mset pkset',id:'pkSet'},el('legend',null,'遊び方 ',el('span',{class:'req'},'必須')),el('div',{class:'mopts',role:'presentation'},pkRadios),pkDesc,dlPanel,brPanel);
   // ---- ショートに出すもの ----
   const media={kind:'auto',file:null,url:'',dur:0};
   const mName='mediakind', mErr=el('p',{class:'merr',role:'alert'}), mTip=el('div',{class:'mtip',hidden:true}), mPrev=el('div',{class:'mprev',hidden:true}), mInfo=el('p',{class:'hint',style:'margin:0'});
@@ -197,14 +242,22 @@ function newForm(){
   });
   setKind('auto'); mRemove.hidden=true;
   const L=(t,req,hint,input)=>el('label',null,el('span',null,t+' ',req?el('span',{class:'req'},'必須'):null,hint?el('small',null,hint):null),input);
+  const urlT=document.createTextNode('遊べるURL '), urlH=el('small',null,'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）');
+  const urlLabel=el('label',null,el('span',null,urlT,el('span',{class:'req'},'必須'),urlH),f.play_url);
+  const platLabel=L('対応端末',false,'',f.platform);
+  function setPK(k){ pk.kind=k; const dl=k==='download'; pkDesc.textContent=PK.find(o=>o[0]===k)[2]; dlPanel.hidden=!dl; brPanel.hidden=dl;
+    urlT.textContent=dl?'公開ページのURL ':'遊べるURL '; urlH.textContent=dl?'ダウンロードボタンがあるページ（itch.io・Steam・BOOTH・GitHub）':'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）';
+    f.play_url.placeholder=dl?'https://あなたのID.itch.io/ゲーム名':'https://unityroom.com/games/…'; platLabel.hidden=dl; if(dl) f.platform.value='pc' }
+  pkRadios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setPK(e.target.value) }));
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit','aria-describedby':'ptShort'},'応募する'); NEWBTN.length=0; NEWBTN.push(btn);
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
     L('作品名',true,'',f.title),
-    L('遊べるURL',true,'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）',f.play_url),
+    pkSet,
+    urlLabel,
     L('一言',true,'何をするゲーム？',f.oneliner),
-    el('div',{class:'two'},L('対応端末',false,'',f.platform),L('遊ぶ時間の目安',false,'',f.minutes)),
+    el('div',{class:'two'},platLabel,L('遊ぶ時間の目安',false,'',f.minutes)),
     el('div',{class:'two'},L('確かめたいこと',false,'',f.check),L('どこまでできてる？',false,'',f.stage)),
     L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
     el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
@@ -225,8 +278,9 @@ function newForm(){
     pvBody.replaceChildren(...[el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),pvMedia.childNodes.length?el('div',{class:'by'},media.kind==='video'?'ショートに出る動画':'ショートに出る画像'):null,pvMedia,
       el('h2',null,v('title')||'（作品名）'),
       el('p',{class:'one'},v('oneliner')||'（一言）'),
-      el('div',{class:'row'},el('span',{class:'btn'},'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
-      el('div',{class:'chips'},v('rating')?el('span',{class:'chip rate-'+v('rating')},v('rating').toUpperCase()):null,el('span',{class:'chip plat'},PL[v('platform')]),el('span',{class:'chip'},v('stage')),v('genre')?el('span',{class:'chip'},v('genre')):null,el('span',{class:'chip check'},'確かめたい：'+v('check'))),
+      el('div',{class:'row'},el('span',{class:'btn'},pk.kind==='download'?'⬇ 公開ページへ（ダウンロード）':'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
+      el('div',{class:'chips'},v('rating')?el('span',{class:'chip rate-'+v('rating')},v('rating').toUpperCase()):null,
+        pk.kind==='download'?el('span',{class:'chip plat'},['ダウンロード',osWin.checked&&osMac.checked?'Windows・Mac':osMac.checked?'Mac':'Windows',sizeIn.value.trim()?'約'+sizeIn.value.trim():''].filter(Boolean).join('・')):el('span',{class:'chip plat'},PL[v('platform')]),el('span',{class:'chip'},v('stage')),v('genre')?el('span',{class:'chip'},v('genre')):null,el('span',{class:'chip check'},'確かめたい：'+v('check'))),
       v('controls')?el('div',{class:'by'},'操作：'+v('controls')):null,
       v('question')?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),v('question')):null].filter(Boolean)) }
   form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
@@ -238,6 +292,16 @@ function newForm(){
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
+    d.play_kind=pk.kind;
+    if(pk.kind==='download'){
+      const bad=dlCheck(d.play_url); if(bad){ T.fieldErr(form,f.play_url,DL_MSG[bad]); return }
+      if(!osWin.checked&&!osMac.checked){ T.fieldErr(form,sizeIn,'対応OSを1つ以上選んでね'); return }
+      d.platform='pc'; d.os=osWin.checked&&osMac.checked?'Windows・Mac':osMac.checked?'Mac':'Windows';
+      const sz=sizeIn.value.trim(); if(sz) d.size=sz;
+    }else{
+      readEmbed(); if(embedIn.value.trim()&&!pk.embed){ T.fieldErr(form,embedIn,'https://itch.io/embed-upload/数字 を含む埋め込みコードを貼ってね。空にしてもOKです'); return }
+      if(pk.embed) d.embed_url=pk.embed;
+    }
     d.media_kind=media.kind; let upPath='';
     if(media.kind!=='auto'){
       if(!media.file){ mErr.textContent=media.kind==='video'?'動画のファイルを選んでね。のせないときは「運営におまかせ」にしてね':'画像のファイルを選んでね。のせないときは「運営におまかせ」にしてね'; fileIn.focus(); mSet.scrollIntoView({block:'center'}); return }
@@ -260,7 +324,7 @@ async function start(){
   SES=sb?await T.session():null;
   if(!SES){ drawLf(); main.replaceChildren(lfBox,T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
     el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
-      el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
+      el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),el('li',null,'選ぶだけ：遊び方（ブラウザで遊べる／ダウンロードが必要。ダウンロード型は容量の目安と対応OSも）'),
         el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'ショートに出す動画か画像は、選べます（動画60秒・50MBまで、画像10MBまで・任意）。選ばなければ、運営がプレイ動画を撮ります')),
       el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
