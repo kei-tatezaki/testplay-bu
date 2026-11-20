@@ -153,12 +153,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // ---- BAN・1日の回数（ユーザーのJWTのままrpc） ----
   const { data: banned } = await sb.rpc("is_banned");
-  if (banned === true) return json({ error: "banned" }, 403, cors);
+  if (banned === true) return json({ error: "banned", reason: "banned" }, 403, cors);
   const { data: remaining, error: terr } = await sb.rpc("ai_coach_take");
   if (terr) {
     const m = terr.message ?? "";
-    if (m.includes("limit")) return json({ error: "limit", remaining: 0 }, 429, cors);
-    if (m.includes("banned")) return json({ error: "banned" }, 403, cors);
+    if (m.includes("too_fast")) return json({ error: "too_fast", reason: "too_fast", retry_after: 60 }, 429, { ...cors, "Retry-After": "60" });
+    if (m.includes("limit")) return json({ error: "limit", reason: "limit", remaining: 0 }, 429, cors);
+    if (m.includes("banned")) return json({ error: "banned", reason: "banned" }, 403, cors);
     if (m.includes("login")) return json({ error: "login" }, 401, cors);
     return json({ error: "server" }, 500, cors);
   }
