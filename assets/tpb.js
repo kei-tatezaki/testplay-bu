@@ -199,6 +199,7 @@
     if (!opt.inPage) box.append(mi(li("doc"), "作品ページを見る", { href: BASE + "games/" + slug + "/" }));
     box.append(mi(li("cal"), "今日のスタンプカード" + (T.mission ? "（" + T.mission.counts().n + "/3）" : ""), { onclick: function () { if (T.mission) T.mission.openCard(btn); else location.href = BASE + "me.html#stamp" } }));
     var who = mi(li("user"), "作った人を見る", { href: "#" }); who.hidden = true; box.append(who);
+    var fol = mi(li("user"), "フォロー中の作品", { href: BASE + "?tab=follow" }); fol.hidden = true; fol.append(el("span", { class: "fdot", hidden: true, "aria-label": "新しい作品があります" })); box.append(fol);
     box.append(mi(li("link"), "共有する（リンクをコピー）", { onclick: function () { closeOverlay(); T.share(g.title + "｜テストプレイ部", url) } }));
     var own = el("div", { hidden: true },
       el("div", { class: "tpb-ms" }, "あなたの作品"),
@@ -214,6 +215,7 @@
     setWho(T.creatorOf(g));
     T.liveCreators().then(function (live) { setWho(T.creatorOf(g, live)) });
     T.myGames().then(function (mine) { if (mine.indexOf(slug) >= 0) { own.hidden = false; again() } });
+    if (T.follow) T.follow.mine().then(function (rows) { if (!rows.length || !ov.isConnected) return; fol.hidden = false; fol.querySelector(".fdot").hidden = T.follow.newCount(rows) === 0; again() });
   };
   // data-menu="作品ID" が付いたボタンを押したらメニューを出す
   document.addEventListener("click", function (e) {
@@ -298,7 +300,7 @@
       el("div", { class: "meta2" },
         el("div", { class: "meta" },
           el("a", { class: "t", href: BASE + "games/" + g.slug + "/" }, g.title),
-          el("div", { class: "by sub" }, sub), el("div", { class: "by" }, st.join(" ・ ")), o.extra || null),
+          el("div", { class: "by sub" }, sub), st.length ? el("div", { class: "by" }, st.join(" ・ ")) : null, o.extra || null),
         T.menuBtn(g.slug, g.title, o.inProfile ? "data-in-profile" : null)));
   };
 
@@ -360,6 +362,7 @@
     creators: '<path d="M4 20l1.2-4.6L15.6 5a1.8 1.8 0 0 1 2.6 0l.8.8a1.8 1.8 0 0 1 0 2.6L8.6 18.8z" fill="currentColor"/>',
     submit: '<path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" fill="currentColor"/>',
     stamp: '<rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 9.5h16M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="14.6" r="2.6" fill="currentColor"/>',
+    follow: '<circle cx="9" cy="8.5" r="3.6" fill="currentColor"/><path d="M2.8 20c.5-3.6 3.2-5.4 6.2-5.4s5.7 1.8 6.2 5.4z" fill="currentColor"/><path d="M17.5 7v6M14.5 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     discord: '<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="currentColor"/>'
   };
   function icon(k) { var s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ic"); s.setAttribute("aria-hidden", "true"); s.innerHTML = IC[k]; return s }
@@ -411,7 +414,7 @@
       skip,
       el("a", { class: "sd-brand", href: BASE, "aria-label": "テストプレイ部のトップ（ショート）", title: "テストプレイ部" }, el("img", { src: BASE + "assets/icon-192.png", alt: "", width: 40, height: 40 }), el("span", null, "テストプレイ部")),
       el("nav", { "aria-label": "メニュー" },
-        item("short", BASE, "ショート"), item("list", BASE + "list.html", "作品一覧"), item("stamp", BASE + "me.html#stamp", "スタンプカード", false, true), item("me", BASE + "me.html", "マイページ"),
+        item("short", BASE, "ショート"), (function () { var a = item("follow", BASE + "?tab=follow", "フォロー中"); a.id = "sdFollow"; a.hidden = true; a.append(el("span", { class: "fdot", hidden: true, "aria-label": "新しい作品があります" })); return a })(), item("list", BASE + "list.html", "作品一覧"), item("stamp", BASE + "me.html#stamp", "スタンプカード", false, true), item("me", BASE + "me.html", "マイページ"),
         el("hr"),
         item("creators", BASE + "creators.html", "作品を載せたい人へ"), item("submit", BASE + "submit.html", "作品を応募する"),
         disc ? item("discord", disc, "Discordに参加する", true) : null),
@@ -435,33 +438,16 @@
   var T = window.TPB, el = T.el, BASE = T.base, NS = "http://www.w3.org/2000/svg";
   T.ebImg = function () { return el("img", { class: "eb-img", src: BASE + "assets/art/empty_board.webp", alt: "", width: 180, height: 180, loading: "lazy" }) };
   T.emptyBoard = function (text, more) { return el("div", { class: "eb" }, T.ebImg(), el("p", { class: "eb-t" }, text), more || null) };
-  var IC = {
-    mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
-    x: '<path d="M5 4.5l14 15M19 4.5l-14 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
-    yt: '<rect x="3" y="6" width="18" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.2 9.4v5.2l4.6-2.6z" fill="currentColor"/>',
-    dc: '<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.5" cy="11" r="1.2" fill="currentColor"/><circle cx="12" cy="11" r="1.2" fill="currentColor"/><circle cx="15.5" cy="11" r="1.2" fill="currentColor"/>',
-    doc: '<path d="M6 3.5h8l4 4v13H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12h6M9 15.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
-  };
-  function ic(k) { var s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ic"); s.setAttribute("aria-hidden", "true"); s.innerHTML = IC[k]; return s }
-  function link(k, href, label, val, ext) {
-    return el("li", null, el("a", { href: href, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, ic(k), el("span", { class: "ab-l" }, label), el("span", { class: "ab-v" }, val)));
-  }
   T.about = function () {
     if (document.getElementById("about") || document.body.hasAttribute("data-nofoot")) return;
     var p = location.pathname.replace(/index\.html$/, ""), base = ""; try { base = new URL(BASE, location.href).pathname } catch (e) {}
     if (p === base || (!base && p === "/")) return;   // ショートは、サイドバー・メニューのリンクだけ
     var disc = (window.TPB_DATA && window.TPB_DATA.discord) || "";
-    var box = el("aside", { class: "about", id: "about", "aria-labelledby": "abT" },
-      el("div", { class: "about-card" },
-        el("h2", { id: "abT" }, "運営について"),
-        el("p", { class: "ab-who" }, el("b", null, "テストプレイ部"), el("span", null, "運営：舘崎 慶")),
-        el("ul", { class: "ab-links" },
-          link("mail", "mailto:tatekei170+tpb@gmail.com", "連絡", "tatekei170+tpb@gmail.com"),
-          link("x", "https://x.com/tazarosu", "X", "@tazarosu", true),
-          link("yt", "https://www.youtube.com/@tazarosu", "YouTube", "@tazarosu", true),
-          disc ? link("dc", disc, "Discord", "部室に参加する", true) : null),
-        el("a", { class: "ab-priv", href: BASE + "privacy.html" }, ic("doc"), "集める情報と使い道"),
-        el("p", { class: "ab-cr" }, "イラスト：Google AI Studio で作成")));
+    function a(href, text, ext) { return el("a", { href: href, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, text) }
+    var box = el("aside", { class: "about", id: "about", "aria-label": "運営について" },
+      el("p", { class: "ab-line" }, el("span", { class: "ab-who" }, "運営：舘崎 慶"), a("mailto:tatekei170+tpb@gmail.com", "連絡"), a("https://x.com/tazarosu", "X", true), a("https://www.youtube.com/@tazarosu", "YouTube", true),
+        disc ? a(disc, "Discord", true) : null, a(BASE + "privacy.html", "集める情報と使い道")),
+      el("p", { class: "ab-cr" }, "イラスト：Google AI Studio で作成"));
     var w = document.querySelector(".wrap"); (w || document.body).append(box);
   };
   T.about();
@@ -715,4 +701,178 @@
     } catch (e) {}
   };
   T.visit();
+})();
+
+
+// ---- フォロー・プロフィールの本人欄・作品のサムネ（マイページと公開プロフィールで共通） ----
+(function () {
+  "use strict";
+  var T = window.TPB, el = T.el, S = T.store, BASE = T.base, NS = "http://www.w3.org/2000/svg";
+  // 線画アイコン（絵文字は使わない）
+  var P = {
+    share: '<path d="M12 15V4M8 8l4-4 4 4M5 12v7h14v-7"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    play: '<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>',
+    more: '<circle cx="12" cy="5.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.6" fill="currentColor" stroke="none"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>'
+  };
+  T.svg = function (k, size) {
+    var s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("width", size || 18); s.setAttribute("height", size || 18);
+    s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "2"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round");
+    s.setAttribute("aria-hidden", "true"); s.setAttribute("class", "svg-" + k); s.innerHTML = P[k] || ""; return s;
+  };
+T.linkLabel = function (url) {
+    var h = ''; try { h = new URL(url).hostname.replace(/^www\./, '') } catch (e) { return null }
+    var map=[[/(^|\.)x\.com$|twitter\.com$/,'X'],[/youtube\.com$|youtu\.be$/,'YouTube'],[/itch\.io$/,'itch.io'],[/unityroom\.com$/,'unityroom'],[/github\.(com|io)$/,'GitHub'],[/discord\.(gg|com)$/,'Discord'],[/booth\.pm$/,'BOOTH'],[/note\.com$/,'note'],[/freem\.ne\.jp$/,'ふりーむ！'],[/plicy\.net$/,'PLiCy'],[/steampowered\.com$/,'Steam']];
+    for (var i = 0; i < map.length; i++) if (map[i][0].test(h)) return map[i][1];
+    return h;
+  };
+  T.fmt = function (n) { return Number(n || 0).toLocaleString("ja-JP") };
+
+  // ---- フォロー ----
+  var F = T.follow = {};
+  var ERR = { too_fast: "操作が速すぎます。少し待ってから、もう一度試してね", follow_limit: "フォローできるのは1000人までです", banned: "このアカウントではフォローできなくなっています",
+    need_profile: "フォローするには、先にマイページでプロフィール（名前とID）を作ってね", not_logged_in: "ログインが切れたみたい。もう一度ログインしてね", no_such_user: "この人は見つかりませんでした", self: "自分はフォローできません" };
+  F.errText = function (e) { return ERR[e && e.message] || "フォローできませんでした。時間をおいてもう一度試してね" };
+  // フォロー中の作者が持つ作品 [{game_slug, handle}]。5分は端末の記録を使う（ページを開くたびに問い合わせない）
+  var _mine = null;
+  F.mine = function (force) {
+    if (!T.maybeLoggedIn()) { S.set("folCache", null); return Promise.resolve([]) }
+    var c = S.get("folCache", null);
+    if (!force && c && Date.now() - c.t < 300000) return Promise.resolve(c.rows);
+    if (!_mine) _mine = (async function () {
+      var s = await T.session(); if (!s) return [];
+      try { var r = await T.sb().rpc("my_following_slugs"); if (r.error) throw r.error; var rows = r.data || []; S.set("folCache", { t: Date.now(), rows: rows }); return rows }
+      catch (e) { return c ? c.rows : [] } finally { _mine = null }
+    })();
+    return _mine;
+  };
+  F.reset = function () { S.set("folCache", null) };
+  F.handles = function (rows) { var o = {}; (rows || []).forEach(function (r) { o[r.handle] = 1 }); return o };
+  // 前に「フォロー中」を見たあとに公開された作品の数（games.json の added が日付なので、日本時間のその日の0時で比べる）
+  F.newCount = function (rows) {
+    var seen = S.get("folSeen", 0), n = 0;
+    (rows || []).forEach(function (r) { var g = T.game(r.game_slug); if (!g || !g.added) return; var t = Date.parse(g.added + "T00:00:00+09:00"); if (!isNaN(t) && t > seen) n++ });
+    return n;
+  };
+  F.markSeen = function () { S.set("folSeen", Date.now()); document.querySelectorAll(".fdot").forEach(function (d) { d.hidden = true }) };
+  F.state = async function (handle) { try { var r = await T.sb().rpc("follow_state", { p_handle: handle }); return r.data === true } catch (e) { return false } };
+  F.counts = async function (handle) { var r = await T.pub("follow_counts", { p_handle: handle }); return Array.isArray(r) && r[0] ? { following: +r[0].following || 0, followers: +r[0].followers || 0 } : null };
+  // フォローする・やめるボタン。o.following：いまの状態 ／ o.onChange(状態, 返り値)
+  F.button = function (handle, o) {
+    o = o || {}; var on = !!o.following, busy = false, b = el("button", { type: "button" });
+    function draw() { b.textContent = on ? "フォロー中" : "フォローする"; b.className = "btn fbtn" + (on ? " ghost on" : "") }
+    b.addEventListener("click", async function () {
+      if (busy) return;
+      if (!T.maybeLoggedIn() || !(await T.session())) { T.loginDialog("ログインすると、気に入った作者をフォローできます。遊ぶだけならログインはいりません。", b); return }
+      busy = true; b.disabled = true;
+      try {
+        var r = await T.sb().rpc("follow_set", { p_handle: handle, p_on: !on }); if (r.error) throw r.error;
+        on = !!r.data.following; F.reset(); if (o.onChange) o.onChange(on, r.data); T.toast(on ? "フォローしたよ" : "フォローをやめたよ", 1600);
+      } catch (e) { T.toast(F.errText(e), 3400) }
+      busy = false; b.disabled = false; draw();
+    });
+    draw(); return b;
+  };
+  // サイドバーの「フォロー中」：フォロー中の作者に作品があるときだけ出す。新しい作品があれば朱の点
+  F.mountNav = async function () {
+    var a = document.getElementById("sdFollow"); if (!a) return;
+    var rows = await F.mine(); if (!rows.length) { a.hidden = true; return }
+    a.hidden = false; var d = a.querySelector(".fdot"); if (d) d.hidden = F.newCount(rows) === 0;
+  };
+
+  // ---- 箱 ----
+  T.sheet = function (title, body, anchor, o) {
+    o = o || {};
+    var box = el("div", { class: "tpb-dialog tpb-sh" + (o.cls ? " " + o.cls : ""), role: "dialog", "aria-modal": "true", "aria-label": title },
+      el("div", { class: "sh-h" }, el("h2", null, title), el("button", { type: "button", class: "sh-x", "aria-label": "とじる", onclick: function () { T.closeOverlay() } }, T.svg("x", 20))), body);
+    T.dialog(box, anchor); return box;
+  };
+  T.loginDialog = function (text, anchor) { return T.sheet("ログイン", T.loginBox("ログイン", text), anchor, { cls: "sh-login" }) };
+
+  // ---- 人の一覧（フォロー中・フォロワー） ----
+  T.userRow = function (u) {
+    return el("li", { class: "urow" }, el("a", { href: T.profileUrl(u.handle) }, T.avatar({ name: u.name, avatar: u.avatar_url }, 44),
+      el("span", { class: "ur-t" }, el("b", null, u.name), el("small", null, "@" + u.handle), u.bio ? el("span", { class: "ur-b" }, u.bio) : null)));
+  };
+  // kind：'following' | 'followers'。50人ずつ「もっと見る」
+  T.userList = function (kind, handle, o) {
+    o = o || {}; var ul = el("ul", { class: "ulist" }), box = el("div", { class: "ubox" }, ul), off = 0, more = el("button", { type: "button", class: "btn ghost", hidden: true }, "もっと見る");
+    var note = el("p", { class: "note", "aria-live": "polite" }, "読み込み中…"); box.prepend(note); box.append(more);
+    async function load() {
+      more.disabled = true;
+      var rows = await T.pub(kind === "following" ? "following_list" : "followers_list", { p_handle: handle, p_limit: 50, p_offset: off });
+      if (!Array.isArray(rows)) { note.textContent = "読み込めませんでした。時間をおいて、もう一度開いてね。"; more.hidden = true; return }
+      rows.forEach(function (u) { ul.append(T.userRow(u)) }); off += rows.length;
+      note.textContent = ul.children.length ? "" : (o.empty || "まだ、だれもいません");
+      note.hidden = !!ul.children.length; more.hidden = rows.length < 50; more.disabled = false;
+    }
+    more.addEventListener("click", load); load(); return box;
+  };
+  T.userListSheet = function (kind, handle, anchor) {
+    return T.sheet(kind === "following" ? "フォロー中" : "フォロワー", T.userList(kind, handle, { empty: kind === "following" ? "まだ、だれもフォローしていません" : "まだ、フォロワーはいません" }), anchor);
+  };
+
+  // ---- 作品のサムネ（正方形に近いグリッド用）。題名は1行。端末・ジャンルは作品ページで見られる ----
+  // 作品の絵：R18は伏せた画像、スクショは枠に収める
+  T.thumbSrc = function (g) { var r18 = g.rating === "r18", shot = !!(g.thumb && !r18); return { shot: shot, bg: g.bg || "#0b0e13", src: BASE + (shot ? g.thumb : g.cover && !r18 ? g.cover : "og/" + g.slug + ".png") } };
+  T.gthumb = function (g, o) {
+    o = o || {}; var ts = T.thumbSrc(g);
+    var img = el("img", { class: "gt-i" + (ts.shot ? " shot" : ""), style: ts.shot ? "--tb:" + ts.bg : null, src: ts.src, alt: "", loading: "lazy" });
+    var a = el("a", { class: "gt-a", href: BASE + "?g=" + g.slug, "aria-label": g.title + "をショートで見る" }, img,
+      g.rating ? el("span", { class: "rate rate-" + g.rating }, g.rating.toUpperCase()) : null,
+      o.plays ? el("span", { class: "gt-n", title: "遊ばれた回数" }, T.svg("play", 11), el("span", null, T.fmt(o.plays)), el("span", { class: "sr" }, "回遊ばれました")) : null);
+    var art = el("article", { class: "gt" }, a, el("a", { class: "gt-t", href: BASE + "games/" + g.slug + "/" }, g.title));
+    if (o.menu) {
+      var k = el("button", { type: "button", class: "gt-k", "aria-label": g.title + " のメニュー", "aria-haspopup": "dialog", onclick: function (e) { o.menu(e.currentTarget, art) } }, el("span", null, T.svg("more", 16)));
+      art.append(k);
+      var tm = 0; // 長押しでも同じメニュー（スマホ）
+      a.addEventListener("pointerdown", function (e) { if (e.pointerType !== "touch") return; clearTimeout(tm); tm = setTimeout(function () { a._held = true; o.menu(k, art) }, 550) });
+      ["pointerup", "pointercancel", "pointermove", "pointerleave"].forEach(function (n) { a.addEventListener(n, function () { clearTimeout(tm) }) });
+      a.addEventListener("click", function (e) { if (a._held) { e.preventDefault(); a._held = false } });
+      a.addEventListener("contextmenu", function (e) { if (e.pointerType === "touch" || a._held) e.preventDefault() });
+    }
+    return art;
+  };
+
+  // ---- タブ（最大4つ・横にはみ出さない・上に貼りつく） ----
+  T.tabs = function (tabs, cur, onPick, label) {
+    var bar = el("div", { class: "ptabs", role: "tablist", "aria-label": label || "" });
+    function draw() {
+      bar.replaceChildren.apply(bar, tabs.map(function (t) {
+        return el("button", { type: "button", role: "tab", id: "tab-" + t[0], "aria-selected": String(t[0] === cur), tabindex: t[0] === cur ? "0" : "-1", onclick: function () { pick(t[0]) } }, t[1]);
+      }));
+    }
+    function pick(k, focus) { if (k === cur) return; cur = k; draw(); onPick(k); if (focus) { var b = bar.querySelector('[aria-selected="true"]'); if (b) b.focus() } }
+    bar.addEventListener("keydown", function (e) {
+      var ks = tabs.map(function (t) { return t[0] }), i = ks.indexOf(cur);
+      if (e.key === "ArrowRight") i = (i + 1) % ks.length; else if (e.key === "ArrowLeft") i = (i - 1 + ks.length) % ks.length; else if (e.key === "Home") i = 0; else if (e.key === "End") i = ks.length - 1; else return;
+      e.preventDefault(); pick(ks[i], true);
+    });
+    bar.pick = function (k) { pick(k) }; draw(); return bar;
+  };
+
+  // ---- 本人欄（マイページと公開プロフィールで同じ型） ----
+  // o：{name, handle, avatar, official, bio, nums:[{k, n, label, onclick}], acts:[要素], marks:[要素], links:[要素]}
+  //    handleNote / bioNote：ハンドル・自己紹介が空のとき、本人にだけ出す要素（「ハンドルを決める」など）
+  T.profileHead = function (o) {
+    var nums = (o.nums || []).filter(Boolean);
+    var ul = el("ul", { class: "ph-nums n" + nums.length }, nums.map(function (x) {
+      var inner = [el("b", { "data-k": x.k || null }, T.fmt(x.n)), el("span", null, x.label)];
+      return el("li", null, x.onclick ? el("button", { type: "button", onclick: x.onclick }, inner) : x.href ? el("a", { href: x.href }, inner) : el("div", { class: "ph-st" }, inner));
+    }));
+    var head = el("section", { class: "ph", "aria-label": "プロフィール" },
+      el("div", { class: "ph-av" }, T.avatar({ name: o.name, avatar: o.avatar }, 96)),
+      el("div", { class: "ph-id" }, el("h1", { class: "ph-n" }, o.name, o.official ? [" ", el("span", { class: "badge" }, "運営")] : null),
+        o.handle ? el("div", { class: "ph-h" }, "@" + o.handle) : (o.handleNote || null)),
+      (o.acts && o.acts.filter(Boolean).length) ? el("div", { class: "ph-acts" }, o.acts) : null,
+      o.bio ? el("p", { class: "ph-bio" }, o.bio) : (o.bioNote || null),
+      nums.length ? ul : null,
+      (o.marks && o.marks.filter(Boolean).length) ? el("div", { class: "ph-marks" }, o.marks) : null,
+      (o.links && o.links.length) ? el("nav", { class: "ph-links", "aria-label": "リンク" }, o.links) : null);
+    head.setNum = function (k, n) { var b = head.querySelector('[data-k="' + k + '"]'); if (b) b.textContent = T.fmt(n) };
+    return head;
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { F.mountNav() }); else F.mountNav();
 })();

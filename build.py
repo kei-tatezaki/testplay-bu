@@ -719,22 +719,6 @@ dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px 
 .art-lost{width:min(240px,66%)}
 .art-cheer{width:min(300px,80%)}
 /* 運営について：紙に貼った名刺 */
-.about{margin:18px 0 0;display:flex;justify-content:center}
-.about-card{position:relative;width:min(100%,520px);background:var(--card);border-radius:3px;padding:26px 24px 16px;transform:rotate(-.5deg);box-shadow:0 1px 0 var(--line),0 8px 16px rgba(60,40,20,.12);color:var(--ink);display:grid;gap:10px}
-.about-card::before{content:"";position:absolute;left:50%;top:-9px;width:60px;height:18px;margin-left:-30px;background:rgba(226,169,59,.8);transform:rotate(2deg);clip-path:var(--tape-clip)}
-.about-card h2{margin:0;font-size:13px;letter-spacing:.14em;color:var(--shu-ink)}
-.ab-who{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;max-width:none}
-.ab-who b{font:800 22px/1.3 var(--f-round);letter-spacing:.04em}
-.ab-who span{font:600 15px/1.5 var(--f-hand)}
-.ab-links{list-style:none;margin:0;padding:8px 0 0;border-top:1px dashed #C9B994;display:grid;gap:0}
-.ab-links a,.ab-priv{display:flex;align-items:center;gap:10px;min-height:44px;color:var(--ink);text-decoration:none;font-size:14px;border-radius:3px}
-.ab-links a:hover,.ab-priv:hover{background:var(--paper-2)}
-.about .ic{width:20px;height:20px;flex:none;color:var(--shu-ink)}
-.ab-l{font-family:var(--f-round);font-weight:800;min-width:5.2em}
-.ab-v{color:var(--muted);overflow-wrap:anywhere;min-width:0}
-.ab-priv{border-top:1px dashed #C9B994;border-radius:0;padding-top:4px;text-decoration:underline;text-underline-offset:3px;font-weight:700}
-.ab-cr{margin:0;font-size:11.5px;color:var(--muted);text-align:right;max-width:none}
-@media (min-width:768px){.about{justify-content:flex-start}}
 /* ページの左右（PCの本文の外）だけ、ごく薄いコルクの繊維 */
 @media (min-width:1100px){
  html{background:#EBE2CD}
