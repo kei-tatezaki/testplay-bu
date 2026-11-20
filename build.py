@@ -14,6 +14,7 @@ import html
 import json
 import os
 import re
+import time
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -122,6 +123,58 @@ def all_sample(games):
 NOTICE_HTML = ('<div class="notice" role="note"><span><b>いまは運営のお試し作品だけです。</b><span class="n2">最初の作品を募集中です。</span></span>'
                '<b class="lfb">最初の1本は投稿無料</b>'
                '<a class="btn" href="{p}submit.html">作品を応募する</a></div>')
+
+
+LIST_JS = r"""
+<script src="assets/rank.js"></script>
+<script>
+(function(){
+ const SB='__SB__',KEY='__KEY__',PICKS=__PICKS__;
+ const store={get(k,d){try{const v=JSON.parse(localStorage.getItem('tpb:'+k));return v==null?d:v}catch(e){return d}}};
+ const DEVICE=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<820)?'sp':'pc';
+ const canPlay=g=>g.platform==='both'||g.platform===DEVICE;
+ const title={};PICKS.forEach(g=>title[g.slug]=g.title);
+ // 今日のおすすめ：ショートの先頭と同じ基準（assets/rank.js）。rank.js が無いときは日付で決める
+ try{
+  let slug=null;
+  if(window.TPBRank&&PICKS.length){
+   const hist={played:store.get('played',[]),sent:store.get('sent',[]),reacts:store.get('reacts',{}),seen:store.get('seen',{}),hmmWhy:store.get('hmmWhy',{})};
+   const r=TPBRank.rank(PICKS,{stats:store.get('statsCache',null)||{},hist,canPlay,today:Date.now(),seed:store.get('cid','')+':'+new Date().toDateString()});
+   slug=r[0]&&r[0].g.slug;
+  }
+  if(!slug&&PICKS.length)slug=PICKS[Math.floor(Date.now()/864e5)%PICKS.length].slug;
+  document.querySelectorAll('.pick[data-slug]').forEach(p=>{p.hidden=p.dataset.slug!==slug});
+ }catch(e){}
+ // 新作（公開から14日以内）
+ const now=Date.now();
+ document.querySelectorAll('#list .tile[data-added]').forEach(t=>{const a=Date.parse(t.dataset.added+'T00:00:00+09:00'),d=(now-a)/864e5;if(a&&d>=0&&d<=14){t.classList.add('is-new');const n=document.createElement('span');n.className='nw';n.textContent='新作';t.append(n)}});
+ function showSide(){const b=document.getElementById('bside');b.hidden=!(!document.getElementById('bucho').hidden||!document.getElementById('recent').hidden)}
+ addEventListener('DOMContentLoaded',()=>{
+  // 部長のひとこと（assets/notes.json の bucho.text が空なら出さない）
+  (window.TPB&&TPB.notes?TPB.notes():Promise.resolve(null)).then(n=>{
+   const b=n&&n.bucho,t=b&&typeof b.text==='string'?b.text.trim():'';
+   if(!t)return;
+   document.getElementById('buchoT').textContent=t;
+   const d=document.getElementById('buchoD');d.textContent=b.date||'';d.hidden=!b.date;
+   document.getElementById('bucho').hidden=false;showSide();
+  }).catch(()=>{});
+ });
+ // 最近とどいた感想（公開されているもの。hidden は RLS でも出ない）。名前は出さない
+ fetch(SB+'/rest/v1/feedback?select=game_slug,free,created_at&hidden=eq.false&free=neq.&order=created_at.desc&limit=3',{headers:{apikey:KEY}})
+  .then(r=>r.ok?r.json():[]).then(rows=>{
+   const ul=document.getElementById('recentL');let k=0;
+   (Array.isArray(rows)?rows:[]).forEach(x=>{
+    if(!title[x.game_slug]||typeof x.free!=='string'||!x.free.trim())return;
+    const ch=Array.from(x.free.trim().replace(/\s+/g,' ')),txt=ch.slice(0,60).join('')+(ch.length>60?'…':'');
+    const li=document.createElement('li'),a=document.createElement('a'),p=document.createElement('p'),tm=document.createElement('time');
+    a.href='games/'+x.game_slug+'/';a.textContent=title[x.game_slug];p.textContent=txt;
+    const dt=new Date(x.created_at);if(!isNaN(dt)){tm.dateTime=dt.toISOString();tm.textContent=(dt.getMonth()+1)+'月'+dt.getDate()+'日'}
+    li.append(a,p,tm);ul.append(li);k++;
+   });
+   if(k){document.getElementById('recent').hidden=false;showSide()}
+  }).catch(()=>{});
+})();
+</script>"""
 
 
 def is_r18(g):
@@ -756,7 +809,7 @@ def page(title, desc, url, image, body, prefix):
 <link rel="manifest" href="{prefix}manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{prefix}assets/style.css">
 <link rel="stylesheet" href="{prefix}assets/side.css">
 </head>
@@ -772,23 +825,23 @@ def page(title, desc, url, image, body, prefix):
 """
 
 
-def play_btn(g):
+def play_btn(g, pre="../../", cls="btn big"):
     """作品ページの「遊ぶ」。このサイトの中のゲームは、枠つきのプレイヤーを開くトップへ。外のサイトのゲームは別タブで開く。"""
     label = f"▶ 遊ぶ{'（' + e(g['minutes']) + '）' if g.get('minutes') else ''}"
     pc = f' data-only="{g["platform"]}"' if g.get("platform") in ("pc", "sp") else ""
     if is_download(g):
         # ダウンロード型：新しいタブで公開ページ。押したことは記録する（data-play）。遊べたかは、次にサイトを開いたときに聞く（data-dl）
-        return f'<a class="btn big" data-play="{e(g["slug"])}" data-dl="1"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">⬇ 公開ページへ（ダウンロード）</a>'
+        return f'<a class="{cls}" data-play="{e(g["slug"])}" data-dl="1"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">⬇ 公開ページへ（ダウンロード）</a>'
     if embed_src(g):
-        return f'<a class="btn big"{pc} href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
+        return f'<a class="{cls}"{pc} href="{pre}?g={e(g["slug"])}&amp;play=1">{label}</a>'
     if re.match(r"https?:", g.get("play", "")):
-        return f'<a class="btn big" data-play="{e(g["slug"])}"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">{label}</a>'
-    return f'<a class="btn big"{pc} href="../../?g={e(g["slug"])}&amp;play=1">{label}</a>'
+        return f'<a class="{cls}" data-play="{e(g["slug"])}"{pc} href="{e(g["play"])}" target="_blank" rel="noopener">{label}</a>'
+    return f'<a class="{cls}"{pc} href="{pre}?g={e(g["slug"])}&amp;play=1">{label}</a>'
 
 
 def discord_link(g, prefix=""):
     # 感想はサイトの感想シートで送る（フィードの該当作品を開いてシートを出す）
-    return f'<a class="btn ghost" id="fbBtn" href="{prefix}./#fb-{e(g["slug"])}" data-slug="{e(g["slug"])}">💬 感想を送る</a>'
+    return f'<a class="btn ghost" id="fbBtn" href="{prefix}./#fb-{e(g["slug"])}" data-slug="{e(g["slug"])}">感想を送る</a>'
 
 
 
@@ -816,7 +869,7 @@ def card(g, prefix):
     thumb = g.get("thumb")
     img = (f'<img class="media shot" style="--tb:{e(g.get("bg") or "#0b0e13")}" src="{prefix}{e(thumb)}" alt="" loading="lazy">' if thumb
            else f'<img class="media" src="{cover_src(g, prefix)}" alt="" loading="lazy">')
-    return f"""<article class="tile" data-genre="{e(g.get('genre',''))}" data-min="{minute_bucket(g.get('minutes'))}" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
+    return f"""<article class="tile" data-added="{e(g.get('added',''))}" data-slug="{slug}" data-genre="{e(g.get('genre',''))}" data-min="{minute_bucket(g.get('minutes'))}" data-check="{e(g.get('check',''))}" data-plat="{e(g.get('platform','both'))}">
 <a class="thumb" href="{prefix}./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{prefix}{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}>{img}{f'<span class="rate rate-{e(g["rating"])}">{RATING[g["rating"]]}</span>' if g.get("rating") in RATING else ''}{f'<span class="dur">{e(g["minutes"])}</span>' if g.get('minutes') else ''}</a>
 <div class="meta2">
 {by_html(g, prefix, 36, "av-link", True)}
@@ -827,6 +880,28 @@ def card(g, prefix):
 <div class="by" data-stats="{slug}"></div>
 </div>
 <button class="tpb-kebab" type="button" data-menu="{slug}" aria-label="{e(g['title'])} のメニュー" aria-haspopup="menu">⋮</button>
+</div>
+</article>"""
+
+
+def pick_html(g, hidden):
+    """今日のおすすめ（大きい1本）。全作品ぶんを描いて、list.html の script がショートと同じ基準で1本だけ出す"""
+    slug = e(g["slug"])
+    thumb = g.get("thumb")
+    img = (f'<img class="media shot" style="--tb:{e(g.get("bg") or "#0b0e13")}" src="{e(thumb)}" alt="" loading="lazy">' if thumb
+           else f'<img class="media" src="{cover_src(g, "")}" alt="" loading="lazy">')
+    sub = " ・ ".join(x for x in (g.get("genre", ""), PLATFORM.get(g.get("platform"), ""), g.get("minutes", "")) if x)
+    q = g.get("question") or ""
+    return f"""<article class="pick" data-slug="{slug}"{' hidden' if hidden else ''}>
+<div class="pick-ph"><a class="thumb" href="./?g={slug}" aria-label="{e(g['title'])}をショートで見る"{f' data-clip="{e(g["clip"])}"' if g.get('clip') and not is_r18(g) else ''}>{img}</a></div>
+<div class="pick-tx">
+<p class="pick-lb">きょうのおすすめ</p>
+<h2 class="pick-t"><a href="games/{slug}/">{e(g['title'])}</a></h2>
+<p class="pick-by">{by_html(g, "", 28, "av-link", True)}<span>{by_html(g, "")}</span></p>
+<p class="pick-one">{e(g.get('oneliner', ''))}</p>
+{f'<p class="pick-sub">{e(sub)}</p>' if sub else ''}
+{f'<div class="pick-q"><b>作者が確かめたいこと</b><span>{e(q)}</span></div>' if q else ''}
+<div class="row">{play_btn(g, "./", "btn big")}</div>
 </div>
 </article>"""
 
@@ -847,7 +922,7 @@ def build():
         if not is_r18(g) and (ROOT / f"shots/{g['slug']}.png").exists():
             g["thumb"] = f"shots/{g['slug']}.png"
     (ROOT / "assets").mkdir(exist_ok=True)
-    (ROOT / "assets/style.css").write_text(CSS.strip() + "\n", encoding="utf-8")
+    (ROOT / "assets/style.css").write_text(CSS.strip() + "\n" + (ROOT / "src/style_v2.css").read_text(encoding="utf-8"), encoding="utf-8")
     make_site_og(ROOT / "og/site.png")
     checks = sorted({g.get("check") for g in games if g.get("check")})
 
@@ -898,16 +973,16 @@ def build():
  // 👍と🤔の理由（だれが押したかは出さない。「好みのジャンルじゃない」は作品の評価ではないので出さない）
  fetch('{SB_URL}/rest/v1/rpc/game_stats',{{method:'POST',headers:{{apikey:'{SB_KEY}','Content-Type':'application/json'}},body:'{{"since_days":3650}}'}})
   .then(r=>r.ok?r.json():[]).then(rows=>{{const x=(rows||[]).find(r=>r.game_slug==='{g['slug']}'); if(!x||(x.plays||0)+(x.feedbacks||0)<10) return;
-   const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('👍 '+x.likes);
+   const t=[]; if(x.plays) t.push('遊んだ人 '+x.plays+'人'); if(x.likes) t.push('いいね '+x.likes);
    const nn=(x.feedbacks||0)+(x.likes||0)+(x.hmms||0); if(nn>=5) t.push('遊びたい度（めやす） '+Math.round(((x.again_much||0)+0.5*(x.again_some||0)+(x.likes||0)+1.5)/(nn+3)*100)+'%');
    const why=[['操作がわかりにくい',x.hmm_controls],['重い・うまく動かない',x.hmm_heavy],['おもしろさがわからなかった',x.hmm_fun]].filter(a=>a[1]>0).map(a=>a[0]+' '+a[1]+'人');
-   if(why.length) t.push('🤔 '+why.join('、'));
+   if(why.length) t.push('うーん：'+why.join('、'));
    document.getElementById('react').textContent=t.join(' ・ ');}}).catch(()=>{{}});
  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);
  try{{
   const r=await fetch('{SB_URL}/rest/v1/feedback?select=again,reach,stop_at,good,bad,answer,free,is_dev,liked_by_dev,created_at&game_slug=eq.{g['slug']}&order=created_at.desc&limit=100',{{headers:{{apikey:'{SB_KEY}'}}}});
   const rows=await r.json();
-  if(!Array.isArray(rows)||!rows.length){{box.innerHTML='<div class="eb"><img class="eb-img" src="../../assets/art/empty_board.webp" alt="" width="180" height="180" loading="lazy"><p class="eb-t">まだ感想はありません。最初の感想を貼ってみよう！</p></div>';return}}
+  if(!Array.isArray(rows)||!rows.length){{box.innerHTML='<div class="eb"><img class="eb-img" src="../../assets/art/empty_board.webp" alt="" width="180" height="180" loading="lazy"><p class="eb-t">まだ感想はありません。遊んだら、ひとこと送ってみてね</p></div>';return}}
   const much=rows.filter(x=>x.again==='すごく遊びたい').length, end=rows.filter(x=>x.reach==='最後まで').length;
   sum.textContent=rows.length<5?rows.length+'件（5件たまると、割合も出します）':rows.length+'件 ・ 「すごく遊びたい」'+Math.round(much/rows.length*100)+'% ・ 最後まで遊んだ '+Math.round(end/rows.length*100)+'%';
   box.innerHTML=rows.map(x=>'<div class="fbitem"><div class="fbh">'+(x.liked_by_dev?'<span class="chip check">作者のいいね</span> ':'')+(x.is_dev?'<span class="chip">開発者</span> ':'')+'<b>'+esc(x.again)+'</b> ・ '+esc(x.reach)+(x.stop_at?'（'+esc(x.stop_at)+'）':'')+'</div>'+(x.good.length?'<div>よかった：'+x.good.map(esc).join('、')+'</div>':'')+(x.bad.length?'<div>気になった：'+x.bad.map(esc).join('、')+'</div>':'')+(x.answer?'<div>作者の質問への答え：'+esc(({{'◎ できた':'はい','○ だいたい':'まあまあ','△ いまいち':'いいえ'}})[x.answer]||x.answer)+'</div>':'')+(x.free?'<p>'+esc(x.free)+'</p>':'')+'<div class="by">'+new Date(x.created_at).toLocaleDateString('ja-JP')+'</div></div>').join('');
@@ -928,17 +1003,22 @@ def build():
     cfilters = '<button type="button" aria-pressed="true" data-f="">すべて</button>' + "".join(
         f'<button type="button" aria-pressed="false" data-f="{e(c)}">{e(c)}</button>' for c in checks)
     cards = "\n".join(card(g, "") for g in reversed(games))
+    pickable = [g for g in games if not is_r18(g)]
+    dflt = int(time.time() // 86400) % len(pickable) if pickable else 0
+    picks = "\n".join(pick_html(g, i != dflt) for i, g in enumerate(pickable))
+    pick_data = json.dumps([{"slug": g["slug"], "title": g["title"], "genre": g.get("genre", ""), "check": g.get("check", ""), "added": g.get("added", ""), "platform": g.get("platform") or ("pc" if g.get("play_kind") == "download" else "both"), "play_kind": g.get("play_kind", "")} for g in pickable], ensure_ascii=False)
+    recruit = ('<p class="ib-r"><a class="ib-neta" href="./creators.html#neta">ネタ帳にもどうぞ</a><span>最初の1本は投稿無料</span><a href="./submit.html">応募する <span aria-hidden="true">→</span></a></p>' if all_sample(games) else "")
     body = f"""<div class="wrap wide">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
-<section class="club-hero" aria-label="テストプレイ部について">
-<figure class="ch-photo"><img src="assets/art/clubroom.webp" alt="ホワイトボードとコルクボードのある部室で、3人がゲームを試している" width="1100" height="839" fetchpriority="high"></figure>
-<div class="ch-text"><h1 class="ch-big"><span class="hu">学生のゲームを、</span><br>学生が遊ぶ部室。</h1>
-<p class="ch-sub">スワイプして、気になったら遊んで、ひとこと感想。</p>
-<div class="row"><a class="btn big" href="./">▶ ショートで遊ぶ</a><a class="btn ghost" href="./submit.html">作品を載せる</a></div></div>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link hide-sm" href="./creators.html">作る人へ</a><a class="btn ghost" href="./">▶ ショート</a><span data-me></span></span></header>
+<h1 class="sr">テストプレイ部の作品一覧</h1>
+<section class="board" aria-label="部室の掲示板">
+<div class="pickcol">{picks}</div>
+<div class="bside" id="bside" hidden>
+<aside class="bucho" id="bucho" aria-labelledby="buchoH" hidden><h2 id="buchoH" class="sh">部長のひとこと</h2><p class="bucho-t" id="buchoT"></p><p class="bucho-d" id="buchoD"></p></aside>
+<section class="recent" id="recent" aria-labelledby="recentH" hidden><h2 id="recentH" class="sh">最近とどいた感想</h2><ul class="recent-l" id="recentL"></ul></section>
+</div>
 </section>
-<h2 class="sr">作品</h2>
-<div data-ms-band></div>
-{NOTICE_HTML.format(p="./") if all_sample(games) else ""}
+<div class="infobar" role="note"><div data-ms-band></div>{recruit}</div>
 <div class="fbar"><button type="button" class="ftoggle" id="fToggle" aria-expanded="false" aria-controls="fwrap">絞り込む <span aria-hidden="true">▾</span></button><span class="fsum" id="fSum" aria-live="polite"></span></div>
 <div class="fwrap" id="fwrap">
 <div class="fgroup fg-g"><span class="flabel" id="lbG">ジャンル</span><nav class="filters" aria-labelledby="lbG">{gfilters}</nav></div>
@@ -951,10 +1031,11 @@ def build():
 </div></div>
 </div>
 <div class="fchips" id="fChips" aria-live="polite"></div>
+<h2 class="sh sh-list">作品一覧 <small>{len(games)}作品</small></h2>
 <main id="list" class="grid">
 {cards}
 </main>
-<div class="empty eb" id="empty" hidden><img class="eb-img" src="assets/art/empty_board.webp" alt="" width="640" height="640" loading="lazy"><p class="eb-t">この条件の作品は、まだ貼られていません。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
+<div class="empty eb" id="empty" hidden><img class="eb-img" src="assets/art/empty_board.webp" alt="" width="640" height="640" loading="lazy"><p class="eb-t">この条件の作品はありません。条件を外して、ほかの作品を見てみよう。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
 <footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
@@ -986,7 +1067,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
  const nav=b.parentElement; nav.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  if('f' in b.dataset)F=b.dataset.f; else if('g' in b.dataset)G=b.dataset.g; else if('m' in b.dataset)M=b.dataset.m; else P=b.dataset.p; apply(); sumF();
 }}));
-</script>"""
+</script>""" + LIST_JS.replace("__SB__", SB_URL).replace("__KEY__", SB_KEY).replace("__PICKS__", pick_data)
     (ROOT / "list.html").write_text(page("作品一覧｜テストプレイ部",
                                          "学生のゲームを、5分でつまみ食い。遊んで、一言感想を送り合う場所。",
                                          f"{BASE}/list.html", f"{BASE}/og/site.png", body, ""), encoding="utf-8")
@@ -995,12 +1076,12 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
     sample = next((g for g in games if g.get("updates")), games[0] if games else None)
     sample_link = f'<a href="./games/{e(sample["slug"])}/">{e(sample["title"])}の作品ページ</a>' if sample else "作品ページ"
     creators = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn" href="./">▶ ショート</a><span data-me></span></span></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="btn ghost" href="./">▶ ショート</a><span data-me></span></span></header>
 <main class="cols rside"><div class="maincol">
 <section class="card hero-c"><div class="body">
 <figure class="ch-photo"><img src="assets/art/clubroom.webp" alt="コルクボードにゲームの写真が貼られた部室" width="1100" height="839" loading="lazy"></figure>
 <p class="eyebrow">作品を載せたい人へ{" ・ いまは運営のお試し作品だけ。最初の作品を募集中です" if all_sample(games) else ""}</p>
-<h1><span class="hu-k">説明するより、</span><br>遊んでもらおう。</h1>
+<h1 data-headline><span class="hu-k">説明するより、</span><br>遊んでもらおう。</h1>
 <p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
 <div class="lfhero"><b>最初の1本は投稿無料</b><span>はじめての応募は、ポイントなしで送れます。2本目からは30ポイント（感想を書くとたまります）。</span></div>
 <div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small><small>ショートに出す動画か画像（動画60秒・50MBまで・任意。なければ運営が撮ります）</small></div>
@@ -1026,6 +1107,15 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <figure><button type="button" class="zoomb" aria-label="プロフィールの見本を大きく見る"><img src="assets/guide/profile.jpg" alt="プロフィールの見本。アイコン、名前、ひとこと、リンク、作品の一覧" loading="lazy" width="720" height="1280"></button><figcaption>プロフィール（数字は例です）</figcaption></figure>
 <figure class="widefig"><button type="button" class="zoomb" aria-label="開発者ページの見本を大きく見る"><img src="assets/guide/dev.jpg" alt="開発者ページの見本。遊んだ人、遊んだ時間、どこで離れたか、感想の内わけがグラフで並ぶ" loading="lazy" width="1000" height="760"></button><figcaption>開発者ページ（数字は例です）。タップで大きく見られます</figcaption></figure>
 </div></details>
+</div></section>
+
+<section class="card" id="neta"><div class="body">
+<h2>ネタ帳にもどうぞ</h2>
+<ul class="checks">
+<li>ほかの学生が、最初の30秒で何を見せているかが分かります</li>
+<li>詰まったら、ほかの人の1面を遊んでみてください。説明の入れ方や最初の10秒の作り方で、差がつきます</li>
+<li>感想を読むと、自分の作品に来そうな指摘が先に分かります</li>
+</ul>
 </div></section>
 
 <section class="card"><div class="body folds">
@@ -1147,7 +1237,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 
     # プライバシーの説明
     privacy = f"""<div class="wrap">
-<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn" href="./">▶ ショート</a></header>
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn ghost" href="./">▶ ショート</a></header>
 <main class="prose">
 <section class="card"><div class="body">
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
@@ -1158,7 +1248,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <ul>
 <li><b>端末ごとのID</b>：ブラウザに保存するランダムな文字列です。名前やメールアドレスとはつながっていません</li>
 <li><b>サイトを開いた日</b>：サイトを開いた日（1日1回、端末のIDと日付だけ）。運営が、何人が来たかを数えるために使います</li>
-<li><b>遊んだ記録</b>：「遊ぶ」「👍」「🤔」を押したこと（🤔は選んだ理由も）、遊んだ時間、PCかスマホか、時間帯</li>
+<li><b>遊んだ記録</b>：「遊ぶ」「いいね」「うーん」を押したこと（「うーん」は選んだ理由も）、遊んだ時間、PCかスマホか、時間帯</li>
 <li><b>感想</b>：送った内容と、送ったアカウント（ログインした人のみ）</li>
 <li><b>AIコーチ</b>：感想シートの「AIに見てもらう」を押したときだけ、その感想の文と作品の説明が Anthropic の Claude API に送られます（使わなければ送られません）</li>
 <li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>

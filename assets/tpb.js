@@ -179,6 +179,9 @@
     }
   }, true);
 
+  // メニューの線画アイコン（14px・currentColor）。絵文字は使わない
+  var LI = { play: "M8 5l11 7-11 7z", doc: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7", cal: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5", user: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c1-4 4-6 8-6s7 2 8 6", link: "M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1", chart: "M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-8", pen: "M4 20l1-5L16 4l4 4L9 19zM14 6l4 4", info: "M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v6M12 7.5v.5", flag: "M5 21V4M5 4h12l-2 4 2 4H5" };
+  function li(k) { var s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("width", "14"); s.setAttribute("height", "14"); s.setAttribute("aria-hidden", "true"); s.setAttribute("fill", k === "play" ? "currentColor" : "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "2"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round"); var p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", LI[k]); s.appendChild(p); return s }
   function mi(icon, label, o) {
     var kids = [el("span", { class: "tpb-ic", "aria-hidden": "true" }, icon), el("span", null, label)];
     if (o.href) return el("a", { class: "tpb-mi" + (o.cls ? " " + o.cls : ""), href: o.href, role: "menuitem" }, kids);
@@ -192,18 +195,18 @@
     var url = (D.base || BASE.replace(/\/$/, "")) + "/games/" + slug + "/";
     var box = el("div", { class: "tpb-menu", role: "menu", "aria-label": g.title + " のメニュー" });
     box.append(el("div", { class: "tpb-mt" }, g.title));
-    if (!opt.inFeed) box.append(mi("▶", "ショートで見る", { href: BASE + "?g=" + slug }));
-    if (!opt.inPage) box.append(mi("📄", "作品ページを見る", { href: BASE + "games/" + slug + "/" }));
-    box.append(mi("📅", "今日のスタンプカード" + (T.mission ? "（" + T.mission.counts().n + "/3）" : ""), { onclick: function () { if (T.mission) T.mission.openCard(btn); else location.href = BASE + "me.html#stamp" } }));
-    var who = mi("👤", "作った人を見る", { href: "#" }); who.hidden = true; box.append(who);
-    box.append(mi("🔗", "共有する（リンクをコピー）", { onclick: function () { closeOverlay(); T.share(g.title + "｜テストプレイ部", url) } }));
+    if (!opt.inFeed) box.append(mi(li("play"), "ショートで見る", { href: BASE + "?g=" + slug }));
+    if (!opt.inPage) box.append(mi(li("doc"), "作品ページを見る", { href: BASE + "games/" + slug + "/" }));
+    box.append(mi(li("cal"), "今日のスタンプカード" + (T.mission ? "（" + T.mission.counts().n + "/3）" : ""), { onclick: function () { if (T.mission) T.mission.openCard(btn); else location.href = BASE + "me.html#stamp" } }));
+    var who = mi(li("user"), "作った人を見る", { href: "#" }); who.hidden = true; box.append(who);
+    box.append(mi(li("link"), "共有する（リンクをコピー）", { onclick: function () { closeOverlay(); T.share(g.title + "｜テストプレイ部", url) } }));
     var own = el("div", { hidden: true },
       el("div", { class: "tpb-ms" }, "あなたの作品"),
-      mi("📊", "数字と感想を見る", { href: BASE + "dev.html?g=" + slug }),
-      mi("✏️", "直したいところを運営に送る", { href: BASE + "submit.html?edit=" + slug }));
+      mi(li("chart"), "数字と感想を見る", { href: BASE + "dev.html?g=" + slug }),
+      mi(li("pen"), "直したいところを運営に送る", { href: BASE + "submit.html?edit=" + slug }));
     box.append(own);
-    box.append(mi("ℹ️", "運営について", { href: BASE + "list.html#about" }));
-    box.append(mi("🚩", "報告する", { cls: "warn", onclick: function () { T.report("game", slug, g.title, btn) } }));
+    box.append(mi(li("info"), "運営について", { href: BASE + "list.html#about" }));
+    box.append(mi(li("flag"), "報告する", { cls: "warn", onclick: function () { T.report("game", slug, g.title, btn) } }));
     box.append(el("button", { class: "tpb-mi tpb-mx", type: "button", onclick: closeOverlay }, "とじる"));
     var ov = overlay("menu", box, btn);
     function again() { if (ov.place && ov.isConnected) ov.place() }
@@ -265,7 +268,7 @@
     function draw(p) {
       a.replaceChildren();
       if (p) { a.append(T.avatar({ name: p.name, avatar: p.avatar_url }, 32)); a.setAttribute("aria-label", "マイページ（" + p.name + "）"); a.classList.add("in") }
-      else { a.append(el("span", { class: "tpb-av guest", "aria-hidden": "true", style: "width:32px;height:32px" }, "👤"), el("span", { class: "tpb-me-t" }, "ログイン")); a.classList.remove("in") }
+      else { a.append(el("span", { class: "tpb-av guest", "aria-hidden": "true", style: "width:32px;height:32px" }, li("user")), el("span", { class: "tpb-me-t" }, "ログイン")); a.classList.remove("in") }
     }
     var cached = T.maybeLoggedIn() ? T.store.get("me", null) : null;
     draw(cached); host.append(a);
@@ -334,7 +337,7 @@
     ".tpb-opt[aria-checked=true]{border-color:var(--accent,#C8401F);background:var(--accent,#C8401F);color:var(--accent-ink,#fff);font-weight:700}" +
     ".tpb-dialog textarea{width:100%;min-height:70px;font:inherit;font-size:14px;border-radius:10px;border:0;border-bottom:2px solid var(--ink,#2A241E);background:var(--paper-2,#EFE6D3);color:inherit;padding:10px;resize:vertical}" +
     ".tpb-btn{font:inherit;font-weight:700;font-size:15px;min-height:46px;border:0;border-radius:6px;padding:10px 16px;background:var(--accent,#C8401F);color:var(--accent-ink,#fff);box-shadow:0 3px 0 #8E2C14;cursor:pointer;text-align:center;text-decoration:none}.tpb-btn:active{transform:translateY(3px);box-shadow:none}" +
-    ".tpb-btn.ghost{background:transparent;color:var(--shu-ink,#A5311A);border:2px solid var(--accent,#C8401F);box-shadow:none;font-weight:700}.tpb-btn.ghost:active{transform:none}" +
+    ".tpb-btn.ghost{background:transparent;color:var(--ink,#2A241E);border:1px solid var(--ink,#2A241E);box-shadow:none;font-weight:700}.tpb-btn.ghost:active{transform:none}" +
     ".tpb-btn:disabled{opacity:.6}" +
     ".tpb-prov{display:grid;gap:8px}.tpb-prov:empty{display:none}" +
     ".tpb-msg{margin:0;min-height:1.2em;font-size:13px;text-align:center}.tpb-msg.err{color:#B0301B}" +
@@ -370,6 +373,29 @@
     if (/\/submit(\.html)?$/.test(p)) return "submit";
     return "";
   }
+  // assets/notes.json（部長のひとこと・見出しとロゴの手書き画像）。1回だけ読む
+  var notesP = null;
+  T.notes = function () {
+    if (!notesP) notesP = fetch(BASE + "assets/notes.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null }).catch(function () { return null });
+    return notesP;
+  };
+  function imgPath(p) { return /^(https?:|\/)/.test(p) ? p : BASE + p.replace(/^\.?\//, "") }
+  document.addEventListener("DOMContentLoaded", function () {
+    T.notes().then(function (n) {
+      if (!n) return;
+      // logo_img：ロゴの文字（サイドバー・上の帯）を画像に。名前は alt に残す
+      if (typeof n.logo_img === "string" && n.logo_img.trim()) document.querySelectorAll(".brand,.sd-brand").forEach(function (a) {
+        if (a.querySelector(".brand-logo")) return;
+        var im = el("img", { class: "brand-logo", src: imgPath(n.logo_img.trim()), alt: "テストプレイ部", height: 28 });
+        [].slice.call(a.childNodes).forEach(function (c) { if (c.nodeType === 3 || c.tagName === "SPAN") c.remove() });
+        a.append(im);
+      });
+      // headline_img：ページの主見出し（data-headline）を画像に。文字は alt に残す
+      if (typeof n.headline_img === "string" && n.headline_img.trim()) document.querySelectorAll("[data-headline]").forEach(function (h) {
+        var t = h.textContent.trim(); h.textContent = ""; h.append(el("img", { class: "headline-img", src: imgPath(n.headline_img.trim()), alt: t }));
+      });
+    });
+  });
   T.chrome = function () {
     var b = document.body; if (!b || b.hasAttribute("data-noside") || document.getElementById("tpbSide")) return;
     var cur = current(), disc = (window.TPB_DATA && window.TPB_DATA.discord) || "";

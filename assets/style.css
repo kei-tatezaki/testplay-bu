@@ -415,3 +415,166 @@ dialog.np{border:1px solid var(--line);border-radius:6px;box-shadow:0 12px 40px 
  body:not([data-noside]){background-color:#EBE2CD;background-image:var(--noise),radial-gradient(rgba(120,80,40,.09) .9px,transparent 1.3px),radial-gradient(rgba(120,80,40,.07) .8px,transparent 1.2px);background-size:180px 180px,7px 7px,11px 13px;background-position:0 0,0 0,3px 5px}
  body:not([data-noside]) .wrap{background:var(--paper) var(--noise);min-height:100vh;box-shadow:0 0 0 1px rgba(220,207,184,.9),0 0 28px rgba(60,40,20,.1)}
 }
+/* =====================================================================
+   作り直し（AIっぽさを抜く）：飾りは意味のあるところに1つだけ／メリハリ／色に役目／絵文字なし／文字は1種類
+   朱＝「遊ぶ・送る・応募する」の主ボタンと押した状態　からし＝おすすめ・新作・ミッションの目印　青＝リンク　それ以外は墨と紙の色
+   （build.py が assets/style.css の末尾に足す）
+   ===================================================================== */
+:root{--f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;--f-rd:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-round:var(--f-body);--f-hand:var(--f-body);--f-klee:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--rule:#CDBF9F}
+body{font-family:var(--f-body)}
+/* M PLUS Rounded 1c は、ボタンと小さなラベルだけ */
+.btn,button.btn,.tpb-btn,.ftoggle,.fmore>button,.flabel,.badge,.rate,.dur,.chip,.fchip,.filters button,.ghost-link,.nw,.fpop-foot button,.tabs button,.cbtn{font-family:var(--f-rd)}
+.empty,.eb-t{font-family:var(--f-klee);font-weight:600}
+.brand-tag,.hand,.lead.hand{font-family:var(--f-body);font-weight:400;transform:none}
+h1,h2,h3{font-weight:800}
+/* 背景・飾りを外す */
+header.bar{background-image:none}
+body:not([data-noside]) header.bar{background:none}
+@media (min-width:1100px){
+ html{background:var(--paper)}
+ body:not([data-noside]){background:var(--paper) var(--noise)}
+ body:not([data-noside]) .wrap{background:none;box-shadow:none;min-height:0}
+}
+/* 見出し：テープをやめて、太字＋細い下線 */
+.card>.body>h2,.card>.body>section>h2,h2.flow-h,.sec h2,.tape,.biz .card>.body>h2,.biz .tape{display:block;width:auto;max-width:none;justify-self:stretch;background:none;clip-path:none;transform:none;margin:0 0 2px;padding:0 0 6px;border-bottom:1px solid var(--line);font-size:17px;line-height:1.5;color:var(--ink)}
+h2.flow-h{margin:6px 0 0}
+.grid .card .body>h2{border:0;padding:0}
+.hu,.hu-k{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M2 6.5C28 2.5 52 8.5 88 4.5S160 8 198 3.5' fill='none' stroke='%232A241E' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
+/* カード：平らな情報カード（薄い罫線1本・角丸4px・影は1段） */
+.card,.tile,.grid .card{background:var(--card);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07)}
+.maincol>.card,.wrap>main>.card,.maincol>.card:nth-child(n),.wrap>main>.card:nth-of-type(n){transform:none;border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07)}
+.maincol>.card::after,.wrap>main>.card::after{display:none}
+.tile,.grid .card,.tile:nth-child(n),.grid .card:nth-child(n){padding:0;overflow:visible;transform:none;transition:border-color .15s ease,box-shadow .15s ease;gap:0;border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07)}
+.tile::before,.grid .card::before,.tile:nth-child(n)::before,.grid .card:nth-child(n)::before{content:none}
+.tile:hover,.tile:focus-within,.grid .card:hover,.grid .card:focus-within,.tile:nth-child(n):hover{transform:none;border-color:#B8A987;box-shadow:0 2px 6px rgba(60,40,20,.12)}
+.tile .media,.grid .card .media{border-radius:3px 3px 0 0;outline:0}
+.tile .thumb video.hov,.thumb video.hov{border-radius:3px 3px 0 0}
+.tile .media.shot{outline:0}
+.tile .meta2{padding:10px 12px 12px;gap:8px;align-items:flex-start}
+.tile .meta{gap:1px}
+.tile .meta .t{font-size:15px;font-weight:800;line-height:1.4;padding:0;margin:0 0 2px}
+.tile .meta .by{font-size:12.5px;color:var(--muted)}
+.tile .meta .by.sub{color:var(--ink);font-weight:500}
+.tile .av-link img,.tile .av-link .tpb-av{width:28px!important;height:28px!important;margin-top:2px}
+.tile .meta2 .tpb-kebab{margin:-6px -10px 0 0}
+@media (max-width:560px){.tile .meta2{padding:8px 8px 10px}.tile .meta2 .tpb-kebab{margin:-6px -8px 0 -8px}.tile .meta .t{font-size:14px}}
+.rate{background:var(--ink);color:#fff;top:8px;left:8px}
+.rate.rate-r18{background:#B3243F}
+/* 新作（公開から14日以内）だけ、付箋と少しの傾き */
+.tile .nw{position:absolute;left:-7px;top:-9px;z-index:3;background:var(--karashi);color:var(--ink);font-weight:800;font-size:12px;line-height:1;padding:6px 10px 5px;transform:rotate(-4deg);box-shadow:0 1px 2px rgba(42,36,30,.28);border-radius:1px}
+.tile.is-new:nth-child(n){transform:rotate(-.5deg)}
+.tile.is-new:nth-child(n):hover,.tile.is-new:nth-child(n):focus-within{transform:rotate(0)}
+@media (prefers-reduced-motion:reduce){.tile.is-new:nth-child(n){transform:none}}
+.grid{gap:20px 16px}
+body:not([data-noside]) .grid{gap:22px 18px}
+/* ボタン：沈み込むハンコは主ボタン（朱）だけ。ほかは平らな枠 */
+.btn.ghost,button.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);box-shadow:none;margin-bottom:0;font-weight:700}
+.btn.ghost:hover{background:var(--paper-2)}
+.btn.ghost:active,button.btn.ghost:active{transform:none;background:var(--paper-2)}
+.btn.ghost.weak,button.btn.ghost.weak{border-color:transparent;color:var(--muted);font-weight:400}
+.btn.discord{background:#4752C4}
+.ghost-link{background:transparent;border:1px solid var(--rule);border-radius:4px;color:var(--ink)}
+.filters button,.ftoggle,.fmore>button,body:not([data-noside]) .fmore>button{background:var(--card);border:1px solid var(--rule);border-radius:4px;box-shadow:none;transform:none;color:var(--ink);font-weight:700}
+.filters button:nth-child(n){transform:none}
+.fg-m .filters button:not([aria-pressed="true"]),.fg-p .filters button:not([aria-pressed="true"]){background:var(--card)}
+.filters button:hover{background:var(--paper-2)}
+.filters button[aria-pressed="true"],.fgroup .filters button[aria-pressed="true"],body:not([data-noside]) .fmore>button[aria-expanded="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.fmore .fn,body:not([data-noside]) .fmore .fn{background:var(--ink);color:#fff}
+.fsum{color:var(--muted)}
+body:not([data-noside]) .fpop{transform:none;border:1px solid var(--rule);border-radius:4px;box-shadow:0 8px 24px rgba(60,40,20,.2)}
+body:not([data-noside]) .fpop::before{display:none}
+body:not([data-noside]) .fpop-foot button{color:var(--ao)}
+body:not([data-noside]) .fpop-foot{border-top:1px solid var(--line)}
+body:not([data-noside]) .fchip{background:var(--card);border-radius:4px}
+body:not([data-noside]) .fchip:hover{background:var(--paper-2)}
+/* ラベル・チップ：色で飾らない */
+.chip,.chip.check,.chip.plat,.chip.sample,.chip.rate-r15{background:transparent;border:1px solid var(--rule);color:var(--ink);border-radius:4px}
+.chip.check{border-color:var(--ink)}
+.chip.sample{background:var(--paper-2);border-color:transparent}
+.chip.dl{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.rate-r15{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.rate-r18{background:#B3243F;color:#fff;border-color:#B3243F}
+.badge,.st{background:var(--paper-2);color:var(--ink)}
+.q{background:var(--paper-2);border-left:3px solid var(--ink);border-radius:2px}
+.q b{color:var(--muted)}
+.upd{border:1px solid var(--rule);border-radius:4px}
+.upd b{color:var(--muted)}
+.tpb-av{background:var(--ink)}
+.tabs{border-bottom:1px solid var(--rule)}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--ink)}
+.steps li::before{background:var(--ink);color:#fff}
+.mepts b,body:not([data-noside]) .mepts b{color:var(--ink)}
+.links a{border-radius:4px;font-family:var(--f-body);font-weight:500}
+.form input[type=text],.form input[type=url],.form input[type=email],.form textarea,.form select{border:1px solid var(--rule);border-bottom:2px solid var(--ink);background:var(--card)}
+/* お知らせ・付箋だったものは、紙に細い罫線 */
+.notice,.lfbox,.lfhero{background:var(--paper-2);border:1px solid var(--line);border-radius:4px;transform:none;box-shadow:none;padding:12px 16px}
+.notice::before,.lfbox::before,.lfhero::before{display:none}
+.lfp{background:var(--paper-2)}
+body:not([data-noside]) .applycard,body:not([data-noside]) .cols>.applycard{transform:none;border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07);padding:20px}
+body:not([data-noside]) .applycard::before{display:none}
+body:not([data-noside]) .applycard .lfa{background:var(--paper-2);border-radius:4px}
+body:not([data-noside]) .cols>.sidecol .phead{border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07)}
+.about-card{transform:none;border-radius:4px;box-shadow:0 1px 2px rgba(60,40,20,.07);border:1px solid var(--line);padding:20px 22px 14px}
+.about-card::before{display:none}
+.about-card h2{color:var(--muted);border:0;padding:0}
+.ab-who b,.ab-l{font-family:var(--f-body)}
+.ab-who span{font-family:var(--f-body);font-weight:500}
+.about .ic{color:var(--ink)}
+.ab-links,.ab-priv{border-color:var(--line)}
+dialog.np{border-radius:4px}
+/* 作る人ページ：部室の写真は1枚だけ（テープも1本）。傾きは付けない */
+.hero-c .ch-photo::before{background:rgba(226,169,59,.82);transform:rotate(-3deg);left:50%;right:auto;margin-left:-32px}
+.hero-c .ch-photo img{transform:none}
+.headline-img{display:block;max-width:100%;height:auto}
+.brand-logo{display:block;height:28px;width:auto}
+.sd-brand .brand-logo{height:32px}
+/* ===== 部室の掲示板（作品一覧のトップ） ===== */
+.board{display:grid;gap:22px;align-items:start;padding:6px 0 2px}
+.board:has(.bside[hidden]){grid-template-columns:minmax(0,1fr)}
+.pick{display:grid;gap:18px}
+.pick[hidden]{display:none}
+.pick-ph{position:relative;margin:10px 4px 0}
+.pick-ph::before{content:"";position:absolute;z-index:3;left:50%;top:-11px;width:70px;height:20px;margin-left:-35px;background:rgba(226,169,59,.85);transform:rotate(-3deg);clip-path:var(--tape-clip);pointer-events:none}
+.pick-ph .thumb{display:block;position:relative;background:#fff;padding:8px 8px 12px;box-shadow:0 1px 0 var(--line),0 10px 22px rgba(60,40,20,.2);transform:rotate(-1.5deg)}
+.pick-ph .media{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;border-radius:0;background:#000}
+.pick-ph .media.shot{object-fit:contain;background:var(--tb,#0b0e13)}
+.pick-ph .thumb video.hov{inset:8px 8px 12px;width:calc(100% - 16px);height:calc(100% - 20px);border-radius:0}
+.pick-tx{display:grid;gap:8px;justify-items:start;min-width:0}
+.pick-lb{margin:0;font:600 15px/1.2 var(--f-klee);color:var(--ink);background:linear-gradient(transparent 52%,var(--karashi) 52%);padding:0 6px}
+.pick-t{margin:2px 0 0;font-size:clamp(24px,6.4vw,32px);line-height:1.25;letter-spacing:.01em}
+.pick-t a{color:var(--ink);text-decoration:none}
+.pick-t a:hover{text-decoration:underline;text-underline-offset:4px}
+.pick-by{margin:0;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.pick-by .av-link img,.pick-by .av-link .tpb-av{width:28px!important;height:28px!important}
+.pick-one{margin:0;font-size:16px;line-height:1.7;max-width:30em}
+.pick-sub{margin:0;font-size:13px;color:var(--muted)}
+.pick-q{display:grid;gap:2px;border-left:3px solid var(--ink);background:var(--paper-2);padding:8px 14px;border-radius:0 2px 2px 0;max-width:32em;font-size:14px;line-height:1.6}
+.pick-q b{font-size:12px;color:var(--muted);font-weight:700}
+.pick .row{margin-top:6px}
+.pick .btn.big{min-height:48px;padding:12px 30px}
+@media (min-width:700px){.pick{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:32px;align-items:center}.pick-t{font-size:clamp(26px,3vw,34px)}}
+.bside{display:grid;gap:22px;min-width:0}
+@media (min-width:700px) and (max-width:1359px){.bside{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}}
+@media (min-width:1360px){.board{grid-template-columns:minmax(0,1fr) 320px;gap:40px}}
+.sh{margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);font-size:15px;line-height:1.5;font-weight:800;color:var(--ink)}
+.sh small{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
+.sh-list{margin:6px 0 -4px}
+.bucho{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:14px 16px 12px}
+.bucho[hidden],.recent[hidden]{display:none}
+.bucho-t{margin:0;white-space:pre-wrap;font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+.bucho-d{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.bucho-d[hidden]{display:none}
+.recent-l{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.recent-l li{display:grid;gap:2px}
+.recent-l a{font-size:13px;font-weight:800;color:var(--ink);text-underline-offset:3px;width:fit-content}
+.recent-l p{margin:0;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.recent-l time{font-size:12px;color:var(--muted)}
+/* 1行のお知らせ欄：左にミッション、右に応募。スマホは2行まで */
+.infobar{display:flex;flex-wrap:wrap;align-items:center;gap:0 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:2px 0}
+.infobar>[data-ms-band]{flex:1 1 auto;min-width:0}
+.ib-r{margin:0;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;font-size:14px;color:var(--ink);padding:0 0 8px}
+.ib-r a{color:var(--shu-ink);font-weight:800;text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px}
+.ib-r a.ib-neta{color:var(--muted);font-weight:500;font-size:13px}
+@media (max-width:699px){.ib-neta{display:none!important}.ib-r{padding:0 0 4px}}
+@media (min-width:700px){.infobar{flex-wrap:nowrap}.ib-r{padding:0;flex-wrap:nowrap;white-space:nowrap}}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}}
