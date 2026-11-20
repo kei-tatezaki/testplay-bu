@@ -295,4 +295,4 @@
 - **me／profile**（1024px以上）：左300pxに本人カード（sticky）、右にタブと中身。me は本人カードに自己紹介とポイント（`my_points`、取れなければ出さない）。「@undefined」を直した（ハンドルが無いときは「ハンドル未設定」）。
 - **creators**：左に今の説明、右に sticky の「応募する」カード。**submit**（1200px以上）：左に付箋・ポイント・見本、右にフォーム（1200px未満は今までどおり1列）。作品ページ：作品（左）と感想（右、sticky）。privacy：780px幅。
 - 確かめ：Playwright（google-chrome）。390×844・360×740（スマホ）は変更前後のスクリーンショットが一致（me のハンドル表示を除く）。1440×900・1280×800・1024×768・820×1180 で11ページ、横スクロールなし・pageerror 0。文字色はAA（最小 4.87）。
-- スクリーンショット：`shots/pc_*.png`（short・list・listpop・me・profile・creators・submit・privacy・game・404 × 1440/1280/1024/820、`pc_list_filtered_1440.png`・`pc_list_hover_1440.png`）。
+- スクリーンショット：`/home/claude/shots/pc_*.png`（short・list・listpop・me・profile・creators・submit・privacy・game・404 × 1440/1280/1024/820、`pc_list_filtered_1440.png`・`pc_list_hover_1440.png`）。
