@@ -9,7 +9,7 @@ const AI_TIMEOUT = 10000;   // 10秒
 const MAX_NOTES = 2;
 
 // ---- 1. 書き出し（2段目 × 1段目 = 7 × 3） ----
-const KINDS = [['good','👍 良かったところ'],['bad','🤔 気になったところ'],['idea','💡 こうしたら？']];
+const KINDS = [['good','良かったところ'],['bad','気になったところ'],['idea','こうしたら？']];
 const TOPICS = ['操作','見た目','音','ルール・目的','難しさ','最初のわかりやすさ','その他'];
 const STEMS = {
   good:{'操作':'操作で気持ちよかったのは、','見た目':'見た目で好きだったのは、','音':'音で印象に残ったのは、','ルール・目的':'ルールで面白いと思ったのは、','難しさ':'難しさがちょうどよかったのは、','最初のわかりやすさ':'最初にわかりやすかったのは、','その他':'ほかに良かったのは、'},
@@ -129,12 +129,16 @@ function mount(o){
   function renderNotes(list,reading){
     notesBox.textContent='';
     if(reading||busy) notesBox.append(el('p',{class:'cnote n-wait',role:'status'},'AIが読んでいます…'));
-    list.forEach((n,i)=>{
-      const card=el('div',{class:'cnote n-'+n.kind+(i%2?' alt':'')},el('p',{},n.msg));
+    // 付箋は同時に最大3枚：ルールのコメント1つ＋AIのコメント最大2つ（ほめがあれば1つはほめを先に）。色は「ほめ」とそれ以外の2色だけ
+    list.slice(0,1).forEach((n,i)=>{
+      const card=el('div',{class:'cnote '+(n.kind==='praise'?'n-praise':'n-other')},el('p',{},n.msg));
       if(n.acts.length){ const row=el('div',{class:'cacts'}); n.acts.forEach(a=>row.append(el('button',{type:'button',class:'cbtn',onclick:()=>doAct(a)},a.label))); card.append(row) }
       notesBox.append(card);
     });
-    if(ai) ai.notes.forEach(c=>notesBox.append(aiNote(c)));
+    if(ai){
+      const pr=ai.notes.filter(c=>c.kind==='praise'), ot=ai.notes.filter(c=>c.kind!=='praise');
+      pickAi(pr,ot).forEach(c=>notesBox.append(aiNote(c)));
+    }
   }
   function doAct(a){
     if(a.do==='replace'){ remember('言い方を直しました。'); setText(ta.value.split(a.w).join(a.r)); }
@@ -142,7 +146,8 @@ function mount(o){
     ta.focus(); clearTimeout(timer); run();
   }
   const KLABEL={specific:'具体的に',tone:'言い方',generic:'この作品ならでは',praise:'いいね',idea:'アイデア'};
-  function aiNote(c){ return el('div',{class:'cnote n-ai n-'+c.kind},el('p',{},c.message)) }
+  function aiNote(c){ return el('div',{class:'cnote n-ai '+(c.kind==='praise'?'n-praise':'n-other')},el('p',{},c.message)) }
+  function pickAi(pr,ot){ const out=[]; if(pr.length) out.push(pr[0]); ot.forEach(c=>{ if(out.length<2) out.push(c) }); if(out.length<2&&pr.length>1) out.push(pr[1]); return out.slice(0,2) }
 
   // ---- 入力の見張り ----
   ta.addEventListener('input',e=>{
@@ -193,7 +198,7 @@ function mount(o){
         body:JSON.stringify({slug:g.slug,title:g.title,genre:g.genre||'',description:[g.oneliner].concat(g.highlights||[]).filter(Boolean).join(' / '),check:g.check||'',text})});
       st=r.status; try{ body=await r.json() }catch(e){ body=null } if(r.ok) res=body;
     }catch(e){ res=null }
-    clearTimeout(tm); busy=false; aiBtn.textContent='🤖 '+(ai?'もう一度見てもらう':'AIに見てもらう');
+    clearTimeout(tm); busy=false; aiBtn.textContent=(ai?'もう一度見てもらう':'AIに見てもらう');
     if(game!==g) return;     // 待っているあいだにシートを閉じた
     if(!(res&&Array.isArray(res.comments))){
       const why=(body&&body.reason)||(body&&body.error)||'';
@@ -203,7 +208,7 @@ function mount(o){
       else if(st===403){ stopped=true }
       aiFailBox(true,t); renderNotes(analyze(ta.value,terms)); syncAi(); return }
     ai={notes:res.comments.filter(c=>c&&typeof c.message==='string'&&c.message).slice(0,3).map(c=>({kind:String(c.kind||'idea'),message:c.message})),rewrite:(typeof res.rewrite==='string'&&res.rewrite.trim())?res.rewrite.trim():null,remaining:typeof res.remaining==='number'?res.remaining:null};
-    aiBtn.textContent='🤖 もう一度見てもらう';
+    aiBtn.textContent='もう一度見てもらう';
     if(ai.remaining!==null&&ai.remaining<=0){ stopped=true; aiFailBox(true,'今日のAIコーチはここまで（ルールのコーチは使えます）') }
     sig=''; run(); renderAi(); syncAi();
   }
@@ -220,7 +225,7 @@ function mount(o){
   function open(g){
     game=g; terms=gameTerms(g); hot=hotTopics(g); kind=null; undo=null; ai=null; typed=0; prevLen=nsLen(ta.value); sig=''; busy=false; autoN=0; lastSent=null; stopped=false; pauseUntil=0; clearTimeout(autoTimer);
     clearTimeout(timer); stem1.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed','false')); stem2.hidden=true; paintHot(); hint.hidden=true;
-    notesBox.textContent=''; aiOut.textContent=''; aiFailBox(false); cMsg.textContent=''; showUndo(); aiBtn.textContent='🤖 AIに見てもらう'; syncAi();
+    notesBox.textContent=''; aiOut.textContent=''; aiFailBox(false); cMsg.textContent=''; showUndo(); aiBtn.textContent='AIに見てもらう'; syncAi();
   }
   function close(){ game=null; clearTimeout(timer); clearTimeout(autoTimer) }
   return {open,close,state:()=>({autoN,stopped,lastSent}),analyze:t=>analyze(t,terms),terms:()=>terms.slice()};

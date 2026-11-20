@@ -19,9 +19,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="assets/side.css">
 <style>
-:root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#C8401F;--accent-ink:#fff;--shu-ink:#FF9A7E;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;--paper:#F6F1E7;--paper-2:#EFE6D3;--shu:#C8401F;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--ao:#2F5D9B;--ao-soft:#D7E2F1;--shu-soft:#F6D5C9;--f-round:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-hand:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:dark}
+:root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#C8401F;--accent-ink:#fff;--shu-ink:#FF9A7E;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;--paper:#F6F1E7;--paper-2:#EFE6D3;--shu:#C8401F;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--ao:#2F5D9B;--ao-soft:#D7E2F1;--shu-soft:#F6D5C9;--f-round:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;--f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;--f-rd:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-klee:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--f-hand:var(--f-body);--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--f-body);-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .skip{position:fixed;left:8px;top:-60px;z-index:100;background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
@@ -406,34 +406,68 @@ fieldset.err{outline:2px solid #B0301B}
 }
 .bigplay.off,.rb.play.off .ic,.pauselay button.off{background:#8a8580 !important;color:#f1ede6 !important;box-shadow:0 3px 0 #5f5a55 !important;filter:none}
 .rb.play.off .lb{opacity:.7}
+
+/* ===== 作り直し：飾りは1か所／色の役目／絵文字なし／文字は1種類（動画のまわりは黒のまま） ===== */
+.btn,.cbtn,.chip,.opt,.rb .lb,.intro button,.pauselay button,.player header button,.vpanel .bigplay,.vpanel .fbw,.end a,.toast button,.top a.back,.why button{font-family:var(--f-rd)}
+.empty{font-family:var(--f-klee);font-weight:600}
+.loading,.vtag{font-family:var(--f-body)}
+.rb .ic .li,.toast .pick .li{display:block}
+.toast .pick{display:grid;place-items:center}
+.sheet h3{background:none;clip-path:none;transform:none;margin:0;padding:0 0 6px;border-bottom:1px solid var(--line);width:auto;font-size:18px}
+.opt,.chip,.chip.k-bad,.chip.k-idea,fieldset[data-k=reach] .opt,fieldset[data-k=answer] .opt,fieldset[data-k=bad] .opt{background:#FFFDF8;border:1px solid #CDBF9F;box-shadow:none;border-radius:4px;color:var(--ink);font-weight:700}
+.opt[aria-pressed="true"],.chip[aria-pressed=true]{background:var(--shu)!important;color:#fff;border-color:var(--shu)}
+.sheet .chips.c2 .chip,.sheet .chips.c2 .chip:nth-child(even){transform:none;border-top:1px solid #CDBF9F;background:#FFFDF8}
+.sheet .chips.c2 .chip[aria-pressed=true]{background:var(--shu)}
+.chip.hot{outline:2px dashed var(--ink);outline-offset:1px}
+.cnote,.cnote.alt{font-family:var(--f-body);font-weight:500;background:var(--paper-2);border-left:3px solid var(--ink);border-radius:2px;box-shadow:none;transform:none;padding:8px 10px 8px 12px}
+.cnote::before{display:none}
+.cnote.n-ai.n-other,.cnote.n-other{background:var(--paper-2);border-left-color:var(--ink)}
+.cnote.n-praise,.cnote.n-ai.n-praise{background:var(--karashi-soft);border-left-color:var(--karashi)}
+.cnote.n-wait{border-left-color:transparent}
+.cbtn{background:#FFFDF8;border:1px solid var(--ink);border-radius:4px}
+.cbtn.pri{background:var(--ink);color:var(--paper)}
+.crewrite{border-radius:4px;box-shadow:none;font-family:var(--f-body);font-weight:500;border:1px solid var(--ink)}
+.crt{color:var(--muted)}
+.ptinfo{background:var(--paper-2)}
+em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
+.btn.ghost{color:var(--ink);border:1px solid var(--ink);background:transparent}
+.sheet :focus-visible,.why :focus-visible,.toast :focus-visible{outline:2px solid var(--ao)}
+.why button{background:var(--card)}
+.stemhint{color:var(--ink)}
+.vpanel::before{display:none}
+.info .q,.vpanel .q{background:var(--paper-2);border-left:3px solid var(--ink);border-radius:2px;color:var(--ink)}
+.vpanel .q b{color:var(--muted)}
+.intro{background:var(--paper);transform:none;border-radius:4px}
+.intro a{color:var(--ao)}
+@media (prefers-reduced-motion:no-preference){@keyframes cpop{from{opacity:0;transform:translateY(4px)}}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <a class="skip" href="#feed" id="skip">作品へ飛ぶ</a>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">テストプレイ部：学生のゲームを5分でつまみ食い</h1>
 <div class="top"><a class="back" id="back" href="list.html" aria-label="作品一覧を見る"><span aria-hidden="true">▦</span> 作品一覧</a><span class="logo"><img src="assets/icon-192.png" alt="" width="28" height="28" style="vertical-align:middle;border-radius:50%;margin-right:6px"><span class="logo-t">テストプレイ部</span></span><span class="sp" style="flex:1"></span><span data-me></span></div>
 <div class="why" id="why" role="dialog" aria-label="どこが気になった？"><b>どこが気になった？</b><small>上の3つは、作った人に届きます（名前は出ません）</small>
-<button type="button" data-r="controls">🎮 操作がわかりにくい</button>
-<button type="button" data-r="heavy">🐢 重い・うまく動かない</button>
-<button type="button" data-r="fun">😐 おもしろさがわからなかった</button>
-<hr class="sep"><button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
+<button type="button" data-r="controls">操作がわかりにくい</button>
+<button type="button" data-r="heavy">重い・うまく動かない</button>
+<button type="button" data-r="fun">おもしろさがわからなかった</button>
+<hr class="sep"><button type="button" data-r="genre">好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
 <button type="button" class="x" data-r="">やめる</button></div>
 <main class="feed" id="feed" tabindex="-1" aria-label="作品のショート"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
 <div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span> <b class="lfi">最初の1本は投稿無料</b></span><button type="button" id="introX">OK</button></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
-  <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" id="pFull" hidden>⛶ 全画面</button><button type="button" class="fb" id="pFb">💬 感想</button></header>
+  <header><button type="button" id="pClose" aria-label="閉じる">✕ 閉じる</button><b id="pTitle"></b><button type="button" id="pFull" hidden>⛶ 全画面</button><button type="button" class="fb" id="pFb">感想</button></header>
   <p class="pnote" id="pNote" hidden>うまく動かないときは → <a id="pNoteA" href="#" target="_blank" rel="noopener">公開ページで遊ぶ</a></p>
   <div class="pbody" id="pBody"></div>
 </div>
 
 <div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
 
-<div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった">👍</button><button type="button" class="pick" data-a="hmm" aria-label="うーん">🤔</button><button type="button" class="go" data-a="fb">💬 感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
+<div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-7c1.6 0 2.6 1 2.6 2.6V9H19a2 2 0 012 2.3l-1 6.4A2 2 0 0118 19.5H7"/></svg></button><button type="button" class="pick" data-a="hmm" aria-label="うーん"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 100-18 9 9 0 000 18zM9 10v.6M15 10v.6M8.5 15.5c2.2-1.2 4.8-1.2 7 0"/></svg></button><button type="button" class="go" data-a="fb">感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
 
 <div class="toast stack" id="needPlay" role="status"><span id="needPlayText">先に遊んでみてね。遊んでからのほうが、いい感想になります</span><div class="btns"><button type="button" class="go" data-a="play">▶ 遊ぶ</button><button type="button" class="x" data-a="write">それでも書く</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
 
@@ -444,7 +478,7 @@ fieldset.err{outline:2px solid #B0301B}
 <div class="sheet-bg" id="loginBg">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lTitle">
     <h3 id="lTitle">感想を送るにはログインしてね</h3>
-    <p class="sub">遊ぶ・👍・🤔は、ログインなしでOK。感想を書くときだけ、ログインしてね（名前は運営にだけ見えます）。</p>
+    <p class="sub">遊ぶ・いいね・うーん は、ログインなしでOK。感想を書くときだけ、ログインしてね（名前は運営にだけ見えます）。</p>
     <div id="providers"></div>
     <div class="lform"><input type="text" id="lEmail" inputmode="email" autocomplete="email" placeholder="メールアドレス" aria-label="メールアドレス"><button class="btn" type="button" id="lSend">メールでログイン</button></div><div id="lNote"></div>
     <p class="msg" id="lMsg" aria-live="polite"></p>
@@ -471,13 +505,13 @@ fieldset.err{outline:2px solid #B0301B}
             <div class="chips c1" id="stem1" role="group" aria-labelledby="stemLab"></div>
             <div class="chips c2" id="stem2" role="group" aria-label="何について書く？" hidden></div>
             <p class="stemhint" id="stemHint" hidden>★は、作者が確かめたいこと</p></div>
-          <label for="free" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">一言（感想を自由に書く）</label><textarea id="free" maxlength="400" placeholder="🐛バグ／🤔違和感／😆楽しかった／😴やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
+          <label for="free" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">一言（感想を自由に書く）</label><textarea id="free" maxlength="400" placeholder="バグ／違和感／楽しかった／やめたくなった、なんでもOK"></textarea><div class="count" id="count">0文字</div>
         </div>
         <aside class="coach" id="coach" aria-label="感想のコーチ">
           <div class="cnotes" id="cNotes" aria-live="polite"></div>
           <p class="cundo" id="cUndo" hidden></p>
           <p class="cmsg" id="cMsg" role="status"></p>
-          <div class="cai"><button type="button" class="cbtn ai" id="aiBtn" disabled aria-describedby="aiWhy">🤖 AIに見てもらう</button><span class="cwhy" id="aiWhy"></span>
+          <div class="cai"><button type="button" class="cbtn ai" id="aiBtn" disabled aria-describedby="aiWhy">AIに見てもらう</button><span class="cwhy" id="aiWhy"></span>
             <p class="cwhy fail" id="aiFail" hidden></p><div id="aiOut" aria-live="polite"></div></div>
         </aside>
       </div>
@@ -574,6 +608,8 @@ document.getElementById('back').addEventListener('click',e=>{
 });
 
 const feed = $('feed'); feed.replaceChildren();
+const SVGP={up:'M7 11v9H4v-9zM7 11l4-7c1.6 0 2.6 1 2.6 2.6V9H19a2 2 0 012 2.3l-1 6.4A2 2 0 0118 19.5H7',hmm:'M12 21a9 9 0 100-18 9 9 0 000 18zM9 10v.6M15 10v.6M8.5 15.5c2.2-1.2 4.8-1.2 7 0',chat:'M4 5h16v11h-9l-5 4v-4H4z'};
+function svgI(k){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('width','22');s.setAttribute('height','22');s.setAttribute('fill','none');s.setAttribute('stroke','currentColor');s.setAttribute('stroke-width','2');s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');s.setAttribute('aria-hidden','true');s.setAttribute('class','li');const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',SVGP[k]);s.append(p);return s}
 function el(tag, attrs, ...kids){const n=document.createElement(tag);for(const k in (attrs||{})){const v=attrs[k];if(v==null||v===false)continue;if(k==='class')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?'':v)}for(const c of kids.flat()){if(c==null||c===false)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
 function isLocal(url){return !/^https?:/i.test(url)}
 // 箱（プレイヤー・感想シート・ログイン）が開いているあいだは、うしろを inert にして、Tab が箱の中だけを回るようにする
@@ -619,7 +655,7 @@ function chipsFor(g){
   if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},PLATNAME(g)+'用'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
   if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
-  return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null);
+  return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},g.minutes):null);
 }
 function refreshChips(slug){
   const g=GAMES.find(x=>x.slug===slug), sl=document.querySelector('.slide[data-slug="'+slug+'"]'), old=sl&&sl.querySelector('.chips');
@@ -641,8 +677,8 @@ order.forEach((g,idx)=>{
   media.addEventListener('click',()=>{ const sl=media.closest('.slide'); if(!sl) return; const on=sl.classList.toggle('paused'); if(media.tagName==='VIDEO'){ on?media.pause():media.play().catch(()=>{}) } });
   const chips = chipsFor(g);
   const r = reacts[g.slug]||'';
-  const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},'👍'),el('span',{class:'lb'},'いいね'));
-  const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
+  const likeB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='like'),'aria-label':'いいね',onclick:e=>react(g,'like',e.currentTarget)},el('span',{class:'ic'},svgI('up')),el('span',{class:'lb'},'いいね'));
+  const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},svgI('hmm')),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
     media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?(isDl(g)?'⬇ 公開ページへ':'▶ 遊ぶ'):PLATNAME(g)+'用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},playText(g)),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
@@ -657,13 +693,13 @@ order.forEach((g,idx)=>{
       el('button',{class:'bigplay'+(isDl(g)?' dl':'')+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},isDl(g)?playText(g):'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
       g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
       el('div',{class:'fbn'}),
-      el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'💬 感想を書く'),
+      el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'感想を書く'),
       el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
     el('div',{class:'rail'},
       whoBtn(g),
       el('button',{class:'rb play'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':canPlay(g)?(isDl(g)?'公開ページへ（ダウンロード）':'遊ぶ'):'遊ぶ（'+PLATNAME(g)+'用のゲームです）',onclick:()=>play(g)},el('span',{class:'ic'},isDl(g)?'⬇':'▶'),el('span',{class:'lb'},isDl(g)?'公開ページ':'遊ぶ')),
       likeB, hmmB,
-      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
+      el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},svgI('chat')),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
     (idx===0||!matchMedia('(pointer:coarse)').matches)?el('div',{class:'hint'},matchMedia('(pointer:coarse)').matches?'↑ 上にスワイプで次の作品':'↓で次へ・Spaceで遊ぶ'):null,
     g.rating==='r18'&&!age18()?ageCover():null);
@@ -781,7 +817,7 @@ function setReact(g,kind,btn,reason){
   if(cur) track(g,cur,reason);
   btn.parentElement.querySelectorAll('.rb[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(cur) btn.setAttribute('aria-pressed','true');
-  if(cur==='like') TPB.toast('👍 作った人に届けたよ',1500);
+  if(cur==='like') TPB.toast('作った人に届けたよ',1500);
   else if(cur==='hmm') TPB.toast(reason==='genre'?'教えてくれてありがとう。好みに合う作品を出しやすくするよ':'作った人に届けたよ（名前は出ません）',1500);
   else TPB.toast('取り消したよ',1200);
 }
@@ -939,7 +975,7 @@ const OPTS = {
   // 保存する値はデータベースの決まり（◎・○・△）のまま。画面には「はい／まあまあ／いいえ」を出す
   answer:[['◎ できた','はい'],['○ だいたい','まあまあ'],['△ いまいち','いいえ']]
 };
-const EMO = ['🐛バグ','🤔違和感','😆楽しかった','😴やめたくなった'];
+const EMO = ['バグ','違和感','楽しかった','やめたくなった'];
 const picks = {};
 document.querySelectorAll('#sheet fieldset[data-k]').forEach(fs=>{
   const k=fs.dataset.k, single=fs.hasAttribute('data-single'), box=fs.querySelector('.opts');
