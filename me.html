@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' blob: data: https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
@@ -213,7 +213,7 @@ function paneGames(pane){
         el('div',{class:'by'},new Date(s.created_at).toLocaleDateString('ja-JP')+(s.kind==='new'&&s.data.play_url?' ・ '+s.data.play_url:'')),
         s.kind==='new'&&s.data&&s.data.media_kind?el('div',null,el('span',{class:'chip'},({video:'動画あり',image:'画像あり',auto:'おまかせ'})[s.data.media_kind]||'おまかせ')):null,
         s.kind==='edit'&&s.data.note?el('div',null,s.data.note):null,
-        s.admin_note?el('div',null,'運営から：'+s.admin_note):null)) });
+        s.admin_note?el('div',{style:'white-space:pre-wrap;line-height:1.7'},'運営から：'+s.admin_note):null)) });
     pane.append(box);
   }
 }

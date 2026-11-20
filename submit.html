@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' blob: data: https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>作品を応募する｜テストプレイ部</title>
@@ -81,7 +81,7 @@
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
-  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
+  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',need_model_purpose:'用途と目的を書いてね',need_model_file:'モデルのファイルを選ぶか、見られるページのURLを入れてね',bad_model:'モデルの欄に、使えない値が入っているみたい。選びなおしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
   bad_size_mb:'容量の目安は、MBの数字だけで入れてね（例：25）',bad_fb_style:'ほしい感想の選びかたが合っていません。もう一度選んでね',bad_goal:'目指していることは60字までにしてね',bad_play_kind:'遊び方の選びかたが合っていません。もう一度選んでね',bad_embed:'itch.io の埋め込みコード（https://itch.io/embed-upload/数字 を含むもの）を貼りなおしてね。ダウンロード型には置けません',
   bad_download_url:'ダウンロード型のURLは、itch.io・Steam・BOOTH・GitHub の公開ページにしてね（exe や zip などのファイルへの直リンクは使えません）',bad_os:'対応OSを選びなおしてね',
   bad_media:'動画か画像の指定が合っていません。ファイルを選びなおしてね',media_missing:'動画か画像が見つかりませんでした。もう一度選んで送ってね'};
@@ -268,31 +268,100 @@ function newForm(){
     urlT.textContent=dl?'公開ページのURL ':'遊べるURL '; urlH.textContent=dl?'ダウンロードボタンがあるページ（itch.io・Steam・BOOTH・GitHub）':'ブラウザで開いてすぐ遊べるもの（unityroom・itch.io・GitHub Pagesなど）';
     f.play_url.placeholder=dl?'https://あなたのID.itch.io/ゲーム名':'https://unityroom.com/games/…'; platLabel.hidden=dl; if(dl) f.platform.value='pc' }
   pkRadios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setPK(e.target.value) }));
+  // ---- 何を応募する？（ゲーム／3Dモデル） ----
+  const TY=[['game','ゲーム','遊べるゲームを応募します。'],['model','3Dモデル','キャラ・小物・背景・アバターなどの3Dモデルを応募します。運営が中を開いて（AIの手も借りて）、目的に合っているかを見ます。']];
+  const tyRadios=TY.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:'subtype',value:o[0],checked:o[0]==='game'}),el('span',null,o[1])));
+  const tyDesc=el('p',{class:'hint','aria-live':'polite'},TY[0][2]);
+  const tySet=el('fieldset',{class:'mset',id:'tySet'},el('legend',null,'何を応募する？'),el('div',{class:'mopts',role:'presentation'},tyRadios),tyDesc);
+  // ---- 3Dモデルの欄 ----
+  const mf={
+    model_use:sel([['','選んでください'],['game_char','ゲームのキャラクター'],['game_prop','ゲームの小物・武器・アイテム'],['game_env','ゲームの背景・建物'],['vrc_avatar','VRChat のアバター'],['vtuber','配信（VTuber）用'],['portfolio','ポートフォリオ（見せるため）'],['practice','練習作品'],['other','その他']]),
+    model_target:sel([['','決めていない'],['sp','スマホ'],['pc','PC'],['vr','VR（Quest など）'],['console','家庭用ゲーム機'],['render','静止画・動画（レンダリング）']]),
+    model_purpose:el('textarea',{maxlength:200,placeholder:'例：スマホのアクションゲームで動かす主人公。軽さと見た目のバランスが合っているか見てほしい'}),
+    model_check:el('input',{type:'text',maxlength:120,placeholder:'例：顔のポリゴンの割り方／手の骨の入れ方'}),
+    model_budget:el('input',{type:'text',inputmode:'numeric',maxlength:7,placeholder:'例：15000'}),
+    model_tools:el('input',{type:'text',maxlength:60,placeholder:'例：Blender、Substance Painter'}),
+    model_style:el('input',{type:'text',maxlength:40,placeholder:'例：トゥーン／リアル／ローポリ'}),
+    model_hours:el('input',{type:'text',maxlength:20,placeholder:'例：20時間'}),
+    model_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://sketchfab.com/…（ファイルを送らないとき）'}),
+  };
+  const RIGO=[['yes','入れた'],['no','入れていない'],['planned','これから']], ANIMO=[['yes','ある'],['no','ない']];
+  const radioSet=(name,opts,legend,def)=>el('fieldset',{class:'mset'},el('legend',null,legend),el('div',{class:'mopts',role:'presentation'},opts.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name,value:o[0],checked:o[0]===def}),el('span',null,o[1])))));
+  const rigSet=radioSet('mrig',RIGO,'リグ（骨）','no'), animSet=radioSet('manim',ANIMO,'アニメーション','no');
+  const MAXM=52428800, model={file:null,kit:null,stats:null};
+  const mdIn=el('input',{type:'file',accept:'.glb,.vrm,model/gltf-binary','aria-label':'3Dモデルのファイル（.glb / .vrm）',style:'position:absolute;width:1px;height:1px;opacity:0;overflow:hidden'});
+  const mdPick=el('label',{class:'mpick',style:'position:relative;display:inline-flex;width:fit-content;align-items:center;min-height:44px;padding:6px 16px;border:2px solid var(--shu);border-radius:6px;color:var(--shu-ink,#A5311A);font-weight:700;cursor:pointer'},'ファイルを選ぶ（.glb / .vrm）',mdIn);
+  const mdErr=el('p',{class:'merr',role:'alert'}), mdInfo=el('div',{class:'hint',style:'margin:0','aria-live':'polite'});
+  const mdView=el('div',{style:'width:100%;aspect-ratio:4/3;max-height:360px;background:#EEEAE2;border-radius:6px;display:none'});
+  const mdClear=el('button',{type:'button',hidden:true},'ファイルをはずす');
+  function mdReset(){ if(model.kit){ try{model.kit.dispose()}catch(_){} } model.file=null; model.kit=null; model.stats=null; mdIn.value=''; mdInfo.textContent=''; mdView.style.display='none'; mdView.replaceChildren(); mdClear.hidden=true }
+  let kitP=null;
+  function loadKit(){ if(window.TPBModel) return Promise.resolve(); if(kitP) return kitP;
+    kitP=new Promise((ok,ng)=>{ const sc=document.createElement('script'); sc.src='assets/vendor/model-kit.js'; sc.onload=ok; sc.onerror=()=>{kitP=null;ng(new Error('kit'))}; document.head.append(sc) }); return kitP }
+  const KERR={compressed:'Draco・meshopt で圧縮したファイルは開けません。Blender なら書き出しの「圧縮」をオフにして .glb で書き出してね',ktx2:'KTX2（Basis）のテクスチャは開けません。png か jpg のテクスチャで書き出してね',not_glb:'.glb（または .vrm）のファイルを選んでね。FBX・OBJ は、Blender で開いて「glTF 2.0（.glb）」で書き出せます'};
+  mdIn.addEventListener('change',async()=>{
+    const file=mdIn.files&&mdIn.files[0]; mdReset(); mdErr.textContent=''; if(!file) return;
+    if(!/\.(glb|vrm)$/i.test(file.name)){ mdErr.textContent=KERR.not_glb; mdIn.value=''; return }
+    if(file.size>MAXM){ mdErr.textContent='50MBまでです（いま '+(file.size/1048576).toFixed(1)+'MB）。テクスチャを2048以下にすると小さくなります。大きいままなら、ギガファイル便のURLをメモに書いてね'; mdIn.value=''; return }
+    mdInfo.textContent='開いて確かめています…';
+    try{
+      await loadKit(); const kit=await TPBModel.load(await file.arrayBuffer());
+      model.file=file; model.kit=kit; model.stats=kit.stats; const st=kit.stats;
+      mdView.style.display='block'; kit.mount(mdView);
+      mdInfo.replaceChildren(el('b',null,file.name+'　'+(file.size/1048576).toFixed(1)+'MB'),el('br'),
+        '三角形 '+st.triangles.toLocaleString()+' ・ テクスチャ '+st.textures+'枚'+(st.texture_max?'（いちばん大きいもの '+st.texture_max+'）':'')+' ・ 骨 '+st.bones+'本 ・ 表情 '+st.morph_targets+'個 ・ アニメ '+st.animations.length+'個 ・ 高さ '+st.size_m.y+'m');
+      mdClear.hidden=false;
+      if(st.bones&&rigSet.querySelector('input[value=no]').checked) rigSet.querySelector('input[value=yes]').checked=true;
+      if(st.animations.length) animSet.querySelector('input[value=yes]').checked=true;
+    }catch(e){ mdReset(); mdErr.textContent=KERR[e&&e.message]||'このファイルは開けませんでした。Blender などで .glb に書き出しなおしてね'; }
+  });
+  mdClear.addEventListener('click',()=>{ mdReset(); mdIn.focus() });
+  const modelPanel=el('div',{id:'modelPanel',hidden:true,style:'display:grid;gap:14px'},
+    el('div',{class:'two'},L('用途',true,'',mf.model_use),L('使う場所',false,'',mf.model_target)),
+    L('目的',true,'何のためのモデル？ どう使う？ 200字まで',mf.model_purpose),
+    L('特に見てほしいところ',false,'',mf.model_check),
+    el('fieldset',{class:'mset'},el('legend',null,'モデルのファイル ',el('small',{style:'font-weight:400;color:var(--muted);font-size:12px'},'.glb / .vrm・50MBまで（ファイルか下のURLのどちらか）')),
+      el('p',{class:'hint'},'FBX・OBJ は、Blender で開いて「glTF 2.0（.glb）」で書き出してね。選ぶとここで開いて、ぐるぐる回して確かめられます（ファイルは運営だけが見られる場所に置きます）。'),
+      mdPick,mdErr,mdInfo,mdView,el('div',{class:'mgo'},mdClear)),
+    L('見られるページのURL',false,'Sketchfab など。ファイルを送らないとき',mf.model_url),
+    el('div',{class:'two'},rigSet,animSet),
+    el('div',{class:'two'},L('三角形の上限（決めていれば）',false,'',mf.model_budget),L('使ったソフト',false,'',mf.model_tools)),
+    el('div',{class:'two'},L('作風',false,'',mf.model_style),L('制作時間',false,'',mf.model_hours)));
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit','aria-describedby':'ptShort'},'応募する'); NEWBTN.length=0; NEWBTN.push(btn);
   // 応募の前に確かめること（利用規約の「作品の権利」）。チェックしないと送れない
   const agree=el('input',{type:'checkbox',name:'agree',required:true,style:'width:20px;height:20px;margin:2px 0 0;flex:none'});
   const agreeLab=el('label',{style:'display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.6;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card)'},agree,
     el('span',null,'自分（またはチーム）で作った作品で、絵・音・フォントなどの素材も、使ってよいものだけを使っています。',el('a',{href:'./terms.html#works',target:'_blank',rel:'noopener'},'利用規約'),'に同意して応募します。'));
+  const G=[]; let oneLab;
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
+    tySet,
     fbSet,
     L('この作品で目指していること',false,'任意。60字まで。AIコーチも、これを見て感想を整えます',f.goal),
     L('作品名',true,'',f.title),
-    pkSet,
-    urlLabel,
-    L('一言',true,'何をするゲーム？',f.oneliner),
-    el('div',{class:'two'},platLabel,L('遊ぶ時間の目安',false,'',f.minutes)),
-    el('div',{class:'two'},L('確かめたいこと',false,'',f.check),L('どこまでできてる？',false,'',f.stage)),
-    L('容量の目安（MB、任意）',false,'ダウンロードして遊ぶ重さ。10MB以下だと、スマホで「すぐ遊べる」の印がつきます',mbIn),
-    L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
-    el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
+    G[0]=pkSet,
+    G[1]=urlLabel,
+    oneLab=L('一言',true,'何をするゲーム？',f.oneliner),
+    modelPanel,
+    G[2]=el('div',{class:'two'},platLabel,L('遊ぶ時間の目安',false,'',f.minutes)),
+    G[3]=el('div',{class:'two'},L('確かめたいこと',false,'',f.check),L('どこまでできてる？',false,'',f.stage)),
+    G[4]=L('容量の目安（MB、任意）',false,'ダウンロードして遊ぶ重さ。10MB以下だと、スマホで「すぐ遊べる」の印がつきます',mbIn),
+    G[5]=L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
+    G[6]=el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
     L('年齢制限',false,'',f.rating),
     mSet,
     L('画像のURL',false,'任意。なければ運営が作ります',f.image_url),
     L('メモ',false,'運営に伝えたいこと。プレイ動画のURLがあれば、ここに書いてもOK（任意）',f.note),
     agreeLab,
     msg, btn, el('p',{class:'msg err',id:'ptShort','aria-live':'polite'}));
+  let subType='game';
+  function setType(t){ subType=t; const isM=t==='model'; tyDesc.textContent=TY.find(o=>o[0]===t)[2];
+    G.forEach(n=>{ if(n) n.hidden=isM }); modelPanel.hidden=!isM;
+    oneLab.querySelector('small')?oneLab.querySelector('small').textContent=isM?'どんなモデル？':'何をするゲーム？':null;
+    mSet.querySelector('legend').firstChild.textContent=isM?'ショートに出すもの（ターンテーブル動画がおすすめ） ':'ショートに出すもの ';
+    pv.hidden=isM; if(isM) loadKit().catch(()=>{}) }
+  tyRadios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setType(e.target.value); drawPv() }));
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
   // 見本：押せるものではないと分かるよう、うすくして「見本」の印をつける。スマホでは畳んでおく
   const pv=el('details',{class:'card pv'}); const pvBody=el('div',{class:'body pvbody','aria-hidden':'true'});
@@ -310,11 +379,46 @@ function newForm(){
       v('controls')?el('div',{class:'by'},'操作：'+v('controls')):null,
       v('question')?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),v('question')):null].filter(Boolean)) }
   form.addEventListener('input',drawPv); form.addEventListener('change',drawPv); drawPv();
+  async function sendModel(d0){
+    const d={type:'model',title:d0.title,oneliner:d0.oneliner,rating:d0.rating,note:d0.note,goal:d0.goal};
+    for(const k in mf){ const v=mf[k].value.trim(); if(v) d[k]=v }
+    d.model_rig=(form.querySelector('input[name=mrig]:checked')||{}).value||'no'; d.model_anim=(form.querySelector('input[name=manim]:checked')||{}).value||'no';
+    d.fb_style=(form.querySelector('input[name=fbstyle]:checked')||{}).value||'both';
+    if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（どんなモデル？）を入れてね'); return }
+    if(!d.model_use){ T.fieldErr(form,mf.model_use,'用途を選んでね'); return }
+    if(!d.model_purpose){ T.fieldErr(form,mf.model_purpose,'目的を書いてね（何のためのモデル？ どう使う？）'); return }
+    if(d.model_budget&&!/^[0-9]{1,7}$/.test(d.model_budget)){ T.fieldErr(form,mf.model_budget,'三角形の上限は数字だけで入れてね（例：15000）'); return }
+    if(d.model_url&&!/^https:\/\/\S+$/.test(d.model_url)){ T.fieldErr(form,mf.model_url,'URLは https:// から始まるものを入れてね'); return }
+    if(!model.file&&!d.model_url){ mdErr.textContent='モデルのファイルを選ぶか、見られるページのURLを入れてね'; mdPick.scrollIntoView({block:'center'}); return }
+    const ups=[];
+    btn.disabled=true; msg.className='msg';
+    try{
+      if(model.file){
+        msg.textContent='モデルのファイルを送っています…';
+        const path=SES.user.id+'/'+Date.now()+'.'+(/\.vrm$/i.test(model.file.name)?'vrm':'glb');
+        const up=await sb.storage.from('submission-media').upload(path,model.file,{upsert:false,contentType:'model/gltf-binary'});
+        if(up.error){ btn.disabled=false; msg.className='msg err'; msg.textContent=upErr(up.error); return }
+        ups.push(path); d.model_path=path;
+      }
+      d.media_kind=media.kind;
+      if(media.kind!=='auto'&&media.file){
+        msg.textContent='動画・画像を送っています…';
+        const p2=SES.user.id+'/'+Date.now()+'.'+EXT[media.file.type];
+        const up2=await sb.storage.from('submission-media').upload(p2,media.file,{upsert:false,contentType:media.file.type});
+        if(up2.error){ btn.disabled=false; msg.className='msg err'; msg.textContent=upErr(up2.error); if(ups.length) await sb.storage.from('submission-media').remove(ups).catch(()=>{}); return }
+        ups.push(p2); d.media_path=p2;
+      } else d.media_kind='auto';
+    }catch(e){ btn.disabled=false; msg.className='msg err'; msg.textContent='送れなかった…電波のいいところでもう一度試してね'; return }
+    const r=await send('new',null,d,btn,msg);
+    if(!r&&ups.length){ try{ await sb.storage.from('submission-media').remove(ups) }catch(e){} }
+    if(r) done('運営がモデルを開いて確かめてから、コメントを返します（マイページの「運営から」に届きます）。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。':''));
+  }
   form.addEventListener('submit',async e=>{ e.preventDefault();
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
     T.clearFieldErr(form); msg.textContent='';
     if(!d.title){ T.fieldErr(form,f.title,'作品名を入れてね'); return }
     if(!agree.checked){ T.fieldErr(form,agree,'作品の権利と利用規約を確かめて、チェックを入れてね'); return }
+    if(subType==='model') return sendModel(d);
     if(!d.play_url){ T.fieldErr(form,f.play_url,'遊べるURLを入れてね'); return }
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }

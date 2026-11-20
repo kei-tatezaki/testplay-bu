@@ -847,7 +847,7 @@ CSP = "; ".join([
     "font-src 'self' https://fonts.gstatic.com",
     f"img-src 'self' data: blob: https:",
     f"media-src 'self' blob: {SB_HOST}",
-    f"connect-src 'self' {SB_HOST} wss://jwrzqaxuvmdbroemenng.supabase.co",
+    f"connect-src 'self' blob: data: {SB_HOST} wss://jwrzqaxuvmdbroemenng.supabase.co",
     "frame-src 'self' https:",
     "worker-src 'self'",
     "manifest-src 'self'",
@@ -1406,7 +1406,8 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <li><b>回数の数え表</b>：荒らしや大量の送信を止めるため、感想・いいねなどを送ったとき、1時間ごとの回数を「端末のID」「アカウント」「ネットワークの指紋」ごとに数えます。ネットワークの指紋は、IPアドレスに秘密の文字列と日付をまぜて作った16文字で、IPアドレスそのものは保存しません。日付が変わると別の指紋になり、数え表は2日で消えます</li>
 <li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>
 <li><b>プロフィール</b>：自分で書いた名前・ID・ひとこと・リンク・アイコンの画像（作った人だけ。だれでも見られます）</li>
-<li><b>作品の応募</b>：応募フォームに書いた内容と、送ったアカウント</li>
+<li><b>作品の応募</b>：応募フォームに書いた内容と、送ったアカウント。3Dモデルのファイル（.glb / .vrm）は、運営だけが見られる場所に置きます</li>
+<li><b>3Dモデルの確認</b>：運営がモデルを確かめるとき、ブラウザでモデルを開いて測った数字（ポリゴン数・テクスチャ・骨など）と、自動で撮った画像（正面・横・後ろなど6枚まで）、フォームに書いた用途・目的を、Anthropic の Claude API に送り、見立てをもらいます。モデルのファイルそのものは送りません。見立ては運営だけが見られる場所に、新しい5回分まで残します</li>
 <li><b>報告</b>：「報告する」で送った内容と、端末ごとのID（ログインしていればアカウントも）</li>
 </ul>
 <h2>使い道</h2>
