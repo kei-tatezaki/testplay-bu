@@ -20,6 +20,28 @@
 .lfbox{}.lfbox h2{margin:0;font-size:22px;color:var(--shu-ink)}.lfbox .big{font-size:18px;font-weight:700;margin:0}
 .req{color:#d2553f;font-size:12px;font-weight:700;margin-left:2px}
 .form label>span>small{display:block;margin-top:2px;line-height:1.5}
+/* ショートに出すもの */
+.mset{border:0;margin:0;padding:0;min-width:0;display:grid;gap:10px}
+.mset>legend{padding:0;font-size:14px;font-weight:700;margin-bottom:2px}
+.mset .hint{margin:0;font-size:12px;color:var(--muted);line-height:1.6}
+.mopts{display:flex;flex-wrap:wrap;gap:8px}
+.form label.mopt{display:inline-flex;position:relative;font-weight:700;margin:0}
+.mopt input{position:absolute;opacity:0;width:100%;height:100%;inset:0;margin:0;cursor:pointer}
+.mopt span{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;border:1px solid rgba(42,36,30,.14);border-radius:3px;background:var(--karashi-soft);color:var(--ink);box-shadow:0 1px 0 rgba(42,36,30,.18);font-size:14px;font-weight:700;line-height:1.3}
+.mopt:nth-child(2) span{background:var(--ao-soft)}.mopt:nth-child(3) span{background:var(--shu-soft)}
+.mopt input:checked+span{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mopt input:focus-visible+span{outline:3px solid var(--ao);outline-offset:2px}
+.mpanel{display:grid;gap:10px;padding:12px;border:1px dashed var(--muted);border-radius:4px;background:var(--paper)}
+.mpanel[hidden]{display:none}
+.mpanel input[type=file]{font:inherit;font-size:14px;max-width:100%;min-height:44px}
+.mprev{display:grid;gap:6px;justify-items:start}.mprev[hidden]{display:none}
+.mprev video,.mprev img,.pvmedia video,.pvmedia img{display:block;max-width:100%;max-height:340px;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;object-fit:contain}
+.pvmedia{margin-bottom:8px}.pvmedia:empty{display:none}
+.merr{margin:0;font-size:13px;color:#8C2A12;font-weight:700;line-height:1.6}.merr:empty{display:none}
+.mtip{margin:0;font-size:12px;color:var(--ink);background:var(--karashi-soft);padding:6px 10px;border-radius:2px;line-height:1.6}.mtip[hidden]{display:none}
+.mtip ul{margin:2px 0 0;padding-left:1.3em}
+.mgo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.mgo button{font:inherit;font-size:13px;min-height:44px;padding:4px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +62,17 @@
 const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.replaceChildren.bind(main); main.replaceChildren=(...a)=>_rc(...a.filter(x=>x!=null&&x!==false)); const sb=T.sb();
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
-  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります'};
+  banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
+  bad_media:'動画か画像の指定が合っていません。ファイルを選びなおしてね',media_missing:'動画か画像が見つかりませんでした。もう一度選んで送ってね'};
+const MAXB=2097152, MAXSEC=15.5, VT=['video/mp4','video/webm'], IT=['image/jpeg','image/png','image/webp'], EXT={'video/mp4':'mp4','video/webm':'webm','image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+const BIGMSG='2MBより大きいです。短く切る・解像度を下げると小さくなります';
+function upErr(e){ const m=String((e&&(e.message||e.error))||'').toLowerCase();
+  if(/exceed|too large|payload|413|maximum allowed/.test(m)) return BIGMSG;
+  if(/mime|not supported|invalid.*type/.test(m)) return 'このファイルの形式は使えません。動画は mp4 / webm、画像は jpg / png / webp にしてね';
+  if(/row-level|policy|violates|unauthorized|403/.test(m)) return '置けませんでした。アップロードできるのは1人10個までです。古いものが残っているときは、運営にDiscordで声をかけてね';
+  if(/exists|duplicate/.test(m)) return '同じ名前のファイルがあります。もう一度送ってね';
+  if(/jwt|token|not_logged/.test(m)) return ERR.not_logged_in;
+  return 'ファイルを送れなかった…時間をおいてもう一度試してね' }
 let SES=null, PTS=null;  // PTS：自分のポイント（my_points）。取れなかったら null のまま（ポイントなしの今までどおりに動く）
 const ptBox=el('section',{class:'card',id:'ptBox',hidden:true});
 async function loadPts(){ try{ const r=await sb.rpc('my_points'); PTS=r.error?null:(r.data||null) }catch(e){ PTS=null } }
@@ -117,6 +149,50 @@ function newForm(){
     image_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://…（なければ空でOK）'}),
     note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと、プレイ動画のURLなど（なければ空でOK）'})
   };
+  // ---- ショートに出すもの ----
+  const media={kind:'auto',file:null,url:'',dur:0};
+  const mName='mediakind', mErr=el('p',{class:'merr',role:'alert'}), mTip=el('div',{class:'mtip',hidden:true}), mPrev=el('div',{class:'mprev',hidden:true}), mInfo=el('p',{class:'hint',style:'margin:0'});
+  const pvMedia=el('div',{class:'pvmedia'});
+  const fileIn=el('input',{type:'file',id:'mediaFile','aria-label':'動画か画像のファイル'});
+  const mHint=el('p',{class:'hint'});
+  const mRemove=el('button',{type:'button',id:'mediaClear'},'ファイルをはずす');
+  const mPanel=el('div',{class:'mpanel',id:'mediaPanel',hidden:true},mHint,fileIn,mErr,mTip,mPrev,el('div',{class:'mgo'},mRemove));
+  const MOPT=[['auto','運営におまかせ','運営が遊んで、プレイ動画を撮ります。自分で用意しなくて大丈夫です。'],
+    ['video','動画をのせる','mp4 / webm・2MBまで・15秒まで。音は出しません（無音で流れます）。'],
+    ['image','画像をのせる','jpg / png / webp・2MBまで。縦長がおすすめですが、9:16〜4:3 どれでもOK。切らずにそのまま表示します。']];
+  const radios=MOPT.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:mName,value:o[0],checked:o[0]==='auto'}),el('span',null,o[1])));
+  const mDesc=el('p',{class:'hint',id:'mediaDesc','aria-live':'polite'},MOPT[0][2]);
+  const mSet=el('fieldset',{class:'mset',id:'mediaSet'},el('legend',null,'ショートに出すもの ',el('small',{style:'font-weight:400;color:var(--muted);font-size:12px'},'任意')),
+    el('div',{class:'mopts',role:'presentation'},radios),mDesc,mPanel);
+  function mReset(keepErr){ if(media.url) URL.revokeObjectURL(media.url); media.file=null; media.url=''; media.dur=0; fileIn.value=''; mPrev.replaceChildren(); mPrev.hidden=true; mInfo.textContent=''; pvMedia.replaceChildren(); if(!keepErr){ mErr.textContent=''; mTip.hidden=true; mTip.replaceChildren() } mRemove.hidden=true }
+  function mBig(){ mErr.textContent=BIGMSG; mTip.replaceChildren('縮めかた：',el('ul',null,el('li',null,'スマホの編集で、15秒以内に切る'),el('li',null,'書き出しを 720p（解像度を下げる）にする'),el('li',null,'画像は、サイズを小さくして jpg で書き出す'))); mTip.hidden=false }
+  function setKind(k){ media.kind=k; mReset(); const o=MOPT.find(x=>x[0]===k); mDesc.textContent=o[2];
+    mPanel.hidden=k==='auto'; fileIn.accept=k==='video'?'video/mp4,video/webm,.mp4,.webm':k==='image'?'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp':'';
+    mHint.textContent=k==='video'?'ファイルを選ぶと、ここで長さと大きさを確かめます。':k==='image'?'ファイルを選ぶと、ここで大きさを確かめます。':'' }
+  radios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setKind(e.target.value); drawPv() }));
+  mRemove.addEventListener('click',()=>{ mReset(); fileIn.focus() });
+  fileIn.addEventListener('change',async()=>{
+    const file=fileIn.files&&fileIn.files[0]; mReset(); if(!file) return;
+    const isV=media.kind==='video', okT=isV?VT:IT;
+    if(!okT.includes(file.type)){ mErr.textContent=isV?'動画は mp4 か webm にしてね（いまのファイル：'+(file.type||'不明')+'）':'画像は jpg・png・webp にしてね（いまのファイル：'+(file.type||'不明')+'）'; fileIn.value=''; return }
+    if(file.size>MAXB){ mBig(); fileIn.value=''; return }
+    const url=URL.createObjectURL(file);
+    try{
+      if(isV){
+        const v=el('video',{muted:true,loop:true,playsinline:true,preload:'metadata'}); v.muted=true;
+        await new Promise((ok,ng)=>{ v.onloadedmetadata=ok; v.onerror=()=>ng(new Error('load')); v.src=url; setTimeout(()=>ng(new Error('time')),8000) });
+        if(!(v.duration<=MAXSEC)){ URL.revokeObjectURL(url); mErr.textContent='長さは15秒までです（いま '+(isFinite(v.duration)?v.duration.toFixed(1)+'秒':'不明')+'）。スマホの編集で15秒以内に切ってね'; fileIn.value=''; return }
+        media.dur=v.duration; v.autoplay=true; v.setAttribute('aria-label','選んだ動画のプレビュー（音なし）'); mPrev.replaceChildren(v); v.play&&v.play().catch(()=>{});
+        mInfo.textContent=file.name+'　'+(file.size/1048576).toFixed(2)+'MB ・ '+v.duration.toFixed(1)+'秒';
+      }else{
+        const im=el('img',{alt:'選んだ画像のプレビュー'});
+        await new Promise((ok,ng)=>{ im.onload=ok; im.onerror=()=>ng(new Error('load')); im.src=url });
+        mPrev.replaceChildren(im); mInfo.textContent=file.name+'　'+(file.size/1048576).toFixed(2)+'MB ・ '+im.naturalWidth+'×'+im.naturalHeight;
+      }
+    }catch(e){ URL.revokeObjectURL(url); mErr.textContent=isV?'この動画は読み込めませんでした。mp4（H.264）か webm で書き出しなおしてね':'この画像は読み込めませんでした。別のファイルを選んでね'; fileIn.value=''; return }
+    media.file=file; media.url=url; mPrev.append(mInfo); mPrev.hidden=false; mRemove.hidden=false; drawPv();
+  });
+  setKind('auto'); mRemove.hidden=true;
   const L=(t,req,hint,input)=>el('label',null,el('span',null,t+' ',req?el('span',{class:'req'},'必須'):null,hint?el('small',null,hint):null),input);
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit','aria-describedby':'ptShort'},'応募する'); NEWBTN.length=0; NEWBTN.push(btn);
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
@@ -130,8 +206,9 @@ function newForm(){
     L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
     el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
     L('年齢制限',false,'',f.rating),
+    mSet,
     L('画像のURL',false,'任意。なければ運営が作ります',f.image_url),
-    L('メモ',false,'プレイ動画は運営が撮ります。自分で用意したときは、ここにURLを書いてね（任意）',f.note),
+    L('メモ',false,'運営に伝えたいこと。プレイ動画のURLがあれば、ここに書いてもOK（任意）',f.note),
     el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
     msg, btn, el('p',{class:'msg err',id:'ptShort','aria-live':'polite'}));
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
@@ -141,7 +218,8 @@ function newForm(){
   pv.open=matchMedia('(min-width:521px)').matches;
   const PL={both:'PC・スマホ',pc:'PCのみ',sp:'スマホのみ'};
   function drawPv(){ const v=k=>f[k].value.trim();
-    pvBody.replaceChildren(...[el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),
+    pvMedia.replaceChildren(); if(media.file){ const m=media.kind==='video'?el('video',{muted:true,loop:true,autoplay:true,playsinline:true,src:media.url}):el('img',{src:media.url,alt:''}); if(media.kind==='video') m.muted=true; pvMedia.append(m) }
+    pvBody.replaceChildren(...[el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),pvMedia.childNodes.length?el('div',{class:'by'},media.kind==='video'?'ショートに出る動画':'ショートに出る画像'):null,pvMedia,
       el('h2',null,v('title')||'（作品名）'),
       el('p',{class:'one'},v('oneliner')||'（一言）'),
       el('div',{class:'row'},el('span',{class:'btn'},'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
@@ -157,7 +235,17 @@ function newForm(){
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
+    d.media_kind=media.kind; let upPath='';
+    if(media.kind!=='auto'){
+      if(!media.file){ mErr.textContent=media.kind==='video'?'動画のファイルを選んでね。のせないときは「運営におまかせ」にしてね':'画像のファイルを選んでね。のせないときは「運営におまかせ」にしてね'; fileIn.focus(); mSet.scrollIntoView({block:'center'}); return }
+      btn.disabled=true; msg.className='msg'; msg.textContent='動画・画像を送っています…';
+      upPath=SES.user.id+'/'+Date.now()+'.'+EXT[media.file.type];
+      const up=await sb.storage.from('submission-media').upload(upPath,media.file,{upsert:false,contentType:media.file.type});
+      if(up.error){ btn.disabled=false; msg.className='msg err'; msg.textContent=upErr(up.error); mErr.textContent=msg.textContent; if(msg.textContent===BIGMSG) mBig(); return }
+      d.media_kind=media.kind; d.media_path=upPath; mErr.textContent='';
+    }
     const r=await send('new',null,d,btn,msg);
+    if(!r&&upPath){ try{ await sb.storage.from('submission-media').remove([upPath]) }catch(e){} }
     if(r) done('運営が遊んで確かめてから、作品ページを作ります。'+(r==='ok_free'?'最初の1本は投稿無料です。ポイントはつかっていません。（見送りになったときは、無料がもう一度使えます）':(PTS&&!PTS.is_admin?PTS.submit_cost+'pt つかいました（見送りになったときは返します）。':''))) });
   // 見本：スマホ・タブレットは、作品名の欄の上に置く（畳んでおく）。PC（1200px以上）は左の列（付箋・ポイントの下）に置く
   const sideCol=el('div',{class:'sidecol'},lfBox,ptBox), mq=matchMedia('(min-width:1200px)');
@@ -170,7 +258,7 @@ async function start(){
   if(!SES){ drawLf(); main.replaceChildren(lfBox,T.loginBox('作品を応募するにはログインしてね','だれの作品かわかるように、応募はログインした人だけにしています。ログインすると、遊んだ人の数や感想を自分で見られるようになります。'),
     el('section',{class:'card'},el('div',{class:'body'},el('h2',{style:'font-size:16px;margin:0'},'フォームで聞かれること'),
       el('ul',{style:'margin:0;padding-left:1.2em;font-size:14px'},el('li',null,el('b',null,'必須：'),'作品名 ／ 遊べるURL ／ 一言（何をするゲーム？）'),
-        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'プレイ動画は、運営が撮ります（自分で用意してもOK）')),
+        el('li',null,'選ぶだけ：対応端末・遊ぶ時間・確かめたいこと・どこまでできているか・年齢制限'),el('li',null,'書かなくてもOK：遊んだ人への質問・ジャンル・操作・画像のURL（なければ運営が作ります）・メモ'),el('li',null,'ショートに出す動画か画像は、選べます（2MBまで・任意）。選ばなければ、運営がプレイ動画を撮ります')),
       el('p',{class:'muted',style:'margin:0;font-size:13px'},'2〜3分で書けます。URLがまだない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'へ。'))),
     el('p',{class:'muted',style:'text-align:center;font-size:14px;margin:0'},'ログインしたくない人は、',el('a',{href:window.TPB_DATA.discord,target:'_blank',rel:'noopener'},'Discord'),'で運営に声をかけてもOK。')); return }
   if(!editSlug) await loadPts();
