@@ -296,3 +296,14 @@
 - **creators**：左に今の説明、右に sticky の「応募する」カード。**submit**（1200px以上）：左に付箋・ポイント・見本、右にフォーム（1200px未満は今までどおり1列）。作品ページ：作品（左）と感想（右、sticky）。privacy：780px幅。
 - 確かめ：Playwright（google-chrome）。390×844・360×740（スマホ）は変更前後のスクリーンショットが一致（me のハンドル表示を除く）。1440×900・1280×800・1024×768・820×1180 で11ページ、横スクロールなし・pageerror 0。文字色はAA（最小 4.87）。
 - スクリーンショット：`/home/claude/shots/pc_*.png`（short・list・listpop・me・profile・creators・submit・privacy・game・404 × 1440/1280/1024/820、`pc_list_filtered_1440.png`・`pc_list_hover_1440.png`）。
+
+
+## ショートに出す動画・画像を、応募のときに選べるようにした（画面側）
+
+- **DB（`supabase/014_submission_media.sql`、適用は運営）**：非公開バケット `submission-media`（2MB・mp4/webm/jpg/png/webp・`<uid>/<ファイル名>`・1人10個）、`submission_send` に `media_kind`（video/image/auto）と `media_path`。読んでから実装した。
+- **submit.html**：「ショートに出すもの」欄（付箋のラジオ3つ：運営におまかせ（初期）／動画をのせる／画像をのせる）。ファイルを選ぶと type・size（2MB）を確認、動画は `<video>` で長さを読み15.5秒超は弾く。ミュート・ループのプレビュー、見本プレビューにも反映。2MB超は「2MBより大きいです…」＋縮めかたのヒント。送信は、先に `storage.upload(uid/タイムスタンプ.拡張子, {upsert:false, contentType})` → `submission_send`（media_kind / media_path つき）。rpc が失敗したらアップロードを `remove`。エラー文は日本語（too_large・mime・10個上限・media_missing・bad_media）。
+- **admin.html「応募」**：media_kind を表示。media_path があれば `createSignedUrl(path,600)` で小さくプレビュー＋ダウンロードリンク。「載せた」などにしたあと「ファイルを消す」（二度押し方式、4秒で戻る。confirm/alert なし）。
+- **me.html**：応募一覧に「動画あり／画像あり／おまかせ」のチップ。**creators**（build.py）：「必要なのは3つ」の枠に一行。
+- **scripts/fetch_submission_media.py**：署名付きURL＋slug → 動画は `clips/<slug>.mp4`（ffmpeg で無音・長辺960px以下・15秒以内・2MB以下、超えたらビットレートを下げて再エンコード）、画像は `og/<slug>.<拡張子>`。games.json は書き換えず、足す行（`"clip"` / `"cover"`）を表示するだけ。README に使い方。
+- 確かめ：Playwright（google-chrome）390×844・1440×900。ラジオ3つ、2MB超、15秒超、gif 拒否、動画・画像のプレビューと見本、送信成功、rpc 失敗でのアップロード後片付け、upload 413 の文言、ファイル未選択の案内、admin（プレビュー・二度押し削除）、me のチップ。pageerror 0・横スクロールなし。書き込みはすべて route モック（storage・rpc）。エンコードは ok.webm・大きい mp4・17秒超の mp4 で手元確認。
+- スクリーンショット：`/home/claude/shots/media_*.png`（auto／big／long／video／image／video_pv／image_pv／upfail／done／admin／me × 390・1440）。

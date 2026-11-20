@@ -54,6 +54,15 @@
 ゲームのページの上の部分（運営サンプルの印・題名・説明・操作の説明）は、撮るときだけCSSで隠して、遊んでいる画面だけを撮る。
 録画用のスクリプトは `scripts/record_clips.py`（`python3 scripts/record_clips.py jump` のように作品を選べる）。
 
+## 応募で届いた動画・画像を取りこむ（運営用）
+
+作者は応募のとき、ショートに出す動画（mp4/webm・15秒・2MB）か画像（jpg/png/webp・2MB）を選べます（Supabase の非公開バケット `submission-media`）。載せると決めたら：
+
+1. 管理ページ「応募」タブの「ダウンロード（10分だけ有効）」のリンクをコピーする
+2. `python3 scripts/fetch_submission_media.py '<コピーしたURL>' <slug>`（動画は `clips/<slug>.mp4`、画像は `og/<slug>.<拡張子>` に保存。動画は無音・長辺960px以下・15秒以内・2MB以下に直す。ffmpeg が要る）
+3. 表示された1行（`"clip": …` か `"cover": …`）を games.json の該当作品に足し、`python3 build.py` → commit / push（games.json は自動では書き換えません）
+4. 管理ページの「ファイルを消す」（二度押し）で、バケットのファイルを消す
+
 ## データベース（Supabase）
 
 `supabase/001`〜`013` を番号順に SQL Editor で実行する。009 がプロフィール・アイコン画像・報告・応募。010 は `admin_exists()`（管理者がいるかだけを返す。admin.html で、管理者でない人に「管理者にする」を出さないため。未適用でも、管理者がいるものとして動く）。
