@@ -158,6 +158,8 @@
     ov.remove(); if (lastFocus && lastFocus.focus) try { lastFocus.focus() } catch (e) {}
   }
   T.closeOverlay = closeOverlay;
+  // 中央（スマホでは下から）に出す箱。スタンプカードなどが使う。Esc・「戻る」・Tab の回り方は、ほかの箱と同じ
+  T.dialog = function (box, anchor) { return overlay("dialog", box, anchor) };
   document.addEventListener("keydown", function (e) {
     var ov = document.getElementById("tpbOv"); if (!ov) return;
     if (e.key === "Escape") { e.stopPropagation(); closeOverlay(); return }
@@ -192,6 +194,7 @@
     box.append(el("div", { class: "tpb-mt" }, g.title));
     if (!opt.inFeed) box.append(mi("▶", "ショートで見る", { href: BASE + "?g=" + slug }));
     if (!opt.inPage) box.append(mi("📄", "作品ページを見る", { href: BASE + "games/" + slug + "/" }));
+    box.append(mi("📅", "今日のスタンプカード" + (T.mission ? "（" + T.mission.counts().n + "/3）" : ""), { onclick: function () { if (T.mission) T.mission.openCard(btn); else location.href = BASE + "me.html#stamp" } }));
     var who = mi("👤", "作った人を見る", { href: "#" }); who.hidden = true; box.append(who);
     box.append(mi("🔗", "共有する（リンクをコピー）", { onclick: function () { closeOverlay(); T.share(g.title + "｜テストプレイ部", url) } }));
     var own = el("div", { hidden: true },
@@ -352,6 +355,7 @@
     me: '<circle cx="12" cy="8.5" r="4" fill="currentColor"/><path d="M4.5 20c.6-4 3.8-6 7.5-6s6.9 2 7.5 6z" fill="currentColor"/>',
     creators: '<path d="M4 20l1.2-4.6L15.6 5a1.8 1.8 0 0 1 2.6 0l.8.8a1.8 1.8 0 0 1 0 2.6L8.6 18.8z" fill="currentColor"/>',
     submit: '<path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" fill="currentColor"/>',
+    stamp: '<rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 9.5h16M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="14.6" r="2.6" fill="currentColor"/>',
     discord: '<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="currentColor"/>'
   };
   function icon(k) { var s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ic"); s.setAttribute("aria-hidden", "true"); s.innerHTML = IC[k]; return s }
@@ -368,8 +372,8 @@
   T.chrome = function () {
     var b = document.body; if (!b || b.hasAttribute("data-noside") || document.getElementById("tpbSide")) return;
     var cur = current(), disc = (window.TPB_DATA && window.TPB_DATA.discord) || "";
-    function item(k, href, label, ext) {
-      var a = el("a", { href: href, title: label, "aria-label": label, "aria-current": k === cur ? "page" : null, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, icon(k), el("span", { class: "lb" }, label));
+    function item(k, href, label, ext, badge) {
+      var a = el("a", { href: href, title: badge ? "今日のスタンプカード" : label, "aria-label": badge ? "今日のスタンプカード" : label, "aria-current": k === cur ? "page" : null, target: ext ? "_blank" : null, rel: ext ? "noopener" : null, "data-ms-open": badge ? "" : null }, icon(k), el("span", { class: "lb" }, label), badge ? el("span", { class: "ms-nb", "data-ms-count": "" }) : null);
       return a;
     }
     var main = document.querySelector("main"), target = "#feed";
@@ -380,7 +384,7 @@
       skip,
       el("a", { class: "sd-brand", href: BASE, "aria-label": "テストプレイ部のトップ（ショート）", title: "テストプレイ部" }, el("img", { src: BASE + "assets/icon-192.png", alt: "", width: 40, height: 40 }), el("span", null, "テストプレイ部")),
       el("nav", { "aria-label": "メニュー" },
-        item("short", BASE, "ショート"), item("list", BASE + "list.html", "作品一覧"), item("me", BASE + "me.html", "マイページ"),
+        item("short", BASE, "ショート"), item("list", BASE + "list.html", "作品一覧"), item("stamp", BASE + "me.html#stamp", "スタンプカード", false, true), item("me", BASE + "me.html", "マイページ"),
         el("hr"),
         item("creators", BASE + "creators.html", "作品を載せたい人へ"), item("submit", BASE + "submit.html", "作品を応募する"),
         disc ? item("discord", disc, "Discordに参加する", true) : null),
@@ -564,6 +568,10 @@
       case "submission": return "作品を応募した" + (x.label ? "（" + x.label + "）" : "");
       case "submission_refund": return "応募が見送りになったので返った" + (x.label ? "（" + x.label + "）" : "");
       case "admin_adjust": return "運営から" + (x.note ? "：" + x.note : "");
+      case "mission_feedback": return "今日のミッション：40字以上の感想";
+      case "mission_fresh": return "今日のミッション：感想が少ない作品に感想";
+      case "mission_all": return "今日のミッション：3つそろえたボーナス";
+      case "mission_revoked": return "感想が非表示になったので、ミッションの分を取り消し";
     }
     return "";
   };

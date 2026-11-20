@@ -51,6 +51,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
+<script src="assets/mission.js"></script>
 <script>
 (function(){
 "use strict";
@@ -65,7 +66,7 @@ async function start(){
   SES=sb?await T.session():null;
   if(!SES){
     main.replaceChildren(T.loginBox('ログイン','ログインすると、プロフィールを作ったり、送った感想を見返したり、自分の作品を応募したりできます。遊ぶだけならログインはいりません。'),
-      playedOnly());
+      stampBox(), playedOnly());
     return;
   }
   const [p, mine, stats] = await Promise.all([
@@ -74,7 +75,7 @@ async function start(){
   PROFILE=p; MINE=mine||[]; STATS={}; (stats||[]).forEach(r=>STATS[r.game_slug]=r);
   if(p) T.store.set('me',{name:p.name,avatar_url:p.avatar_url||'',handle:p.handle});
   if(location.hash==='#edit'||!PROFILE) TAB='edit';
-  if(location.hash==='#fb') TAB='fb'; if(location.hash==='#pt') TAB='pt'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
+  if(location.hash==='#fb') TAB='fb'; if(location.hash==='#pt') TAB='pt'; if(location.hash==='#stamp') TAB='stamp'; if(location.hash==='#played') TAB='played'; if(location.hash==='#games') TAB='games';
   render();
   // PCの本人カードに出すポイント（取れなかったら出さない。スマホでは隠れている）
   try{ const r=await sb.rpc('my_points'); if(r&&r.data){ PTS=r.data; fillPts() } }catch(e){}
@@ -88,7 +89,7 @@ function playedOnly(){
 function fillPts(){ const n=document.querySelector('.mepts'); if(!n) return; n.replaceChildren(); if(PTS&&typeof PTS.balance==='number') n.append(el('b',null,PTS.balance+'pt'),'いまのポイント') }
 function render(){
   main.classList.add('cols');
-  const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['pt','ポイント'],['edit','プロフィール']];
+  const tabs=[['games','自分の作品'],['played','遊んだ作品'],['fb','送った感想'],['pt','ポイント'],['stamp','スタンプ'],['edit','プロフィール']];
   const pane=el('div',{class:'pane',id:'pane',role:'tabpanel'});
   const head=el('section',{class:'card'},el('div',{class:'body mehead'},
     T.avatar({name:nameOf(),avatar:PROFILE&&PROFILE.avatar_url},64),
@@ -107,9 +108,18 @@ function render(){
     e.preventDefault(); TAB=ks[i]; history.replaceState(null,'','#'+TAB); render(); const b=document.getElementById('tab-'+TAB); if(b) b.focus() });
   main.replaceChildren(el('div',{class:'sidecol'},head),el('div',{class:'maincol'},bar,pane));
   fillPts();
-  ({games:paneGames,played:panePlayed,fb:paneFb,pt:panePoints,edit:paneEdit})[TAB](pane);
+  { const tb=document.getElementById('tab-'+TAB); if(tb&&bar.scrollWidth>bar.clientWidth) bar.scrollLeft=Math.max(0,tb.offsetLeft-(bar.clientWidth-tb.offsetWidth)/2) }   // 横にはみ出すとき、選んでいるタブを見える位置に
+  ({games:paneGames,played:panePlayed,fb:paneFb,pt:panePoints,stamp:paneStamp,edit:paneEdit})[TAB](pane);
 }
 
+// ---- 今日のスタンプカード（assets/mission.js。ポイントはデータベースが決めた値を見せるだけ） ----
+function stampBox(){
+  const M=T.mission, box=el('section',{class:'card msc ms-inline',id:'stampCard','aria-label':'今日のスタンプカード'});
+  if(!M){ box.append(el('p',{class:'note'},'スタンプカードを読み込めませんでした。ページを開きなおしてね。')); return box }
+  M.draw(box,{}); M.refresh().then(()=>{ if(box.isConnected) M.draw(box,{}) });
+  return box;
+}
+function paneStamp(pane){ pane.append(stampBox()) }
 // ---- 自分の作品 ----
 async function paneGames(pane){
   const games=MINE.map(T.game).filter(Boolean);
