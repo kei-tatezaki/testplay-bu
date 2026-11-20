@@ -40,10 +40,10 @@ button{font:inherit;color:inherit}
 .feed{height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
 .slide{position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:grid;place-items:center;overflow:hidden;overflow:clip;max-width:560px;margin:0 auto;background:#000}
 .slide{background:var(--bgc,#000)}
-.slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center top}
+.slide .media{position:absolute;left:0;right:0;top:calc(64px + env(safe-area-inset-top));width:100%;height:calc(100% - 64px - 46%);object-fit:contain;object-position:center}
 /* 動画のおき場：上のバーから、題名などの上まで。幅いっぱいに置き、縦長に近いときは画面いっぱい（cover）、そうでなければ真ん中に大きく置く。あいたところは、ぼかした背景 */
 .slide{--vt:calc(60px + env(safe-area-inset-top));--vb:var(--info,200px)}
-.slide video.media{object-fit:contain;object-position:center top;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
+.slide video.media{object-fit:contain;object-position:center;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
 .slide video.media.cover{object-fit:cover}
 .side{position:fixed;left:0;top:0;bottom:0;width:calc(50% - 300px);max-width:300px;z-index:10;display:none;align-content:start;gap:4px;padding:76px 16px 16px 20px}
 .side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;min-height:44px;border-radius:10px}
@@ -58,7 +58,7 @@ button{font:inherit;color:inherit}
 .slide .bgfx{position:absolute;inset:0;transform:scale(1.2);background:center/cover no-repeat;filter:blur(32px) brightness(.35) saturate(.6);pointer-events:none}
 .slide .shade{position:absolute;inset:auto 0 0 0;height:min(75%,calc(var(--info,200px) + 90px));background:linear-gradient(transparent,#000c 35%,#000f 65%);pointer-events:none}
 .slide .media{cursor:pointer}
-.vtag{position:absolute;z-index:1;left:8px;top:calc(var(--vt) + 6px);pointer-events:none;font-size:12px;font-weight:700;line-height:1.4;padding:0 6px;border-radius:5px;background:#0008;color:#ffffffd9;border:1px solid #ffffff30}
+.vtag{position:absolute;z-index:1;left:calc(8px + var(--tagx,0px));top:calc(var(--vt) + 6px + var(--tagy,0px));pointer-events:none;font-size:12px;font-weight:700;line-height:1.4;padding:0 6px;border-radius:5px;background:#0008;color:#ffffffd9;border:1px solid #ffffff30}
 /* 真ん中の「▶ 遊ぶ」は、その作品が最初に画面に入ってから1.5秒だけ出す */
 .playhint{position:absolute;z-index:1;pointer-events:none;display:grid;place-items:center;opacity:0}
 .playhint span{background:#0006;color:#ffffffcc;border:1px solid #ffffff55;border-radius:999px;padding:8px 18px;font-size:15px;font-weight:700;backdrop-filter:blur(3px)}
@@ -583,7 +583,7 @@ function fitVideo(v){ if(!v.videoWidth||!v.clientWidth) return; const a=v.client
 document.querySelectorAll('.slide video.media').forEach(v=>{ v.addEventListener('loadedmetadata',()=>fitVideo(v)); if(v.readyState>=1) fitVideo(v) });
 addEventListener('resize',()=>document.querySelectorAll('.slide video.media').forEach(fitVideo));
 // PC：動画が枠の中で真ん中に置かれて余白ができるとき、「プレイ動画」の印を動画の左上に重ねる
-function placeTag(sl){ const m=sl.querySelector('video.media,img.media'), t=sl.querySelector('.vtag'); if(!m||!t) return; const pc=matchMedia('(hover:hover) and (pointer:fine) and (min-width:900px)').matches; const w=m.videoWidth||m.naturalWidth, h=m.videoHeight||m.naturalHeight; if(!pc||!w||!m.clientWidth){ sl.style.removeProperty('--tagx'); sl.style.removeProperty('--tagy'); return } const k=Math.min(m.clientWidth/w,m.clientHeight/h); sl.style.setProperty('--tagx',Math.max(0,(m.clientWidth-w*k)/2)+'px'); sl.style.setProperty('--tagy',Math.max(0,(m.clientHeight-h*k)/2)+'px') }
+function placeTag(sl){ const m=sl.querySelector('video.media,img.media'), t=sl.querySelector('.vtag'); if(!m||!t) return; const pc=true; const w=m.videoWidth||m.naturalWidth, h=m.videoHeight||m.naturalHeight; if(!pc||!w||!m.clientWidth){ sl.style.removeProperty('--tagx'); sl.style.removeProperty('--tagy'); return } const k=Math.min(m.clientWidth/w,m.clientHeight/h); sl.style.setProperty('--tagx',Math.max(0,(m.clientWidth-w*k)/2)+'px'); sl.style.setProperty('--tagy',Math.max(0,(m.clientHeight-h*k)/2)+'px') }
 document.querySelectorAll('.slide[data-slug]').forEach(sl=>{ const m=sl.querySelector('video.media,img.media'); if(!m) return; m.addEventListener('loadedmetadata',()=>placeTag(sl)); m.addEventListener('load',()=>placeTag(sl)); placeTag(sl) });
 addEventListener('resize',()=>document.querySelectorAll('.slide[data-slug]').forEach(placeTag));
 const hintIO = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('hinting'); hintIO.unobserve(e.target) } }),{threshold:.6});
