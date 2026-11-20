@@ -361,6 +361,8 @@ fieldset.err{outline:2px solid #B0301B}
  #introSample{display:inline!important}
  #introSample[hidden]{display:none!important}
 }
+.bigplay.off,.rb.play.off .ic,.pauselay button.off{background:#8a8580 !important;color:#f1ede6 !important;box-shadow:0 3px 0 #5f5a55 !important;filter:none}
+.rb.play.off .lb{opacity:.7}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -457,7 +459,8 @@ let CLIENT = store.get('cid',''); if(!CLIENT){ CLIENT = (crypto.randomUUID?crypt
 
 // この端末で遊べるか（スマホ＝タッチ中心で画面が小さい）
 const DEVICE = (matchMedia('(pointer:coarse)').matches && Math.min(screen.width,screen.height) < 820) ? 'sp' : 'pc';
-const canPlay = g => !g.platform || g.platform==='both' || g.platform===DEVICE;
+// スマホで動く作品はPCでも動くので、遊べないのは「スマホでPC用の作品」だけ
+const canPlay = g => g.platform!=='pc' || DEVICE==='pc';
 const PLAT = {pc:'PCのみ', sp:'スマホのみ', both:'PC・スマホ'};
 // 並び順：この端末で遊べる作品が先 → まだ遊んでいない作品が先 → 新しい順（games.jsonの後ろほど新しい）
 // 並び順は assets/rank.js（作る人優先：新作・感想が少ない作品を上げつつ、その人の好みも見る）
@@ -538,7 +541,7 @@ function byLine(g){
 function chipsFor(g){
   const imp=[];
   if(g.rating==='r15'||g.rating==='r18') imp.push(el('span',{class:'chip rate-'+g.rating},g.rating.toUpperCase()));
-  if(g.platform&&!canPlay(g)) imp.push(el('span',{class:'chip warn'},g.platform==='pc'?'PCで遊べます':'スマホで遊べます'));
+  if(!canPlay(g)) imp.push(el('span',{class:'chip warn'},'PC用'));
   if(!played.has(g.slug)&&canPlay(g)) imp.push(el('span',{class:'chip new'},'まだ遊んでない'));
   if(statsKnown&&!sent.has(g.slug)&&((STATS[g.slug]||{}).feedbacks||0)===0) imp.push(el('span',{class:'chip check'},TPB.ptOk()?'感想まだ0件・+'+TPB.ptFor(0)+'pt':'感想まだ0件・最初の1人に'));
   return el('div',{class:'chips'},imp.slice(0,2),g.minutes?el('span',{class:'chip'},'⏱ '+g.minutes):null);
@@ -567,7 +570,7 @@ order.forEach((g,idx)=>{
   const hmmB = el('button',{class:'rb',type:'button','aria-pressed':String(r==='hmm'),'aria-label':'うーん',onclick:e=>react(g,'hmm',e.currentTarget)},el('span',{class:'ic'},'🤔'),el('span',{class:'lb'},'うーん'));
   const slide = el('section',{class:'slide',style:'--bgc:'+(g.clip&&g.rating!=='r18'?'#0c1016':(g.bg||'#000')),'data-slug':g.slug,'aria-label':g.title},
     g.clip&&g.rating!=='r18'?el('div',{class:'bgfx','aria-hidden':'true',style:"background-color:"+(g.bg||'#0c1016')+";background-image:url('"+(g.cover||('og/'+g.slug+'.png'))+"')"}):null,
-    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,'▶ 遊ぶ')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button','aria-label':g.title+' を遊ぶ',onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
+    media, el('div',{class:'playhint','aria-hidden':'true'},el('span',null,canPlay(g)?'▶ 遊ぶ':'PC用のゲーム')), el('div',{class:'pauselay'},el('div',null,el('button',{type:'button',class:canPlay(g)?'':'off','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（PC用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'),el('small',null,g.clip?'もう一度タップで再生':''))), g.clip&&g.rating!=='r18'?el('span',{class:'vtag','aria-hidden':'true'},'プレイ動画'):null, el('div',{class:'shade'}),
     el('div',{class:'info'},
       el('h2',null,g.title),
       byLine(g),
@@ -576,14 +579,14 @@ order.forEach((g,idx)=>{
     el('div',{class:'vpanel'},
       el('h2',null,g.title), byLine(g),
       el('p',null,g.oneliner),
-      el('button',{class:'bigplay',type:'button','aria-label':g.title+' を遊ぶ',onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
+      el('button',{class:'bigplay'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':g.title+(canPlay(g)?' を遊ぶ':'（PC用のゲームです）'),onclick:()=>play(g)},'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
       g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
       el('div',{class:'fbn'}),
       el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'💬 感想を書く'),
       el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
     el('div',{class:'rail'},
       whoBtn(g),
-      el('button',{class:'rb play',type:'button','aria-label':'遊ぶ',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),el('span',{class:'lb'},'遊ぶ')),
+      el('button',{class:'rb play'+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':canPlay(g)?'遊ぶ':'遊ぶ（PC用のゲームです）',onclick:()=>play(g)},el('span',{class:'ic'},'▶'),el('span',{class:'lb'},'遊ぶ')),
       likeB, hmmB,
       el('button',{class:'rb fbb',type:'button','aria-label':'感想',onclick:()=>wantFeedback(g)},el('span',{class:'ic'},'💬'),el('span',{class:'lb'},sent.has(g.slug)?'送った':'感想')),
       el('button',{class:'rb',type:'button','aria-label':g.title+' のメニュー（共有・報告など）','aria-haspopup':'menu',onclick:e=>{ hideAfter(); TPB.openMenu(e.currentTarget,g.slug,{inFeed:true}) }},el('span',{class:'ic',style:'font-weight:800'},'⋮'),el('span',{class:'lb'},'メニュー'))),
@@ -734,7 +737,7 @@ function openPlayer(g){
 }
 function play(g){
   if(g.rating==='r18'&&!age18()) return;
-  if(!canPlay(g) && !confirmWrongDevice(g)) return;
+  if(!canPlay(g)){ wrongDevice(g); return }
   closeIntro(); hideAfter(); hideNeedPlay();
   markPlayed(g); track(g,'play'); current=g;
   playing={slug:g.slug,t:Date.now(),external:!isLocal(g.play)};
@@ -753,12 +756,9 @@ function endPlay(){
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && playing && playing.external) endPlay() });
 addEventListener('pagehide',()=>{ if(playing && !playing.external) endPlay() });
 let warned={};
-function confirmWrongDevice(g){
-  if(warned[g.slug]) return true;
-  warned[g.slug]=true;
-  $('toastText').textContent = (g.platform==='pc'?'この作品はPC向けです。':'この作品はスマホ向けです。')+'もう一度「遊ぶ」を押すとそのまま開きます';
+function wrongDevice(g){
+  $('toastText').textContent = 'これはPC用のゲームだよ！PCでこのサイトを開いて遊んでね';
   $('toastGo').hidden=true; showNote('toast',3500);
-  return false;
 }
 function closePlayer(){ if(!$('player').classList.contains('open')) return; $('player').classList.remove('open'); syncInert(); $('pBody').replaceChildren(); TPB.layer.close('player'); endPlay();
   if(playerOpener&&playerOpener.isConnected) try{ playerOpener.focus({preventScroll:true}) }catch(_){}
