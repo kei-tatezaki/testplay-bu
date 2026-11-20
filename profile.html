@@ -61,7 +61,7 @@ function notFound(){
 }
 if(!/^[a-z0-9_]{3,20}$/.test(u)){ notFound(); return }
 const st=T.creators[u]||null;
-const [live, statsRows] = await Promise.all([T.pub('profile_get',{h:u}), T.pub('game_stats',{since_days:3650})]);
+const [live, statsRows, likeRows] = await Promise.all([T.pub('profile_get',{h:u}), T.pub('game_stats',{since_days:3650}), T.pub('public_likes',{p_handle:u})]);
 if(!st && !live){ notFound(); return }
 const p={
   handle:u, name:(live&&live.name)||(st&&st.name)||u, bio:(live&&live.bio)||(st&&st.bio)||'',
@@ -81,6 +81,12 @@ const acts=el('div',{class:'acts'},
 const links=p.links.map(l=>{ const lab=linkLabel(l); return lab&&/^https:\/\//.test(l)?el('a',{href:l,target:'_blank',rel:'noopener nofollow ugc'},lab,el('span',{'aria-hidden':'true',class:'muted'},'↗')):null }).filter(Boolean);
 const vid=ytId(p.video);
 const grid=el('div',{class:'grid'}, games.map(g=>T.tile(g,stats[g.slug],{inProfile:true})));
+// いいねした作品（本人が公開をオンにしたときだけ public_likes が返す）
+const likeGames=(Array.isArray(likeRows)?likeRows:[]).map(r=>T.game(r.game_slug)).filter(Boolean);
+const likesNote=el('p',{class:'by',style:'margin:0'});
+const likesBox=el('div',{style:'display:grid;gap:12px',hidden:!likeGames.length},
+  el('div',{class:'sec'},el('h2',null,'いいねした作品'),el('span',{class:'by'},likeGames.length+'本')),likesNote,
+  el('div',{class:'grid'},likeGames.map(g=>T.tile(g,stats[g.slug]))));
 main.classList.add('cols');
 main.replaceChildren(el('div',{class:'sidecol'},
   el('section',{class:'phead'},
@@ -102,11 +108,15 @@ el('div',{class:'maincol'},
     const box=e.currentTarget.parentElement; box.replaceChildren(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+vid+'?autoplay=1',title:p.name+' の紹介動画',allow:'encrypted-media; picture-in-picture; autoplay',allowfullscreen:true}));
   }},el('span',{class:'vp','aria-hidden':'true'},'▶'),el('span',{class:'vt'},'紹介動画を見る'),el('small',null,'押すとYouTubeから読み込みます'))):null,
   el('div',{class:'sec'},el('h2',null,'作品'),el('span',{class:'by'},games.length?'画像をタップするとショートで見られます':'')),
-  games.length?grid:T.emptyBoard('まだ作品はありません。公開されたら、ここに並びます')));
+  games.length?grid:T.emptyBoard('まだ作品はありません。公開されたら、ここに並びます'),
+  likesBox));
 // 自分のプロフィールなら「編集」を出す
 if(T.maybeLoggedIn()){
   const s=await T.session(); if(!s) return;
-  try{ const mine=(await T.sb().rpc('my_profile')).data; if(mine&&mine.handle===u) acts.prepend(el('a',{class:'btn',href:'./me.html#edit'},'プロフィールを編集')) }catch(e){}
+  try{ const mine=(await T.sb().rpc('my_profile')).data; if(mine&&mine.handle===u){ acts.prepend(el('a',{class:'btn',href:'./me.html#edit'},'プロフィールを編集'));
+    // 本人が見ているときだけ、公開の状態と切りかえへのリンクを出す
+    likesBox.hidden=false; likesNote.replaceChildren(mine.likes_public?'いいねした作品は公開中です（あなたにだけ出る案内です）。 ':'いいねした作品は公開していません。公開するまで、ほかの人には見えません。 ',el('a',{href:'./me.html#edit'},mine.likes_public?'非公開に切りかえる':'公開に切りかえる'));
+    if(!likeGames.length) likesBox.querySelector('.grid').replaceWith(el('p',{class:'by',style:'margin:0'},mine.likes_public?'まだ、いいねした作品はありません。':'ここには、公開をオンにするといいねした作品が並びます。')) } }catch(e){}
 }
 })();
 </script>
