@@ -79,7 +79,7 @@ function analyze(text,terms){
 function mount(o){
   const {ta,el,SB_URL,SB_KEY,getSession}=o, $=id=>document.getElementById(id);
   const stem1=$('stem1'), stem2=$('stem2'), hint=$('stemHint'), notesBox=$('cNotes'), undoBox=$('cUndo'), aiBtn=$('aiBtn'), aiWhy=$('aiWhy'), aiOut=$('aiOut'), cMsg=$('cMsg');
-  let game=null, terms=[], kind=null, timer=0, sig='', undo=null, prevLen=0, typed=0, busy=false, ai=null, hot=new Set(), applyN=0;
+  let game=null, terms=[], kind=null, timer=0, sig='', undo=null, prevLen=0, typed=0, busy=false, ai=null, hot=new Set(), autoN=0, autoTimer=0, lastSent=null, stopped=false, pauseUntil=0, loginHinted=false;
 
   // ---- 感想欄の書きかえ（すべてここを通る。自分で打った字には数えない） ----
   function setText(v,sel){
@@ -126,8 +126,9 @@ function mount(o){
     const list=analyze(ta.value,terms), s=JSON.stringify(list.map(n=>[n.kind,n.msg,n.acts.map(a=>a.label)]));
     if(s===sig) return; sig=s; renderNotes(list);
   }
-  function renderNotes(list){
+  function renderNotes(list,reading){
     notesBox.textContent='';
+    if(reading||busy) notesBox.append(el('p',{class:'cnote n-wait',role:'status'},'AIが読んでいます…'));
     list.forEach((n,i)=>{
       const card=el('div',{class:'cnote n-'+n.kind+(i%2?' alt':'')},el('p',{},n.msg));
       if(n.acts.length){ const row=el('div',{class:'cacts'}); n.acts.forEach(a=>row.append(el('button',{type:'button',class:'cbtn',onclick:()=>doAct(a)},a.label))); card.append(row) }
@@ -153,39 +154,60 @@ function mount(o){
     }
     typed=Math.min(typed,now);
     clearTimeout(timer); timer=setTimeout(run,e.isTrusted?600:0);
-    syncAi();
+    syncAi(); scheduleAuto();
   });
 
-  // ---- AIのコーチ ----
+  // ---- AIのコーチ（ふだんは自動。ボタンは「もう一度見てもらう」） ----
+  const AUTO_WAIT=2500, AUTO_DIFF=15, AUTO_MAX=5;
+  function changedChars(a,b){ a=[...a]; b=[...b]; let i=0; while(i<a.length&&i<b.length&&a[i]===b[i]) i++; let j=0; while(j<a.length-i&&j<b.length-i&&a[a.length-1-j]===b[b.length-1-j]) j++; return Math.max(a.length,b.length)-i-j }
+  const submitting=()=>{ const sb=ta.form&&ta.form.querySelector('button[type=submit]'); return !!(sb&&sb.disabled) };
   async function syncAi(){
     const ses=await getSession(); const left=MIN_AI-typed;
     let why='';
-    if(!ses) why='ログインすると使えます';
-    else if(left>0) why='自分で'+MIN_AI+'字以上書くと押せるよ（あと'+left+'字）';
-    aiBtn.disabled=busy||!!why; aiBtn.setAttribute('aria-busy',String(busy));
-    if(!busy) aiWhy.textContent=why||(ai&&typeof ai.remaining==='number'?'今日あと'+ai.remaining+'回':'');
+    if(!ses){ why='ログインするとAIがアドバイスします'; if(!loginHinted){ loginHinted=true } else why='' }
+    else if(stopped) why='';
+    else if(Date.now()<pauseUntil) why='少し間をあけてね（1分ほど）';
+    else if(left>0) why='自分で'+MIN_AI+'字以上書くと、AIが読みます（あと'+left+'字）';
+    aiBtn.disabled=busy||!ses||stopped||left>0||Date.now()<pauseUntil; aiBtn.setAttribute('aria-busy',String(busy));
+    if(!busy) aiWhy.textContent=why||(ai&&typeof ai.remaining==='number'?'今日あと'+ai.remaining+'回':(autoN<AUTO_MAX?'書き終えると、AIが自動で読みます':''));
   }
-  aiBtn.addEventListener('click',async()=>{
-    if(busy||typed<MIN_AI) return;
-    const ses=await getSession(); if(!ses||!ses.access_token){ aiFail(); return }
-    busy=true; aiBtn.disabled=true; aiBtn.textContent='見ています…'; aiWhy.textContent='';
+  function scheduleAuto(){
+    clearTimeout(autoTimer); if(!game) return;
+    autoTimer=setTimeout(async()=>{
+      if(!game||busy||stopped||autoN>=AUTO_MAX||typed<MIN_AI||Date.now()<pauseUntil||submitting()||ta.matches(':disabled')) return;
+      const ses=await getSession(); if(!ses||!ses.access_token) return;
+      const t=ta.value.trim();
+      if(lastSent!==null&&changedChars(lastSent,t)<AUTO_DIFF) return;
+      autoN++; callAi(false);
+    },AUTO_WAIT);
+  }
+  aiBtn.addEventListener('click',()=>{ if(!busy&&typed>=MIN_AI) callAi(true) });
+  async function callAi(manual){
+    const ses=await getSession(); if(!ses||!ses.access_token){ syncAi(); return }
+    busy=true; aiBtn.disabled=true; aiBtn.textContent='見ています…'; aiWhy.textContent=''; aiFailBox(false); renderNotes(analyze(ta.value,terms),true);
     const ctrl=new AbortController(), tm=setTimeout(()=>ctrl.abort(),AI_TIMEOUT), g=game;
-    const text=ta.value.trim();
-    let res=null, st=0;
+    const text=ta.value.trim(); lastSent=text;
+    let res=null, st=0, body=null;
     try{
       const r=await fetch(SB_URL+'/functions/v1/feedback-coach',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+ses.access_token,apikey:SB_KEY},
         body:JSON.stringify({slug:g.slug,title:g.title,genre:g.genre||'',description:[g.oneliner].concat(g.highlights||[]).filter(Boolean).join(' / '),check:g.check||'',text})});
-      st=r.status; if(r.ok) res=await r.json();
+      st=r.status; try{ body=await r.json() }catch(e){ body=null } if(r.ok) res=body;
     }catch(e){ res=null }
-    clearTimeout(tm); busy=false; aiBtn.textContent='🤖 AIに見てもらう';
+    clearTimeout(tm); busy=false; aiBtn.textContent='🤖 '+(ai?'もう一度見てもらう':'AIに見てもらう');
     if(game!==g) return;     // 待っているあいだにシートを閉じた
-    const okShape=res&&Array.isArray(res.comments);
-    if(!okShape){ ai=null; aiFail(st); renderAi(); renderNotes(analyze(ta.value,terms)); syncAi(); return }
+    if(!(res&&Array.isArray(res.comments))){
+      const why=(body&&body.reason)||(body&&body.error)||'';
+      let t='いまはAIコーチを使えません。ルールのコーチだけで続けられます';
+      if(st===429&&why==='too_fast'){ pauseUntil=Date.now()+((body&&body.retry_after)||60)*1000; t='続けて使いすぎたみたい。1分ほどあけてね'; setTimeout(()=>{ if(game===g) syncAi() },((body&&body.retry_after)||60)*1000+100) }
+      else if(st===429){ stopped=true; t='今日のAIコーチはここまで（ルールのコーチは使えます）' }
+      else if(st===403){ stopped=true }
+      aiFailBox(true,t); renderNotes(analyze(ta.value,terms)); syncAi(); return }
     ai={notes:res.comments.filter(c=>c&&typeof c.message==='string'&&c.message).slice(0,3).map(c=>({kind:String(c.kind||'idea'),message:c.message})),rewrite:(typeof res.rewrite==='string'&&res.rewrite.trim())?res.rewrite.trim():null,remaining:typeof res.remaining==='number'?res.remaining:null};
-    aiFailBox(false); sig=''; run(); renderAi(); syncAi();
-  });
+    aiBtn.textContent='🤖 もう一度見てもらう';
+    if(ai.remaining!==null&&ai.remaining<=0){ stopped=true; aiFailBox(true,'今日のAIコーチはここまで（ルールのコーチは使えます）') }
+    sig=''; run(); renderAi(); syncAi();
+  }
   function aiFailBox(on,t){ $('aiFail').hidden=!on; $('aiFail').textContent=on?(t||'いまはAIコーチを使えません。ルールのコーチだけで続けられます'):'' }
-  function aiFail(st){ aiFailBox(true,st===429?'いまはAIコーチを使えません（今日の回数を使い切ったかも）':null); syncAi() }
   function renderAi(){
     aiOut.textContent='';
     if(!ai||!ai.rewrite) return;
@@ -196,12 +218,12 @@ function mount(o){
 
   // ---- シートを開くたび ----
   function open(g){
-    game=g; terms=gameTerms(g); hot=hotTopics(g); kind=null; undo=null; ai=null; typed=0; prevLen=nsLen(ta.value); sig=''; busy=false;
+    game=g; terms=gameTerms(g); hot=hotTopics(g); kind=null; undo=null; ai=null; typed=0; prevLen=nsLen(ta.value); sig=''; busy=false; autoN=0; lastSent=null; stopped=false; pauseUntil=0; clearTimeout(autoTimer);
     clearTimeout(timer); stem1.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed','false')); stem2.hidden=true; paintHot(); hint.hidden=true;
     notesBox.textContent=''; aiOut.textContent=''; aiFailBox(false); cMsg.textContent=''; showUndo(); aiBtn.textContent='🤖 AIに見てもらう'; syncAi();
   }
-  function close(){ game=null; clearTimeout(timer) }
-  return {open,close,analyze:t=>analyze(t,terms),terms:()=>terms.slice()};
+  function close(){ game=null; clearTimeout(timer); clearTimeout(autoTimer) }
+  return {open,close,state:()=>({autoN,stopped,lastSent}),analyze:t=>analyze(t,terms),terms:()=>terms.slice()};
 }
 window.TPBCoach={mount,analyze,gameTerms,STEMS,TOPICS};
 })();
