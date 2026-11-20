@@ -837,7 +837,7 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
 <h1>説明するより、<br>遊んでもらおう。</h1>
 <p class="lead2">小さく遊べる版を出すだけで、遊んだ人の数・感想・直した記録がぜんぶ1ページに残る作品ページができます。</p>
 <div class="lfhero"><b>最初の1本は投稿無料</b><span>はじめての応募は、ポイントなしで送れます。2本目からは30ポイント（感想を書くとたまります）。</span></div>
-<div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small></div>
+<div class="need"><b>必要なのは3つだけ</b><span>作品名 ・ 遊べるURL ・ 一言（何をするゲーム？）</span><small>完成していなくても大丈夫。最初の1面だけ、テスト部屋だけでもOKです。</small><small>ショートに出す動画か画像（2MBまで・任意。なければ運営が撮ります）</small></div>
 <h2 class="flow-h">載るまでの流れ</h2>
 <ol class="steps">
 <li><b>応募フォームに3つを書いて送る</b><br>まだURLがない人は、<a href="#url">遊べるURLの作り方</a>へ。</li>

@@ -128,6 +128,7 @@ async function paneGames(pane){
       box.append(el('div',{class:'sub'},
         el('div',null,el('span',{class:'st '+(s.kind==='edit'?STE:ST)[s.status][1]},(s.kind==='edit'?STE:ST)[s.status][0]),' ',el('b',null,s.kind==='edit'?'直しの依頼：'+(g?g.title:s.game_slug):(s.data.title||'（タイトルなし）'))),
         el('div',{class:'by'},new Date(s.created_at).toLocaleDateString('ja-JP')+(s.kind==='new'&&s.data.play_url?' ・ '+s.data.play_url:'')),
+        s.kind==='new'&&s.data&&s.data.media_kind?el('div',null,el('span',{class:'chip'},({video:'動画あり',image:'画像あり',auto:'おまかせ'})[s.data.media_kind]||'おまかせ')):null,
         s.kind==='edit'&&s.data.note?el('div',null,s.data.note):null,
         s.admin_note?el('div',null,'運営から：'+s.admin_note):null)) });
   }catch(e){}
