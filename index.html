@@ -452,6 +452,12 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 .intro{background:var(--paper);transform:none;border-radius:4px}
 .intro a{color:var(--ao)}
 @media (prefers-reduced-motion:no-preference){@keyframes cpop{from{opacity:0;transform:translateY(4px)}}}
+/* 作者のお願い（ほしい感想・目標）：からしの細い左線1本だけ */
+.ask{border-left:3px solid var(--karashi);padding:2px 0 2px 10px;display:grid;gap:4px;font-size:14px;line-height:1.6}
+.ask p{margin:0}.ask b{display:block;font-size:12px;opacity:.8}
+.info .ask1{border-left:3px solid var(--karashi);padding-left:8px;font-size:13px;line-height:1.5;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sAsk{margin:0 0 4px}
+.vpanel .ask{color:var(--ink)}.vpanel .ask b{color:var(--muted);opacity:1}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -503,6 +509,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 <div class="sheet-bg" id="sheetBg">
   <form class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <h3 id="sTitle">感想を送る</h3>
+    <div id="sAsk" hidden></div>
     <p class="sub" id="sSub">選ぶだけで8割できあがり。1分で送れます。</p>
     <p class="ptinfo" id="ptInfo" hidden></p>
     <fieldset data-k="again" data-single><legend>もう一回遊びたい？ <em class="req">必須</em></legend><div class="opts"></div></fieldset>
@@ -651,6 +658,12 @@ function ageCover(){
       el('button',{type:'button',class:'no',onclick:()=>{ const s=box.closest('.slide'); const n=s&&s.nextElementSibling; if(n) n.scrollIntoView({behavior:'smooth'}) }},'いいえ（次の作品へ）')) }},'見る'));
   return el('div',{class:'agecover'},box);
 }
+// 作者のお願い（games.json の fb_style・goal）。未設定なら何も出さない
+const FBS_LONG={gentle:'やさしめに言ってほしい（良いところも知りたい）',honest:'正直に言ってほしい（厳しくてもOK）',both:'良いところも、厳しいことも聞きたい'}, FBS_SHORT={gentle:'やさしめに',honest:'正直に',both:'両方'};
+function askBox(g){ const st=FBS_LONG[g.fb_style], goal=(g.goal||'').trim(); if(!st&&!goal) return null;
+  return el('div',{class:'ask'},st?el('p',null,el('b',null,'作者のお願い'),st):null,goal?el('p',null,el('b',null,'この作品で目指していること'),goal):null) }
+function askLine(g){ const st=FBS_SHORT[g.fb_style], goal=(g.goal||'').trim(); if(!st&&!goal) return null;
+  return el('p',{class:'ask1'},el('b',null,'作者のお願い：'),[st,goal&&'目標「'+goal+'」'].filter(Boolean).join('　')) }
 // 作った人：アイコン（右の列のいちばん上）と名前。タップでプロフィールへ
 function whoBtn(g){
   const c=TPB.creatorOf(g,LIVE);
@@ -701,12 +714,12 @@ order.forEach((g,idx)=>{
       el('h2',null,g.title),
       byLine(g),
       chips,
-      el('p',null,g.oneliner)),
+      el('p',null,g.oneliner), askLine(g)),
     el('div',{class:'vpanel'},
       el('h2',null,g.title), byLine(g),
       el('p',null,g.oneliner),
       el('button',{class:'bigplay'+(isDl(g)?' dl':'')+(canPlay(g)?'':' off'),type:'button','aria-disabled':String(!canPlay(g)),'aria-label':playAria(g),onclick:()=>play(g)},isDl(g)?playText(g):'▶ 遊ぶ'+(g.minutes?'（'+g.minutes+'）':'')),
-      g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null,
+      g.question?el('div',{class:'q'},el('b',null,'作者が確かめたいこと'),g.question):null, askBox(g),
       el('div',{class:'fbn'}),
       el('button',{class:'fbw',type:'button',onclick:()=>wantFeedback(g)},'感想を書く'),
       el('div',{class:'keys'},'↓で次へ・Spaceで遊ぶ')),
@@ -1103,6 +1116,7 @@ async function openSheet(g){
   $('sheet').classList.remove('done');
   $('sWho').innerHTML=''; $('sWho').append('ログイン中：'+userName(ses)+' ・ ', el('button',{type:'button',onclick:async()=>{ await sbc().auth.signOut(); closeSheet() }},'ログアウト'));
   sheetGame=g; $('sTitle').textContent='感想を送る：'+g.title; $('sMsg').textContent=''; $('sMsg').className='msg';
+  const sa=$('sAsk'); sa.replaceChildren(); const ab=askBox(g); sa.hidden=!ab; if(ab) sa.append(ab);
   const qf=document.querySelector('fieldset[data-k="answer"]'); qf.hidden=!g.question; $('qLegend').textContent='作者の質問：'+(g.question||'');
   document.querySelectorAll('#sheet .opt[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false')); for(const k in picks) delete picks[k];
   free.value=''; coach.open(g); $('stopAt').value=''; $('stopAt').hidden=true; ptHint=null; $('ptInfo').hidden=true; upd(); loadHint(g);

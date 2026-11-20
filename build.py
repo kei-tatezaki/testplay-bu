@@ -301,6 +301,18 @@ def by_html(g, prefix, size=0, cls="by-link", noname=False):
     return f'<span {attrs}>{inner}</span>'
 
 
+FB_STYLE = {"gentle": "やさしめに言ってほしい（良いところも知りたい）", "honest": "正直に言ってほしい（厳しくてもOK）", "both": "良いところも、厳しいことも聞きたい"}
+
+
+def ask_html(g):
+    """作者のお願い（ほしい感想の言い方と、目指していること）。どちらも未設定なら何も出さない"""
+    st = FB_STYLE.get(g.get("fb_style") or "")
+    goal = (g.get("goal") or "").strip()
+    if not st and not goal:
+        return ""
+    return ('<div class="ask">' + (f'<p><b>作者のお願い</b>{e(st)}</p>' if st else "") + (f'<p><b>この作品で目指していること</b>{e(goal)}</p>' if goal else "") + "</div>")
+
+
 def chips_html(g):
     out = []
     if g.get("rating") in RATING:
@@ -931,6 +943,7 @@ def build():
 {f'<div><b>見どころ</b><ul class="hl">{hl}</ul></div>' if hl else ''}
 {f'<div class="by">操作：{e(g["controls"])}</div>' if g.get('controls') else ''}
 {f'<div class="q"><b>作者が確かめたいこと</b>{e(g["question"])}</div>' if g.get('question') else ''}
+{ask_html(g)}
 {''.join(f'<div class="upd"><b>感想でアップデート（{e(u["date"])}）</b>{e(u["text"])}</div>' for u in g.get('updates', []))}
 </div>
 </article>
@@ -1148,11 +1161,31 @@ addEventListener('load',()=>{{if(!(window.TPB&&TPB.follow))return;TPB.follow.min
 </ul>
 <p class="muted">数字（40字・50pt・30pt など）は、様子を見て運営が変えることがあります。いまのポイントは<a href="./me.html#pt">マイページ</a>で見られます。</p>
 </details>
+<details class="fold" id="mobile"><summary>スマホですぐ遊んでもらうには<small>タップでひらく</small></summary>
+<p>スマホで遊ぶ人は、読み込みが長いと、ほとんどが待たずに閉じます。軽くすると、遊んでもらえる数が変わります。目安は<b>20MB以下</b>、できれば10MB以下（10MB以下で、スマホで遊べる作品には「すぐ遊べる」の印がつきます）。</p>
+<h3>Unity（WebGL）を軽くするコツ</h3>
+<ul>
+<li><b>圧縮</b>：Player Settings → Publishing Settings の Compression Format を Brotli か Gzip にする。サーバーが対応していないと止まるので、unityroom や itch.io に置くときは Gzip が無難です</li>
+<li><b>Code Optimization</b>：Disk Size（または Disk Size with LTO）にする。ビルドは遅くなるけれど、小さくなります</li>
+<li><b>テクスチャ</b>：Max Size を 512 か 1024 に下げる。画面に小さくしか出ない絵は 256 でも十分。圧縮形式も確かめる</li>
+<li><b>使わないパッケージを外す</b>：Package Manager の使っていないもの、Resources フォルダの使っていない素材を消す。ビルド後の Build Report で重いものを探せます</li>
+<li><b>最初の1面だけの体験版</b>：全部入りより、1面だけで30秒〜1分遊べる小さい版を出す。気に入ってもらえたら、本編の公開ページを案内します</li>
+<li>音楽は長いものを短くする、ステレオをモノラルにする、でも小さくなります</li>
+</ul>
+</details>
+<details class="fold" id="planner"><summary>企画・プランナーの人へ<small>タップでひらく</small></summary>
+<p>プログラムが書けなくても、企画の芯を遊んでもらえます。HTML で作った試作は、数KB〜数MBで、スマホですぐ遊べます。</p>
+<ul>
+<li>Twine、Bitsy、PICO-8、GDevelop や Construct の HTML5 書き出し、Scratch（TurboWarp Packager で HTML にする）、素の HTML/JS、どれでも大丈夫です</li>
+<li>itch.io に HTML としてアップロードして「Embed game」の埋め込みコードを出し、応募フォームの「itch.io の埋め込みコード」に貼ると、このサイトの中で遊べます（ダウンロードもログインもいりません）</li>
+<li>確かめたいことは、応募フォームの「企画の芯（ルール・アイデア）」を選んでください。ルール、手触り、1分で面白いか、を遊んでもらって確かめる場所として使ってほしいです。見た目や音が仮でも、大丈夫です</li>
+</ul>
+</details>
 <details class="fold" id="faq"><summary>よくある質問<small>タップでひらく</small></summary>
 <h3>お金はかかる？</h3><p>かかりません。載せるのも、遊ぶのも無料です。</p>
 <h3>作品はだれのもの？</h3><p>作った人のものです。テストプレイ部は、遊べるURLへの入口と感想を集める場所を用意するだけです。</p>
 <h3>あとで直したり、消したりできる？</h3><p>できます。ログインして、自分の作品の「⋮」→「直したいところを運営に送る」から送るか、Discordで運営に言ってください。</p>
-<h3>どんな感想が届く？</h3><p>「もう一回遊びたい？」「どこまで遊んだ？」などの選ぶ質問と、一言です。だれが書いたかは作った人には見えません。遊んでから書いてね。遊ばずに書いた、ふざけた感想や、作品をけなすだけの感想は運営が消します。<a href="./games/{e(sample["slug"]) if sample else ""}/">作品ページの例</a>で見え方を確かめられます。</p>
+<h3>どんな感想が届く？</h3><p>応募のとき「どんな感想がほしい？」（やさしめに・正直に・両方）を選べます。正直な感想を頼むと、作品は早く良くなります。やさしめを選んでも大丈夫です。選んだお願いは、ショートと作品ページ、感想シートに出ます。<br>「もう一回遊びたい？」「どこまで遊んだ？」などの選ぶ質問と、一言です。だれが書いたかは作った人には見えません。遊んでから書いてね。遊ばずに書いた、ふざけた感想や、作品をけなすだけの感想は運営が消します。<a href="./games/{e(sample["slug"]) if sample else ""}/">作品ページの例</a>で見え方を確かめられます。</p>
 <h3>プロフィールは作れる？</h3><p><a href="./me.html">マイページ</a>で、名前・アイコン・ひとこと・X や itch.io などのリンクを書けます。例：<a href="./profile.html?u=unei">運営のプロフィール</a></p>
 <h3>だれが運営しているの？</h3><p><b>たざろす</b>（ゲーム企画を目指す学生。テストプレイ部の発起人）です。連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>。応募のこと、直したいところ、消してほしいときなど、なんでも声をかけてください。</p>
 </details>

@@ -55,18 +55,20 @@ function gameTerms(g){
   return [...set].filter(t=>t.length>=2||/^[一-龠々]$/.test(t)||/^[0-9]+$/.test(t));
 }
 function hasTerm(text,terms){ const t=norm(text).toLowerCase(); return terms.some(x=>t.includes(x)) }
-function toneHits(text){
+// 作者が「正直に」を選んだ作品では、言い方の付箋は、人や作者を責める言葉（人格攻撃）のときだけ出す
+const ATTACK=['センスがない','センスない','下手くそ','バカ','馬鹿','アホ','死ね','ゴミ','糞'];
+function toneHits(text,style){
   const hits=[];
-  TONE.forEach(([w,r])=>{ if(text.includes(w)&&!hits.some(h=>h.w.includes(w))) hits.push({w,r}) });
+  TONE.forEach(([w,r])=>{ if(style==='honest'&&!ATTACK.includes(w)) return; if(text.includes(w)&&!hits.some(h=>h.w.includes(w))) hits.push({w,r}) });
   return hits;
 }
 function isVagueOnly(text){ const rest=norm(text).replace(VAGUE,'').replace(/[\s　、。！？!?～〜ー…・w笑]/g,''); return [...rest].length<3 }
 const REASON=/から|ので|ため|けど|けれど|おかげ|せいで|たら|なので|のに|ところが|だけど/;
 const SCENE=/場面|とき|時|面|ステージ|最初|最後|途中|ところ|あたり|回目|秒|[0-9０-９]/;
-function analyze(text,terms){
+function analyze(text,terms,style){
   const t=text.trim(), n=nsLen(t), notes=[];
   if(n<3) return notes;
-  const th=toneHits(t);
+  const th=toneHits(t,style);
   if(th.length) notes.push({kind:'tone',msg:'この言い方だと、作者が傷つくかも。',acts:th.filter(h=>h.r).slice(0,2).map(h=>({label:'「'+h.w+'」→「'+h.r+'」',do:'replace',w:h.w,r:h.r}))});
   const term=hasTerm(t,terms);
   if(n<15||isVagueOnly(t)) notes.push({kind:'specific',msg:'どの場面で、なぜそう思った？を1つ足すと、作者に伝わりやすいよ',acts:[{label:'書き出しを足す',do:'append',s:'特に〜の場面で、'}]});
@@ -123,7 +125,7 @@ function mount(o){
 
   // ---- ルールのコーチ（入力が止まって 600ms 後） ----
   function run(){
-    const list=analyze(ta.value,terms), s=JSON.stringify(list.map(n=>[n.kind,n.msg,n.acts.map(a=>a.label)]));
+    const list=analyze(ta.value,terms,game&&game.fb_style), s=JSON.stringify(list.map(n=>[n.kind,n.msg,n.acts.map(a=>a.label)]));
     if(s===sig) return; sig=s; renderNotes(list);
   }
   function renderNotes(list,reading){
@@ -189,13 +191,13 @@ function mount(o){
   aiBtn.addEventListener('click',()=>{ if(!busy&&typed>=MIN_AI) callAi(true) });
   async function callAi(manual){
     const ses=await getSession(); if(!ses||!ses.access_token){ syncAi(); return }
-    busy=true; aiBtn.disabled=true; aiBtn.textContent='見ています…'; aiWhy.textContent=''; aiFailBox(false); renderNotes(analyze(ta.value,terms),true);
+    busy=true; aiBtn.disabled=true; aiBtn.textContent='見ています…'; aiWhy.textContent=''; aiFailBox(false); renderNotes(analyze(ta.value,terms,game&&game.fb_style),true);
     const ctrl=new AbortController(), tm=setTimeout(()=>ctrl.abort(),AI_TIMEOUT), g=game;
     const text=ta.value.trim(); lastSent=text;
     let res=null, st=0, body=null;
     try{
       const r=await fetch(SB_URL+'/functions/v1/feedback-coach',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+ses.access_token,apikey:SB_KEY},
-        body:JSON.stringify({slug:g.slug,title:g.title,genre:g.genre||'',description:[g.oneliner].concat(g.highlights||[]).filter(Boolean).join(' / '),check:g.check||'',text})});
+        body:JSON.stringify({slug:g.slug,title:g.title,genre:g.genre||'',description:[g.oneliner].concat(g.highlights||[]).filter(Boolean).join(' / '),check:g.check||'',fb_style:g.fb_style||'both',goal:g.goal||'',text})});
       st=r.status; try{ body=await r.json() }catch(e){ body=null } if(r.ok) res=body;
     }catch(e){ res=null }
     clearTimeout(tm); busy=false; aiBtn.textContent=(ai?'もう一度見てもらう':'AIに見てもらう');
@@ -206,7 +208,7 @@ function mount(o){
       if(st===429&&why==='too_fast'){ pauseUntil=Date.now()+((body&&body.retry_after)||60)*1000; t='続けて使いすぎたみたい。1分ほどあけてね'; setTimeout(()=>{ if(game===g) syncAi() },((body&&body.retry_after)||60)*1000+100) }
       else if(st===429){ stopped=true; t='今日のAIコーチはここまで（ルールのコーチは使えます）' }
       else if(st===403){ stopped=true }
-      aiFailBox(true,t); renderNotes(analyze(ta.value,terms)); syncAi(); return }
+      aiFailBox(true,t); renderNotes(analyze(ta.value,terms,game&&game.fb_style)); syncAi(); return }
     ai={notes:res.comments.filter(c=>c&&typeof c.message==='string'&&c.message).slice(0,3).map(c=>({kind:String(c.kind||'idea'),message:c.message})),rewrite:(typeof res.rewrite==='string'&&res.rewrite.trim())?res.rewrite.trim():null,remaining:typeof res.remaining==='number'?res.remaining:null};
     aiBtn.textContent='もう一度見てもらう';
     if(ai.remaining!==null&&ai.remaining<=0){ stopped=true; aiFailBox(true,'今日のAIコーチはここまで（ルールのコーチは使えます）') }
@@ -228,7 +230,7 @@ function mount(o){
     notesBox.textContent=''; aiOut.textContent=''; aiFailBox(false); cMsg.textContent=''; showUndo(); aiBtn.textContent='AIに見てもらう'; syncAi();
   }
   function close(){ game=null; clearTimeout(timer); clearTimeout(autoTimer) }
-  return {open,close,state:()=>({autoN,stopped,lastSent}),analyze:t=>analyze(t,terms),terms:()=>terms.slice()};
+  return {open,close,state:()=>({autoN,stopped,lastSent}),analyze:t=>analyze(t,terms,game&&game.fb_style),terms:()=>terms.slice()};
 }
 window.TPBCoach={mount,analyze,gameTerms,STEMS,TOPICS};
 })();

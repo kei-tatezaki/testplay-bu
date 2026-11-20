@@ -73,7 +73,7 @@ const T=TPB, el=T.el, main=document.getElementById('main'); const _rc=main.repla
 const editSlug=new URLSearchParams(location.search).get('edit')||'';
 const ERR={too_many:'確認中の応募が5件あります。運営の確認が終わるまで待ってね',need_title:'作品名・URL・一言を入れてね',bad_url:'URLは https:// から始まるものにしてね',need_note:'直したいところを書いてね',
   banned_word:'使えない言葉が入っているみたい。言い方を変えてみてね',banned:'このアカウントからは応募できなくなっています。心当たりがない場合は運営に連絡してね',not_allowed:'この作品の作者として登録されていないみたい。運営に連絡してね',too_long:'1つの欄は400文字までにしてね',not_logged_in:'ログインが切れたみたい。もう一度ログインしてね',not_enough_points:'ポイントが足りません。感想の少ない作品に40字以上の感想を書くと、ポイントがたまります',
-  bad_play_kind:'遊び方の選びかたが合っていません。もう一度選んでね',bad_embed:'itch.io の埋め込みコード（https://itch.io/embed-upload/数字 を含むもの）を貼りなおしてね。ダウンロード型には置けません',
+  bad_size_mb:'容量の目安は、MBの数字だけで入れてね（例：25）',bad_fb_style:'ほしい感想の選びかたが合っていません。もう一度選んでね',bad_goal:'目指していることは60字までにしてね',bad_play_kind:'遊び方の選びかたが合っていません。もう一度選んでね',bad_embed:'itch.io の埋め込みコード（https://itch.io/embed-upload/数字 を含むもの）を貼りなおしてね。ダウンロード型には置けません',
   bad_download_url:'ダウンロード型のURLは、itch.io・Steam・BOOTH・GitHub の公開ページにしてね（exe や zip などのファイルへの直リンクは使えません）',bad_os:'対応OSを選びなおしてね',
   bad_media:'動画か画像の指定が合っていません。ファイルを選びなおしてね',media_missing:'動画か画像が見つかりませんでした。もう一度選んで送ってね'};
 const MAXV=52428800, MAXI=10485760, MAXSEC=60.5, VT=['video/mp4','video/webm','video/quicktime'], IT=['image/jpeg','image/png','image/webp'], EXT={'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov','image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
@@ -165,7 +165,7 @@ function newForm(){
     oneliner:el('input',{type:'text',maxlength:80,required:true,placeholder:'例：ねこを転がして、部屋から脱出する物理パズル。'}),
     platform:sel([['both','PC・スマホ'],['pc','PCのみ'],['sp','スマホのみ']]),
     minutes:sel(['30秒','1〜3分','3〜5分','5〜10分','10分以上'],'1〜3分'),
-    check:sel(['楽しさ','操作感','チュートリアル','難しさ','見た目','そのほか']),
+    check:sel(['楽しさ','操作感','チュートリアル','難しさ','見た目','企画の芯（ルール・アイデア）','そのほか']),
     question:el('input',{type:'text',maxlength:100,placeholder:'例：説明を読まなくても、2面のしかけがわかった？'}),
     genre:el('input',{type:'text',maxlength:20,placeholder:'例：パズル／アクション／ノベル'}),
     stage:sel(['プロトタイプ','体験版','リリース済み']),
@@ -174,6 +174,13 @@ function newForm(){
     image_url:el('input',{type:'url',inputmode:'url',maxlength:300,placeholder:'https://…（なければ空でOK）'}),
     note:el('textarea',{maxlength:400,placeholder:'運営に伝えたいこと、プレイ動画のURLなど（なければ空でOK）'})
   };
+  // ---- どんな感想がほしい？（作者のお願い。ショート・作品ページ・感想シートに出る） ----
+  const FBO=[['both','両方ほしい','良いところも、厳しいことも聞きたい'],['gentle','やさしめに','良いところも知りたい。きつい言い方はこわい'],['honest','正直に','厳しくてもOK。早く直したい']];
+  const fbRadios=FBO.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:'fbstyle',value:o[0],checked:o[0]==='both'}),el('span',null,o[1])));
+  const fbDesc=el('p',{class:'hint','aria-live':'polite',id:'fbDesc'},FBO[0][2]);
+  fbRadios.forEach((l,i)=>l.querySelector('input').addEventListener('change',()=>{ fbDesc.textContent=FBO[i][2] }));
+  const fbSet=el('fieldset',{class:'mset',id:'fbSet'},el('legend',null,'どんな感想がほしい？'),el('div',{class:'mopts',role:'presentation'},fbRadios),fbDesc);
+  f.goal=el('input',{type:'text',maxlength:60,placeholder:'例：1面で操作を覚えてもらいたい'});
   // ---- 遊び方（ブラウザ／ダウンロード） ----
   const pk={kind:'browser',embed:''};
   const PK=[['browser','ブラウザで遊べる','ブラウザで開いてすぐ遊べるURL（unityroom・itch.io・GitHub Pagesなど）を入れてください。'],
@@ -181,6 +188,7 @@ function newForm(){
   const pkRadios=PK.map(o=>el('label',{class:'mopt'},el('input',{type:'radio',name:'playkind',value:o[0],checked:o[0]==='browser'}),el('span',null,o[1])));
   const pkDesc=el('p',{class:'hint',id:'pkDesc','aria-live':'polite'},PK[0][2]);
   const sizeIn=el('input',{type:'text',maxlength:20,id:'dlSize',placeholder:'例：2GB'});
+  const mbIn=el('input',{type:'text',inputmode:'decimal',maxlength:9,id:'sizeMb',placeholder:'例：25'});
   const osWin=el('input',{type:'checkbox',id:'osWin',checked:true}), osMac=el('input',{type:'checkbox',id:'osMac'});
   const dlPanel=el('div',{class:'pkpanel',id:'dlPanel',hidden:true},
     el('div',{class:'two'},el('label',{class:'sz'},el('span',null,'容量の目安 ',el('small',{style:'font-weight:400;color:var(--muted)'},'任意')),sizeIn),
@@ -254,12 +262,15 @@ function newForm(){
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
+    fbSet,
+    L('この作品で目指していること',false,'任意。60字まで。AIコーチも、これを見て感想を整えます',f.goal),
     L('作品名',true,'',f.title),
     pkSet,
     urlLabel,
     L('一言',true,'何をするゲーム？',f.oneliner),
     el('div',{class:'two'},platLabel,L('遊ぶ時間の目安',false,'',f.minutes)),
     el('div',{class:'two'},L('確かめたいこと',false,'',f.check),L('どこまでできてる？',false,'',f.stage)),
+    L('容量の目安（MB、任意）',false,'ダウンロードして遊ぶ重さ。10MB以下だと、スマホで「すぐ遊べる」の印がつきます',mbIn),
     L('遊んだ人への質問',false,'はい・いいえで答えられる質問にしてね。感想シートに出ます（答えは「はい／まあまあ／いいえ」）',f.question),
     el('div',{class:'two'},L('ジャンル',false,'',f.genre),L('操作',false,'',f.controls)),
     L('年齢制限',false,'',f.rating),
@@ -293,7 +304,8 @@ function newForm(){
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }
     if(d.image_url&&!/^https:\/\/\S+$/.test(d.image_url)){ T.fieldErr(form,f.image_url,ERR.bad_url); return }
-    d.play_kind=pk.kind;
+    d.play_kind=pk.kind; d.fb_style=(form.querySelector('input[name=fbstyle]:checked')||{}).value||'both';
+    { const mb=mbIn.value.trim(); if(mb){ if(!/^[0-9]{1,6}(\.[0-9]{1,2})?$/.test(mb)||+mb<=0){ T.fieldErr(form,mbIn,'容量の目安は、MBの数字だけで入れてね（例：25）'); return } d.size_mb=mb } }
     if(pk.kind==='download'){
       const bad=dlCheck(d.play_url); if(bad){ T.fieldErr(form,f.play_url,DL_MSG[bad]); return }
       if(!osWin.checked&&!osMac.checked){ T.fieldErr(form,sizeIn,'対応OSを1つ以上選んでね'); return }

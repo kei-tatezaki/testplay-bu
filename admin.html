@@ -448,14 +448,18 @@ function subJson(s){
     rating: d.rating || undefined, color: '#C8401F', bg: '#10141c', platform: d.platform || 'both', controls: d.controls || '', added: new Date().toISOString().slice(0, 10),
     // 遊び方（016）：ダウンロード型は play_kind・size・os、埋め込める作品は embed（itch.io の embed-upload）
     play_kind: d.play_kind === 'download' ? 'download' : undefined, size: d.play_kind === 'download' && d.size ? d.size : undefined, os: d.play_kind === 'download' && d.os ? d.os : undefined,
-    embed: d.play_kind !== 'download' && d.embed_url ? d.embed_url : undefined }, null, 2);
+    embed: d.play_kind !== 'download' && d.embed_url ? d.embed_url : undefined,
+    // 容量の目安・作者のお願い（020）
+    size_mb: d.size_mb ? Number(d.size_mb) : undefined, fb_style: ['gentle', 'honest', 'both'].includes(d.fb_style) ? d.fb_style : undefined, goal: d.goal || undefined }, null, 2);
 }
 // 遊び方（016）：ブラウザ／ダウンロード（容量・OS）、itch.io の埋め込み
 function playKindHtml(d){
   const dl = d.play_kind === 'download';
   const head = `<div>遊び方：<b>${dl ? 'ダウンロードが必要' : 'ブラウザで遊べる'}</b>${dl ? ' ・ OS：' + esc(d.os || '（未入力）') + ' ・ 容量：' + esc(d.size || '（未入力）') : ''}</div>`;
   const emb = d.embed_url ? `<div>埋め込み（itch.io）：${/^https:\/\/itch\.io\/embed-upload\/\d+/.test(d.embed_url) ? `<a href="${esc(d.embed_url)}" target="_blank" rel="noopener noreferrer">${esc(d.embed_url)}</a>` : esc(d.embed_url)} <span class="muted">（games.json では "embed" に入ります）</span></div>` : '';
-  return head + emb;
+  const FBS = { gentle: 'やさしめに', honest: '正直に', both: '両方ほしい' };
+  const ask = (d.fb_style || d.goal || d.size_mb) ? `<div>${d.fb_style ? 'ほしい感想：<b>' + esc(FBS[d.fb_style] || d.fb_style) + '</b>' : ''}${d.goal ? ' ・ 目標：' + esc(d.goal) : ''}${d.size_mb ? ' ・ 容量の目安：' + esc(d.size_mb) + 'MB' : ''}</div>` : '';
+  return head + emb + ask;
 }
 // ショートに出すもの（応募で送られた動画・画像）。非公開バケットなので、署名付きURL（600秒）で見る
 const MK = { video: '動画あり', image: '画像あり', auto: 'おまかせ' };

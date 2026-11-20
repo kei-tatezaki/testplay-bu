@@ -662,3 +662,7 @@ button.mk:hover{background:var(--paper-2)}
 .fol-chip[hidden]{display:none}
 .fol-chip:hover{background:var(--paper-2)}
 .fol-chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* 作者のお願い（ほしい感想・目標）：からしの細い左線1本だけ */
+.ask{border-left:3px solid var(--karashi);padding:2px 0 2px 12px;display:grid;gap:4px;font-size:14px;line-height:1.6;color:var(--ink)}
+.ask p{margin:0}.ask b{display:block;font-size:12px;color:var(--muted)}

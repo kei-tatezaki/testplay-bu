@@ -115,6 +115,7 @@ button,select,input{font:inherit}
 
   <div class="card" style="margin-top:14px"><h2>届いた感想 <span class="muted" id="fbCount"></span></h2>
     <p class="note" style="margin-top:-6px">だれが書いたかは表示されません。よかった感想に「いいね」を押すと、書いた人のマイページの「送った感想」に「作者のいいね」と出ます。</p>
+    <p class="note" id="fbAsk" hidden></p>
     <div id="fbList"></div>
   </div>
   <p class="note">ゲームの中のどこ（ステージごと）で離れたかは、もうすぐ測れるようになります。</p>
@@ -195,6 +196,8 @@ async function load(){
   $('hours').innerHTML=Array.from({length:24},(_,h)=>`<div title="${h}時 ${hours[h]||0}回" style="height:${(hours[h]||0)/hmax*100}%"></div>`).join('');
   $('hlab').innerHTML=Array.from({length:24},(_,h)=>`<span>${h%6===0?h:''}</span>`).join('');
   const D=s.devices||{}; bars('devices',[['PC',D.pc||0],['スマホ',D.sp||0]]);
+  const FBN={gentle:'やさしめに',honest:'正直に',both:'両方ほしい'}, fs=GAMES[slug]&&GAMES[slug].fb_style;
+  $('fbAsk').hidden=!FBN[fs]; $('fbAsk').textContent=FBN[fs]?'あなたは「'+FBN[fs]+'」を選びました（応募のときに変えられます）':'';
   renderFb();
 }
 function renderFb(){
