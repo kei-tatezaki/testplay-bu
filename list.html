@@ -328,7 +328,9 @@ document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('clic
  }catch(e){}
  // 新作（公開から14日以内）
  const now=Date.now();
- document.querySelectorAll('#list .tile[data-added]').forEach(t=>{const a=Date.parse(t.dataset.added+'T00:00:00+09:00'),d=(now-a)/864e5;if(a&&d>=0&&d<=14){t.classList.add('is-new');const n=document.createElement('span');n.className='nw';n.textContent='新作';t.append(n)}});
+ // 公開から14日以内の作品のうち、新しい順に3本まで。全部が同じ日に出た立ち上げのときは付けない（全部に付くと目印の意味がなくなる）
+{const ts=[...document.querySelectorAll('#list .tile[data-added]')].map(t=>({t,a:Date.parse(t.dataset.added+'T00:00:00+09:00')})).filter(x=>x.a&&(now-x.a)/864e5>=0&&(now-x.a)/864e5<=14);
+ const days=new Set(ts.map(x=>x.a)); if(days.size>1){ ts.sort((x,y)=>y.a-x.a).slice(0,3).forEach(({t})=>{t.classList.add('is-new');const n=document.createElement('span');n.className='nw';n.textContent='新作';t.append(n)}) } }
  function showSide(){const b=document.getElementById('bside');b.hidden=!(!document.getElementById('bucho').hidden||!document.getElementById('recent').hidden)}
  addEventListener('DOMContentLoaded',()=>{
   // 部長のひとこと（assets/notes.json の bucho.text が空なら出さない）
