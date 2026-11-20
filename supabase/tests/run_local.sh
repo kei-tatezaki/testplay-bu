@@ -13,5 +13,5 @@ P="psql -h $DIR -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X"
 runuser -u postgres -- $P -c "create database t" 
 Q="runuser -u postgres -- psql -h $DIR -p $PORT -U postgres -d t -v ON_ERROR_STOP=1 -q -X"
 $Q -f "$D/tests/local_stub.sql"
-for f in "$D"/0*.sql; do echo "== $(basename $f)"; $Q -f "$f" >/dev/null; done
+for f in "$D"/0*.sql; do case "$f" in *_check.sql) continue;; esac; echo "== $(basename $f)"; $Q -f "$f" >/dev/null; done
 for f in "$@"; do echo "== $f"; $Q -f "$f"; done
