@@ -54,7 +54,7 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="wrap">
@@ -279,7 +279,7 @@ function newForm(){
     pvBody.replaceChildren(...[el('div',{class:'by',style:'font-weight:700;color:var(--muted)'},'見本（押せません）'),pvMedia.childNodes.length?el('div',{class:'by'},media.kind==='video'?'ショートに出る動画':'ショートに出る画像'):null,pvMedia,
       el('h2',null,v('title')||'（作品名）'),
       el('p',{class:'one'},v('oneliner')||'（一言）'),
-      el('div',{class:'row'},el('span',{class:'btn'},pk.kind==='download'?'⬇ 公開ページへ（ダウンロード）':'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'💬 感想を送る')),
+      el('div',{class:'row'},el('span',{class:'btn'},pk.kind==='download'?'⬇ 公開ページへ（ダウンロード）':'▶ 遊ぶ（'+v('minutes')+'）'),el('span',{class:'btn ghost'},'感想を送る')),
       el('div',{class:'chips'},v('rating')?el('span',{class:'chip rate-'+v('rating')},v('rating').toUpperCase()):null,
         pk.kind==='download'?el('span',{class:'chip plat'},['ダウンロード',osWin.checked&&osMac.checked?'Windows・Mac':osMac.checked?'Mac':'Windows',sizeIn.value.trim()?'約'+sizeIn.value.trim():''].filter(Boolean).join('・')):el('span',{class:'chip plat'},PL[v('platform')]),el('span',{class:'chip'},v('stage')),v('genre')?el('span',{class:'chip'},v('genre')):null,el('span',{class:'chip check'},'確かめたい：'+v('check'))),
       v('controls')?el('div',{class:'by'},'操作：'+v('controls')):null,
