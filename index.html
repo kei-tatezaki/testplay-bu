@@ -17,6 +17,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/side.css">
 <style>
 :root{--bg:#0b0e13;--ink:#f2f4f7;--muted:#a7b0bd;--accent:#C8401F;--accent-ink:#fff;--shu-ink:#FF9A7E;--sheet:#151a22;--line:#2a313c;--warn:#ffd36e;--paper:#F6F1E7;--paper-2:#EFE6D3;--shu:#C8401F;--karashi:#E2A93B;--karashi-soft:#F8E6B0;--ao:#2F5D9B;--ao-soft:#D7E2F1;--shu-soft:#F6D5C9;--f-round:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--f-hand:"Klee One","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif;--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.2 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");color-scheme:dark}
 *{box-sizing:border-box}
@@ -45,16 +46,6 @@ button{font:inherit;color:inherit}
 .slide{--vt:calc(60px + env(safe-area-inset-top));--vb:var(--info,200px)}
 .slide video.media{object-fit:contain;object-position:center;top:var(--vt);height:calc(100% - var(--vt) - var(--vb));left:0;right:0;width:100%;border-radius:0}
 .slide video.media.cover{object-fit:cover}
-.side{position:fixed;left:0;top:0;bottom:0;width:calc(50% - 300px);max-width:300px;z-index:10;display:none;align-content:start;gap:4px;padding:76px 16px 16px 20px}
-.side a{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-size:15px;padding:10px 12px;min-height:44px;border-radius:10px}
-.side a:hover{background:#ffffff14}
-.side a[aria-current]{font-weight:800;color:var(--shu-ink)}
-.side .ic{width:24px;text-align:center}
-.side p{margin:14px 12px 0;font-size:12px;line-height:1.7;color:var(--muted)}
-.side a.skipin{position:absolute;left:-9999px}
-.side a.skipin:focus{position:static}
-.side hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
-@media (min-width:1100px){.side{display:grid}.top a.back{display:none}}
 .slide .bgfx{position:absolute;inset:0;transform:scale(1.2);background:center/cover no-repeat;filter:blur(32px) brightness(.35) saturate(.6);pointer-events:none}
 .slide .shade{position:absolute;inset:auto 0 0 0;height:min(75%,calc(var(--info,200px) + 90px));background:linear-gradient(transparent,#000c 35%,#000f 65%);pointer-events:none}
 .slide .media{cursor:pointer}
@@ -124,8 +115,7 @@ button{font:inherit;color:inherit}
 @media (hover:hover) and (pointer:fine) and (min-width:900px){.pcnav{display:grid}}
 .intro{position:fixed;left:max(12px,calc(50% - 268px));top:calc(64px + env(safe-area-inset-top));z-index:18;width:min(464px,calc(100% - 96px));background:#151a22f2;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.5;box-shadow:0 8px 30px #0008}
 .intro a{color:var(--shu-ink)}
-@media (hover:hover) and (pointer:fine) and (min-width:900px) and (max-width:1099px){.intro{display:none}}
-.intro>span>b:first-child{display:block;font-size:13px}.intro .lfi{color:var(--shu-ink);font-weight:700;font-size:12px;display:inline}.side .lfn{display:block;margin-top:4px;color:var(--shu-ink)}
+.intro>span>b:first-child{display:block;font-size:13px}.intro .lfi{color:var(--shu-ink);font-weight:700;font-size:12px;display:inline}
 @media (max-width:400px){.intro{font-size:12px;padding:6px 8px 6px 10px;gap:8px}.intro b{font-size:12px}.intro button{min-height:44px;padding:6px 12px}#introSample{display:none}}
 .intro button{flex:none;border:0;border-radius:999px;min-height:44px;padding:6px 14px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:13px}
 [hidden]{display:none!important}
@@ -228,41 +218,9 @@ fieldset.err{outline:2px solid #ff8f7a;outline-offset:6px;border-radius:10px}
 @media (max-width:560px){ .rail::before{content:"";position:absolute;z-index:-1;top:-18px;bottom:-14px;left:-14px;right:-10px;background:linear-gradient(90deg,#0000,#000a 38%);pointer-events:none} }
 /* 最初の案内が出ているあいだは「プレイ動画」の印を隠す（重ならないように） */
 body:has(#intro:not([hidden])) .vtag{visibility:hidden}
-/* PC：動画の帯を、左のメニューと右の欄のあいだいっぱいに広げる。縦長は高さいっぱい、横長は横いっぱい（切らない）。右の列は動画の外に置く */
-@media (hover:hover) and (pointer:fine) and (min-width:900px){
- :root{--ml:0px;--mr:0px}
- .slide{max-width:none;--vt:66px;--vb:var(--info,200px)}
- .slide video.media,.slide video.media.cover,.slide img.media{left:var(--ml);right:auto;width:calc(100% - var(--ml) - var(--mr) - 84px);object-fit:contain;object-position:center}
- .slide video.media+.playhint,.slide video.media+.playhint+.pauselay{left:var(--ml);right:calc(var(--mr) + 84px);top:var(--vt);bottom:var(--vb)}
- .slide img.media+.playhint,.slide img.media+.playhint+.pauselay{left:var(--ml);right:calc(var(--mr) + 84px)}
- .slide .info{left:calc(var(--ml) + 24px);right:calc(var(--mr) + 96px)}
- .slide .rail{right:calc(var(--mr) + 14px)}
- .slide .hint{left:var(--ml);right:calc(var(--mr) + 84px)}
- .vtag{left:calc(var(--ml) + 8px + var(--tagx,0px));top:calc(var(--vt) + 6px + var(--tagy,0px))}
- .pcnav{right:calc(var(--mr) + 14px);top:84px;transform:none}
-}
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){ :root{--ml:min(300px,calc(50vw - 300px))} }
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){ .intro{left:calc(min(300px,calc(50vw - 300px)) + 16px);top:76px;width:min(420px,calc(100vw - 340px - 380px))} }
-/* PC（1280px以上）：右に、作品の説明・遊ぶボタン・作者が確かめたいこと・感想の数をまとめた欄を出す。題名などは動画の下ではなくここに出す */
-.vpanel{display:none}
-@media (hover:hover) and (pointer:fine) and (min-width:1280px){
- :root{--mr:360px}
- .slide{--vb:64px}
- .slide .info,.slide .shade{display:none}
- .vpanel{display:grid;position:absolute;z-index:2;right:16px;top:76px;width:332px;max-height:calc(100% - 100px);overflow:auto;gap:12px;align-content:start;padding:18px;border-radius:16px;background:#151a22cc;border:1px solid var(--line)}
- .vpanel h2{margin:0;font-size:24px;line-height:1.35;text-wrap:balance}
- .vpanel .by{font-size:13px;color:var(--muted)}.vpanel .by a{color:inherit;font-weight:700;text-decoration:none}.vpanel .by .sample{color:var(--shu-ink)}
- .vpanel p{margin:0;font-size:15px;line-height:1.65}
- .vpanel .bigplay{border:0;border-radius:14px;min-height:56px;font-size:18px;font-weight:800;background:var(--accent);color:var(--accent-ink);cursor:pointer;padding:12px}
- .vpanel .bigplay:hover{filter:brightness(1.08)}
- .vpanel .fbw{border:1px solid #ffffff30;background:#ffffff10;border-radius:12px;min-height:44px;cursor:pointer;font-size:14px}
- .vpanel .q{font-size:14px;line-height:1.6}.vpanel .q b{display:block;font-size:12px;color:var(--shu-ink);margin-bottom:2px}
- .vpanel .fbn{font-size:13px;color:var(--muted)}
- .vpanel .keys{font-size:12px;color:var(--muted)}
-}
 @media (prefers-reduced-motion:reduce){.feed{scroll-behavior:auto}}
 /* ===== 部室の紙：動画のまわりは黒のまま。UI だけ手作りの色にする。シート・案内は紙 ===== */
-.top a,.logo,.rb .lb,.vpanel h2,.info h2,.end h2,.skip,.side a{font-family:var(--f-round)}
+.top a,.logo,.rb .lb,.vpanel h2,.info h2,.end h2,.skip{font-family:var(--f-round)}
 .logo{font-weight:800}
 .top a.back{font-weight:700}
 .top a.tpb-me{font-weight:400}
@@ -327,10 +285,82 @@ fieldset.err{outline:2px solid #B0301B}
 .end h2{font-weight:800}
 .end a{border-radius:6px;border:2px solid var(--shu);color:#fff;font-family:var(--f-round);font-weight:700}
 .agecover button{border-radius:6px}
-.side a:hover{background:#ffffff14}
 .sheet #sDone h3{margin-bottom:2px}
 .empty,.loading{font-family:var(--f-hand);font-weight:600}
 .tpb-menu .tpb-mi{font-family:inherit}
+/* ===== PC（幅768px以上・マウス）：左のサイドバーは紙（assets/side.css・tpb.js）。真ん中の「ステージ」だけ黒（部室のモニター）。
+   説明・遊ぶ・感想の欄は紙のカード。1280px以上は右に欄、768〜1279px は動画の下にカード。スマホ（767px以下）・タッチのタブレットは上のまま ===== */
+.vpanel{display:none}
+@media (min-width:768px) and (hover:none){ body{padding-left:0!important}body::before,.tpb-side{display:none!important} }
+@media (min-width:768px) and (hover:hover) and (pointer:fine){
+ :root{--bg:#F6F1E7;--ink:#2A241E;--muted:#6B6158;--line:#DCCFB8;--sheet:#F6F1E7;--shu-ink:#A5311A;--warn:#8A5A00;--sw:72px;--pw:320px;--rr:24px;--sr:108px;--vt:72px}
+ html,body{background:var(--paper) var(--noise)}
+ /* 上の帯：右上のログイン／アイコンだけ（ブランドはサイドバー） */
+ .top{justify-content:flex-end;background:none;padding:12px 24px}
+ .top a.back,.top .logo,.top .sp{display:none}
+ .top a{color:var(--ink);background:#FFFDF8;border:1px solid var(--line)}
+ .top a.tpb-me.in{background:none;border-color:transparent}
+ .loading{color:var(--muted)}
+ /* ステージ：黒い角丸の枠。動画は切らずに contain */
+ .slide{max-width:none;background:transparent;--vt:72px;--sl:24px;--vb:var(--info,200px)}
+ .slide::before{content:"";position:absolute;left:var(--sl);right:var(--sr);top:var(--vt);bottom:var(--vb);border-radius:10px;background:var(--bgc,#0c1016);box-shadow:0 0 0 1px rgba(42,36,30,.4),0 12px 28px rgba(60,40,20,.3)}
+ .slide .bgfx,.slide .shade{display:none}
+ .slide video.media,.slide video.media.cover,.slide img.media{left:var(--sl);right:auto;width:calc(100% - var(--sl) - var(--sr));top:var(--vt);height:calc(100% - var(--vt) - var(--vb));object-fit:contain;object-position:center;border-radius:10px;background:transparent}
+ .slide video.media+.playhint,.slide video.media+.playhint+.pauselay,.slide img.media+.playhint,.slide img.media+.playhint+.pauselay{left:var(--sl);right:var(--sr);top:var(--vt);bottom:var(--vb);height:auto}
+ .vtag{left:calc(var(--sl) + 8px + var(--tagx,0px));top:calc(var(--vt) + 6px + var(--tagy,0px))}
+ /* ボタンの列（遊ぶ・いいね・うーん・感想・メニュー）と▲▼は、ステージと情報のあいだ */
+ .slide .rail{right:var(--rr);bottom:var(--vb);width:72px;gap:12px}
+ .rail a.who,.rail span.who{display:none}
+ .info .by a,.vpanel .by a{display:inline-flex;align-items:center;gap:6px}
+ .info .by a .byav{display:inline-flex}
+ .rb{text-shadow:none;color:var(--ink)}
+ .rb .ic{width:46px;height:46px;border-radius:12px;background:#FFFDF8;border:1px solid var(--line);box-shadow:0 2px 0 var(--line);backdrop-filter:none}
+ .rb .lb{font-size:12px;font-weight:700}
+ .pcnav{display:grid;position:fixed;right:calc(var(--rr) + 14px);top:var(--vt);transform:none;z-index:15}
+ .pcnav button{border:1px solid var(--line);background:#FFFDF8;color:var(--ink);box-shadow:0 2px 0 var(--line)}
+ .pcnav button:hover{background:var(--paper-2)}
+ .pcnav button:disabled{opacity:.35}
+ /* 動画の下の説明（1280px未満）：紙のカード */
+ .slide .info{left:var(--sl);right:var(--sr);bottom:24px;padding:14px 18px 16px;gap:6px;background:#FFFDF8;color:var(--ink);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 0 var(--line),0 8px 18px rgba(60,40,20,.14)}
+ .slide .info h2{font-size:21px}
+ .slide .hint{left:var(--sl);right:var(--sr);bottom:4px;color:var(--muted)}
+ .info .chip{background:var(--paper-2);border:1px solid rgba(42,36,30,.16);color:var(--ink)}
+ .info .chip.new{background:var(--karashi);border-color:transparent}
+ .info .chip.warn{background:var(--karashi-soft);border-color:transparent;color:var(--ink)}
+ .info .chip.check{background:var(--shu-soft);border-color:transparent;color:var(--ink)}
+ .info .chip.rate-r15{background:var(--karashi);border-color:transparent;color:var(--ink)}
+ .info .chip.rate-r18{background:#B3243F;border-color:transparent;color:#fff}
+ .info .q,.vpanel .q{background:var(--ao-soft);border-left:4px solid var(--ao);border-radius:3px;color:var(--ink)}
+ .vpanel .q b{color:var(--ao)}
+ .why{right:calc(var(--rr) + 80px)}
+ .toast,.toast.stack{left:calc(50% + var(--sw) / 2)}
+ body:has(#intro:not([hidden])) .vtag{visibility:visible}
+ .end{color:var(--ink)}
+ .end a{color:var(--shu-ink)}
+ /* 最初の案内：付箋。上の帯（1280px未満）か、情報カードの上（1280px以上） */
+ .intro{left:calc(var(--sw) + 24px);right:auto;top:8px;width:min(660px,calc(100vw - var(--sw) - 140px))}
+ #introSample{display:none!important}
+}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){ :root{--sw:232px} }
+@media (min-width:1280px) and (hover:hover) and (pointer:fine){
+ :root{--rr:calc(24px + var(--pw) + 12px);--sr:calc(var(--rr) + 72px + 12px)}
+ .slide{--vb:24px}
+ .slide .info,.slide .hint{display:none}
+ .vpanel{display:grid;position:absolute;z-index:2;right:24px;top:calc(var(--vt) + var(--introh,0px));width:var(--pw);max-height:calc(100% - var(--vt) - var(--introh,0px) - 24px);gap:12px;align-content:start;padding:22px 20px 18px;border-radius:4px;background:#FFFDF8;color:var(--ink);border:1px solid var(--line);box-shadow:0 1px 0 var(--line),0 10px 22px rgba(60,40,20,.16)}
+ .vpanel::before{content:"";position:absolute;z-index:2;left:50%;top:-9px;width:62px;height:18px;margin-left:-31px;background:rgba(226,169,59,.78);transform:rotate(-3deg);clip-path:polygon(0 0,100% 0,96% 25%,100% 50%,96% 75%,100% 100%,0 100%,4% 75%,0 50%,4% 25%);pointer-events:none}
+ .vpanel h2{margin:0;font-size:23px;line-height:1.35;text-wrap:balance}
+ .vpanel .by{font-size:13px;color:var(--muted)}.vpanel .by a{color:inherit;font-weight:700;text-decoration:none}.vpanel .by .sample{color:var(--shu-ink)}
+ .vpanel p{margin:0;font-size:15px;line-height:1.65}
+ .vpanel .bigplay{border:0;min-height:56px;font-size:18px;cursor:pointer;padding:12px}
+ .vpanel .fbw{min-height:44px;cursor:pointer;font-size:14px;color:var(--shu-ink);background:transparent}
+ .vpanel .fbw:hover{background:var(--shu-soft)}
+ .vpanel .q{font-size:14px;line-height:1.6;padding:8px 12px}.vpanel .q b{display:block;font-size:12px;margin-bottom:2px}
+ .vpanel .fbn{font-size:13px;color:var(--muted)}
+ .vpanel .keys{font-size:12px;color:var(--muted)}
+ .intro{left:auto;right:24px;top:var(--vt);width:var(--pw);flex-direction:column;align-items:stretch}
+ #introSample{display:inline!important}
+ #introSample[hidden]{display:none!important}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -346,19 +376,6 @@ fieldset.err{outline:2px solid #B0301B}
 <button type="button" data-r="fun">😐 おもしろさがわからなかった</button>
 <hr class="sep"><button type="button" data-r="genre">🙅 好みのジャンルじゃない<br><small>あなたのショートに似た作品が出にくくなります</small></button>
 <button type="button" class="x" data-r="">やめる</button></div>
-<nav class="side" aria-label="メニュー">
-<a href="#feed" class="skipin" id="skipIn"><span class="ic">↓</span>作品へ飛ぶ</a>
-<a href="./" aria-current="page"><span class="ic">▶</span>ショート</a>
-<a href="list.html"><span class="ic">▦</span>作品一覧</a>
-<a href="me.html"><span class="ic">👤</span>マイページ</a>
-<hr>
-<a href="creators.html"><span class="ic">🛠</span>作品を載せたい人へ</a>
-<a href="submit.html"><span class="ic">＋</span>作品を応募する</a>
-<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener" class="join"><span class="ic">💬</span>Discordに参加する</a>
-<p>学生が作ったゲームを、5分でつまみ食い。<br>遊ぶのは登録なし。感想を書くときだけログイン。</p>
-<p class="sampleNote" hidden>いまは運営のお試し作品だけです。<a href="submit.html" style="display:inline;padding:0;color:var(--shu-ink);text-decoration:underline">最初の作品を募集中</a><b class="lfn">最初の1本は投稿無料</b></p>
-<p><a href="privacy.html" style="display:inline;padding:0;font-size:12px;color:var(--muted);text-decoration:underline">集める情報と使い道</a></p>
-</nav>
 <main class="feed" id="feed" tabindex="-1" aria-label="作品のショート"><p class="loading" id="loading">読み込み中…</p></main>
 <div class="pcnav" id="pcnav"><button type="button" id="navUp" aria-label="前の作品">▲</button><button type="button" id="navDown" aria-label="次の作品">▼</button></div>
 <div class="intro" id="intro" hidden><span><b>学生が作ったゲームを、すぐ遊べる場所</b>遊ぶのは登録なし。感想を書くときだけログイン。<span id="introSample" hidden> いまは運営のお試し作品だけです。<a href="submit.html">最初の作品を募集中</a></span> <b class="lfi">最初の1本は投稿無料</b></span><button type="button" id="introX">OK</button></div>
@@ -485,7 +502,7 @@ function isLocal(url){return !/^https?:/i.test(url)}
 // 箱（プレイヤー・感想シート・ログイン）が開いているあいだは、うしろを inert にして、Tab が箱の中だけを回るようにする
 function syncInert(){
   const L=$('loginBg').classList.contains('open'), S=$('sheetBg').classList.contains('open'), P=$('player').classList.contains('open');
-  document.querySelectorAll('.top,.side,#feed,#pcnav,#skip,#intro').forEach(n=>{ n.inert=L||S||P });
+  document.querySelectorAll('.top,.tpb-side,#feed,#pcnav,#skip,#intro').forEach(n=>{ n.inert=L||S||P });
   $('player').inert=L||S; $('sheetBg').inert=L;
 }
 // 閉じたときにフォーカスを戻す先（いま触っていた場所。なければその作品の「感想」ボタン）
@@ -608,7 +625,7 @@ function onWheel(e){
 }
 feed.addEventListener('wheel',onWheel,{passive:false});
 // 左のメニューや右のボタンの上でも、ホイールで作品が進む
-document.querySelector('.side').addEventListener('wheel',onWheel,{passive:false}); $('pcnav').addEventListener('wheel',onWheel,{passive:false});
+{ const sd=document.querySelector('.tpb-side'); if(sd) sd.addEventListener('wheel',onWheel,{passive:false}) } $('pcnav').addEventListener('wheel',onWheel,{passive:false});
 document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
   if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
@@ -626,8 +643,9 @@ document.addEventListener('keydown',e=>{
 ['skip','skipIn'].forEach(id=>{ const a=$(id); if(a) a.addEventListener('click',e=>{ e.preventDefault(); feed.focus({preventScroll:true}); const all=[...feed.querySelectorAll('.slide')], cur=all[Math.round(feed.scrollTop/feed.clientHeight)], b=cur&&cur.querySelector('.rail .play'); if(b) b.focus({preventScroll:true}) }) });
 // 初めて来た人にだけ、ここが何の場所かを一度だけ出す。「遊ぶ」を押したとき・6秒たったとき・スクロールしたときに自動で閉じる
 let introT=0;
-function closeIntro(){ if($('intro').hidden) return; $('intro').hidden=true; store.set('introSeen',true); clearTimeout(introT) }
-if(ALL_SAMPLE){ const n=document.querySelector('.side .sampleNote'); if(n) n.hidden=false }
+function closeIntro(){ if($('intro').hidden) return; $('intro').hidden=true; document.documentElement.style.setProperty('--introh','0px'); store.set('introSeen',true); clearTimeout(introT) }
+// PC（1280px以上）：案内の付箋のぶん、右の情報カードを下げる
+new ResizeObserver(()=>{ const n=$('intro'); document.documentElement.style.setProperty('--introh',(n.hidden||!n.offsetHeight?0:n.offsetHeight+18)+'px') }).observe($('intro'));
 if(!store.get('introSeen',false)&&!startSlug&&!restored){ $('intro').hidden=false; if(ALL_SAMPLE) $('introSample').hidden=false;
   $('introX').addEventListener('click',closeIntro); feed.addEventListener('scroll',()=>{ if(feed.scrollTop>80) closeIntro() },{passive:true}); introT=setTimeout(closeIntro,6000) }
 // 画面に入った動画だけ再生
