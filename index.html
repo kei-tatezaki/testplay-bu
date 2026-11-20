@@ -483,6 +483,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
 .ploadbar i{display:block;height:100%;width:40%;background:var(--shu,#C8401F)}
 @media (prefers-reduced-motion:no-preference){.ploadbar i{animation:pload 1.1s ease-in-out infinite}@keyframes pload{from{transform:translateX(-100%)}to{transform:translateX(260%)}}}
 @media (prefers-reduced-motion:reduce){.ploadbar i{width:100%}}
+.toast .x.quiet{font-size:12px;opacity:.85;white-space:nowrap}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -509,13 +510,13 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
   <div class="pbody" id="pBody"></div>
 </div>
 
-<div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
+<div class="toast" id="toast" role="status"><span id="toastText">5分遊んでくれてありがとう！1分で感想を送ると、作者がすごく喜ぶよ</span><button type="button" class="go" id="toastGo">感想を送る</button><button type="button" class="x quiet" data-quiet="1">24時間出さない</button><button type="button" class="x" id="toastX" aria-label="閉じる">✕</button></div>
 
-<div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-7c1.6 0 2.6 1 2.6 2.6V9H19a2 2 0 012 2.3l-1 6.4A2 2 0 0118 19.5H7"/></svg></button><button type="button" class="pick" data-a="hmm" aria-label="うーん"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 100-18 9 9 0 000 18zM9 10v.6M15 10v.6M8.5 15.5c2.2-1.2 4.8-1.2 7 0"/></svg></button><button type="button" class="go" data-a="fb">感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
+<div class="toast stack" id="after" role="status"><span id="afterText">どうだった？</span><div class="btns"><button type="button" class="pick" data-a="like" aria-label="よかった"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-7c1.6 0 2.6 1 2.6 2.6V9H19a2 2 0 012 2.3l-1 6.4A2 2 0 0118 19.5H7"/></svg></button><button type="button" class="pick" data-a="hmm" aria-label="うーん"><svg class="li" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 100-18 9 9 0 000 18zM9 10v.6M15 10v.6M8.5 15.5c2.2-1.2 4.8-1.2 7 0"/></svg></button><button type="button" class="go" data-a="fb">感想</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button><button type="button" class="x quiet" data-quiet="1">24時間出さない</button></div></div>
 
 <div class="toast stack" id="needPlay" role="status"><span id="needPlayText">先に遊んでみてね。遊んでからのほうが、いい感想になります</span><div class="btns"><button type="button" class="go" data-a="play">▶ 遊ぶ</button><button type="button" class="x" data-a="write">それでも書く</button><button type="button" class="x" data-a="" aria-label="閉じる">✕</button></div></div>
 
-<div class="toast stack" id="dlAsk" role="status"><span id="dlAskText">前に開いた作品、遊べた？</span><div class="btns"><button type="button" class="go" data-a="ok">遊べた</button><button type="button" class="x" data-a="not">まだ</button><button type="button" class="x" data-a="fail">遊べなかった</button></div></div>
+<div class="toast stack" id="dlAsk" role="status"><span id="dlAskText">前に開いた作品、遊べた？</span><div class="btns"><button type="button" class="go" data-a="ok">遊べた</button><button type="button" class="x" data-a="not">まだ</button><button type="button" class="x" data-a="fail">遊べなかった</button><button type="button" class="x quiet" data-quiet="1">24時間出さない</button></div></div>
 
 <div class="toast" id="invite" role="status"><span>遊んでくれてありがとう！このゲームのアップデートや作者の進捗は、Discordで見られるよ</span><a class="go join" href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">参加する</a><button type="button" class="x" id="inviteX" aria-label="閉じる">✕</button></div>
 
@@ -1052,7 +1053,12 @@ function closeNote(id){
   if(id==='toast'){ $('toastText').textContent=TOAST_NUDGE; $('toastGo').hidden=false }
   if(noteOn===id){ noteOn=''; clearTimeout(noteT); document.body.dataset.note='' }
 }
+// 「24時間出さない」：ただ遊びたい人向けに、感想のおすすめ（どうだった？・5分後の案内・遊べた？・Discordの誘い）を止める
+const QUIET_IDS=['after','toast','dlAsk','invite'];
+function quietOn(){ return Date.now() < (store.get('quietUntil',0)||0) }
+function setQuiet(){ store.set('quietUntil', Date.now()+24*3600e3); QUIET_IDS.forEach(closeNote); TPB.toast && TPB.toast('感想のおすすめを24時間お休みします') }
 function showNote(id,ms){
+  if(QUIET_IDS.includes(id) && quietOn()) return;
   NOTES.forEach(x=>{ if(x!==id) closeNote(x) });
   clearTimeout(noteT); $(id).classList.add('show'); noteOn=id; document.body.dataset.note=id==='after'?'top':'bottom';
   if(ms) noteT=setTimeout(()=>closeNote(id),ms);
@@ -1083,6 +1089,7 @@ $('pClose').addEventListener('click',closePlayer);
 $('pFb').addEventListener('click',()=>{ if(current) openSheet(current) });
 $('toastGo').addEventListener('click',()=>{ closeNote('toast'); if(current) openSheet(current) });
 $('toastX').addEventListener('click',()=>closeNote('toast'));
+document.addEventListener('click',e=>{ const q=e.target.closest&&e.target.closest('[data-quiet]'); if(!q) return; e.stopPropagation(); setQuiet() },true);
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('loginBg').classList.contains('open')) $('lClose').click(); else if($('sheetBg').classList.contains('open')) closeSheet(); else if($('player').classList.contains('open')) closePlayer() } });
 
 // 遊んでいない作品で「💬感想」を押したとき：先に遊ぶよう案内する（それでも書ける）
