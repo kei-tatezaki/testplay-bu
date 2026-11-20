@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>管理ページ | テストプレイ部</title>
@@ -145,6 +147,10 @@ td.sel{width:34px}
   </div>
 
   <div data-panel="overview">
+    <div class="card" id="guardBox" style="padding:12px 14px;margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <b>緊急停止</b><span id="guardState" class="muted" style="flex:1;min-width:16em">確認中…</span>
+      <button id="guardBtn" type="button" disabled>…</button>
+    </div>
     <div class="bar" id="ovPeriod" role="group" aria-label="期間">
       <button data-d="1" aria-pressed="false">今日</button><button data-d="7" aria-pressed="true">7日</button><button data-d="30" aria-pressed="false">30日</button><button data-d="3650" aria-pressed="false">ぜんぶ</button>
       <span id="ovRange" class="muted"></span>
@@ -259,7 +265,7 @@ td.sel{width:34px}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/vendor/supabase-2.119.2.js"></script>
 <script src="assets/tpb.js"></script>
 <script src="assets/pwa.js"></script>
 <script>
@@ -281,12 +287,30 @@ async function rpc(name, args){
   return data;
 }
 
+// ---- 緊急停止（乗っ取り・荒らしのとき、運営以外の書き込みを全部止める。読むのはそのまま） ----
+let GUARD_RO = false;
+async function loadGuard(){
+  try { const st = await rpc('site_status'); GUARD_RO = !!(st && st.read_only); } catch (e) { return }
+  $('guardState').textContent = GUARD_RO ? 'いま止めています。運営以外は、感想・投稿・いいね・フォローなどを送れません（遊ぶ・見るのはできます）' : 'ふだんどおり動いています。荒らしや乗っ取りに気づいたら、すぐ止められます';
+  $('guardState').className = GUARD_RO ? '' : 'muted';
+  const b = $('guardBtn'); b.disabled = false; b.textContent = GUARD_RO ? '元に戻す' : 'すべての書き込みを止める'; b.className = GUARD_RO ? '' : 'danger';
+}
+$('guardBtn').onclick = async () => {
+  const on = !GUARD_RO;
+  if (!(await ask(on ? 'すべての書き込みを止めますか？' : '元に戻しますか？',
+    on ? '運営以外の人は、感想・投稿・いいね・フォローなどを送れなくなります。サイトの上に「メンテナンス中」と出ます。遊ぶ・見るのはそのままです。いつでも元に戻せます。'
+       : 'ふだんどおり、みんなが感想などを送れるようになります。', false))) return;
+  toast(await rpc('admin_settings_set', { p_key: 'read_only', p_value: on ? 1 : 0 }));
+  try { sessionStorage.removeItem('tpb:status') } catch (_) {}
+  await loadGuard();
+};
+
 async function start(){
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { $('who').textContent=''; show('loginBox'); return; }
   $('who').textContent = session.user.email || '';
   const admin = await rpc('is_admin');
-  if (admin) { show('app'); await loadAll(); return; }
+  if (admin) { show('app'); loadGuard(); await loadAll(); return; }
   // 管理者がもういるなら「管理者にする」は出さない（admin_exists は supabase/010。まだ無いときも、いるものとして扱う）
   const { data: exists, error } = await sb.rpc('admin_exists');
   show(!error && exists === false ? 'claimBox' : 'denyBox');
@@ -573,7 +597,7 @@ async function loadPts(){
   PTU = users; renderPtSet(set); renderPtUsers();
 }
 function renderPtSet(set){
-  $('ptSet').innerHTML = set.filter(r => !/^ai_coach/.test(r.key)).map(r => `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(r.label)}<br><span class="muted">${esc(r.key)}</span></label>
+  $('ptSet').innerHTML = set.filter(r => !/^ai_coach|^read_only$/.test(r.key)).map(r => `<div class="bar" style="margin:0"><label style="flex:1;min-width:14em">${esc(r.label)}<br><span class="muted">${esc(r.key)}</span></label>
     <input type="number" min="0" max="100000" step="1" value="${Number(r.value)}" data-key="${esc(r.key)}" data-old="${Number(r.value)}" aria-label="${esc(r.label)}" style="width:7em" inputmode="numeric"><button data-setsave="${esc(r.key)}">保存</button></div>`).join('');
 }
 $('ptSet').onclick = async e => {

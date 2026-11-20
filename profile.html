@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>プロフィール｜テストプレイ部</title>
 <meta name="description" content="テストプレイ部で作品を出している人のプロフィールと、作品の一覧。">
@@ -44,7 +46,7 @@
 <main id="main" class="pf"><p class="skel">読み込み中…</p></main>
 <footer><a href="./list.html">← 作品一覧に戻る</a><a href="./creators.html">作品を載せたい人へ</a></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/vendor/supabase-2.119.2.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
 <script src="assets/pwa.js"></script>

@@ -11,7 +11,7 @@ const ROOT = new URL("./", self.location).href;
 const OFFLINE = ROOT + "offline.html";
 const MAX_PAGES = 30;
 // 外でも、読み込むだけの部品（CSS・JS・フォント）は stale-while-revalidate してよい
-const SHARED_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"];
+const SHARED_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {

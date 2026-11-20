@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>集める情報と使い道｜テストプレイ部</title>
 <meta name="description" content="テストプレイ部が集める情報と、その使い道。">
@@ -36,7 +38,7 @@
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
 <h2>運営者と連絡先</h2>
-<p>運営者：たざろす（ゲーム企画を目指す学生。テストプレイ部の発起人）。連絡先は<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>です。</p>
+<p>運営者：舘崎 慶（たざろす。ゲーム企画を目指す学生。テストプレイ部の発起人）。連絡先は<a href="mailto:tatekei170+tpb@gmail.com">tatekei170+tpb@gmail.com</a>、または<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>です。サイトの使い方の決まりは<a href="./terms.html">利用規約</a>、守り方は<a href="./security.html">安全への取り組み</a>にあります。</p>
 <h2>集めるもの</h2>
 <ul>
 <li><b>端末ごとのID</b>：ブラウザに保存するランダムな文字列です。名前やメールアドレスとはつながっていません</li>
@@ -48,7 +50,8 @@
 <li><b>PCで遊ぶリスト</b>：スマホで「PCで遊ぶリストに入れる」にした作品。ログインしていないときはこの端末のブラウザにだけ残し、ログインしているときは、あなたのアカウントにも保存します（ログインしたとき、この端末の分を引き継ぎます）。本人だけが見られ、200本までです。PCで遊ぶと、リストから外れます</li>
 <li><b>感想</b>：送った内容と、送ったアカウント（ログインした人のみ）</li>
 <li><b>この端末に残すもの（アプリとして使うとき）</b>：ホーム画面に追加して使えるよう、サイトの画面・CSS・JS・画像を、ブラウザの中（service worker のキャッシュ）に一時的に残します。ネットにつながらないときの表示と、読み込みを早くするためです。外のサーバーには送りません。ブラウザの設定で消せます。「先読みする」のオン・オフも、この端末の中だけに記録します</li>
-<li><b>AIコーチ</b>：感想シートの「AIに見てもらう」を押したときだけ、その感想の文と作品の説明が Anthropic の Claude API に送られます（使わなければ送られません）</li>
+<li><b>AIコーチ</b>：ログインして感想シートの一言を書いていると、手を止めたときに自動で、その文・作品の名前と説明・作者が選んだ「ほしい感想の温度」と目標が、Anthropic の Claude API に送られ、言いかえの提案が返ってきます。運営のデータベースに残るのは、使った回数と時刻だけです（文は残しません）。Anthropic の決まりでは、API に送られたデータは、原則として AI の学習には使われません</li>
+<li><b>回数の数え表</b>：荒らしや大量の送信を止めるため、感想・いいねなどを送ったとき、1時間ごとの回数を「端末のID」「アカウント」「ネットワークの指紋」ごとに数えます。ネットワークの指紋は、IPアドレスに秘密の文字列と日付をまぜて作った16文字で、IPアドレスそのものは保存しません。日付が変わると別の指紋になり、数え表は2日で消えます</li>
 <li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>
 <li><b>プロフィール</b>：自分で書いた名前・ID・ひとこと・リンク・アイコンの画像（作った人だけ。だれでも見られます）</li>
 <li><b>作品の応募</b>：応募フォームに書いた内容と、送ったアカウント</li>
@@ -73,14 +76,14 @@
 <li>感想を書いた人のプロフィールが、感想の横に出ることはありません。報告は運営だけが見ます</li>
 </ul>
 <h2>保存する場所</h2>
-<p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
+<p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。データが消えたときに戻せるよう、データベースのバックアップを、パスワードで暗号化して30日間だけ保管します（GitHub の中。暗号を解く鍵は運営だけが持っています）。</p>
 <p>プロフィールの動画はYouTubeから読み込みます（押したときだけ）。</p>
 <p>文字のデザイン（フォント）はGoogle Fontsから読み込みます。このとき、Googleにアクセス元の情報（IPアドレスなど）が送られます。</p>
 <h2>消してほしいとき</h2>
-<p>自分の感想やアカウントの情報を消してほしいときは、<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
+<p>自分の感想やアカウントの情報を消してほしいときは、<a href="mailto:tatekei170+tpb@gmail.com">メール</a>か<a href="https://discord.gg/NXYSmu4rAY" target="_blank" rel="noopener">Discord</a>で運営に連絡してください（バックアップの中の分も、30日で消えます）。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
 <p>いいねは<a href="./me.html#likes">マイページの「いいね」</a>から1本ずつ外せます。履歴は<a href="./me.html#history">マイページの「履歴」</a>の「履歴を消す」で、まとめて消せます（このブラウザの記録も一緒に消えます）。フォローは、相手のプロフィールの「フォロー中」を押すと、いつでもやめられます。</p>
-<p class="muted">2026年11月21日 テスト結果カードについて追記（同日 フォローについて追記、いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
+<p class="muted">2026年11月21日 AIコーチの説明を今の動きに直し、回数の数え表・バックアップ・連絡先を追記。同日 テスト結果カードについて追記（同日 フォローについて追記、いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
 </div></section>
 </main>
 <footer><a href="./list.html">← 作品一覧に戻る</a></footer>
@@ -112,7 +115,7 @@ document.addEventListener('click',function(ev){
  }catch(e){}
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="assets/vendor/supabase-2.119.2.js" defer></script>
 <script src="assets/data.js" defer></script>
 <script src="assets/tpb.js" defer></script>
 <script src="assets/pwa.js" defer></script>

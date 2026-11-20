@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>テストプレイ部｜学生のゲームを5分でつまみ食い</title>
 <meta name="description" content="学生のゲームを、5分でつまみ食い。スワイプして、気になったら遊んで、一言感想を送ろう。">
@@ -529,7 +531,8 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
     <p class="msg" id="lMsg" aria-live="polite"></p>
     <div id="lOtp"></div>
     <button class="btn ghost" type="button" id="lClose">あとで</button>
-    <p class="who"><a href="privacy.html" style="color:inherit">集める情報と使い道</a></p>
+    <p class="who safe"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>パスワードは預かりません。通信は暗号化しています（<a href="security.html" style="color:inherit">安全への取り組み</a>）</p>
+    <p class="who">ログインすると、<a href="terms.html" style="color:inherit">利用規約</a>と<a href="privacy.html" style="color:inherit">集める情報と使い道</a>に同意したことになります</p>
   </div>
 </div>
 
@@ -581,7 +584,7 @@ em.req{background:var(--paper-2);color:var(--ink);border-radius:3px}
   </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="assets/vendor/supabase-2.119.2.js" defer></script>
 <script src="assets/rank.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
@@ -1262,7 +1265,8 @@ $('sheet').addEventListener('submit',async e=>{
     } else {
       const code=error.code||'', m=error.message||'';
       msg.className='msg err';
-      if(code==='23505') msg.textContent='この作品にはもう感想を送ってるよ。ありがとう！';
+      if(window.TPB&&TPB.guardMsg&&TPB.guardMsg(m)) msg.textContent=TPB.guardMsg(m);
+      else if(code==='23505') msg.textContent='この作品にはもう感想を送ってるよ。ありがとう！';
       else if(m==='banned_word') msg.textContent='使えない言葉が入っているみたい。言い方を変えてみてね';
       else if(m==='banned') msg.textContent='このアカウントからは感想を送れなくなっています。心当たりがない場合は運営に連絡してね';
       else if(m==='lazy_dev') msg.textContent='同じ言葉のくり返しになっているみたい。遊んで気づいたことを具体的に書いてね';

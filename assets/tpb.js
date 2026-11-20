@@ -427,7 +427,7 @@
         el("hr"),
         item("creators", BASE + "creators.html", "作品を載せたい人へ"), item("submit", BASE + "submit.html", "作品を応募する"),
         disc ? item("discord", disc, "Discordに参加する", true) : null),
-      el("div", { class: "sd-foot" }, el("img", { class: "sd-desk", src: BASE + "assets/art/desk.webp", alt: "", width: 140, height: 140, loading: "lazy" }), el("p", null, "学生のゲームを、", el("br"), "学生が遊ぶ部室。"), el("a", { href: BASE + "list.html#about" }, "運営について"), el("a", { href: BASE + "privacy.html" }, "集める情報と使い道")));
+      el("div", { class: "sd-foot" }, el("img", { class: "sd-desk", src: BASE + "assets/art/desk.webp", alt: "", width: 140, height: 140, loading: "lazy" }), el("p", null, "学生のゲームを、", el("br"), "学生が遊ぶ部室。"), el("a", { href: BASE + "list.html#about" }, "運営について"), el("a", { href: BASE + "privacy.html" }, "集める情報と使い道"), el("a", { href: BASE + "terms.html" }, "利用規約"), el("a", { href: BASE + "security.html" }, "安全への取り組み")));
     var first = b.firstElementChild; if (first && first.classList.contains("skip")) first.after(side); else b.prepend(side);
     // 右上の自分のアイコン：ページに置いていないときは、PCだけで出す（スマホの見た目は変えない）
     var hd = document.querySelector("header.bar");
@@ -455,7 +455,7 @@
     function a(href, text, ext) { return el("a", { href: href, target: ext ? "_blank" : null, rel: ext ? "noopener" : null }, text) }
     var box = el("aside", { class: "about", id: "about", "aria-label": "運営について" },
       el("p", { class: "ab-line" }, el("span", { class: "ab-who" }, "運営：舘崎 慶"), a("mailto:tatekei170+tpb@gmail.com", "連絡"), a("https://x.com/tazarosu", "X", true), a("https://www.youtube.com/@tazarosu", "YouTube", true),
-        disc ? a(disc, "Discord", true) : null, a(BASE + "privacy.html", "集める情報と使い道")),
+        disc ? a(disc, "Discord", true) : null, a(BASE + "privacy.html", "集める情報と使い道"), a(BASE + "terms.html", "利用規約"), a(BASE + "security.html", "安全への取り組み")),
       el("p", { class: "ab-cr" }, "イラスト：Google AI Studio で作成"));
     var w = document.querySelector(".wrap"); (w || document.body).append(box);
   };
@@ -599,7 +599,7 @@
     }).catch(function () {});
     return el("section", { class: "card", style: "max-width:460px;margin:0 auto;width:100%" }, el("div", { class: "body" },
       el("h1", { style: "font-size:20px;margin:0" }, title), el("p", { class: "muted", style: "margin:0;font-size:14px" }, text),
-      prov, form, msg, otp, el("a", { class: "by", href: T.base + "privacy.html" }, "集める情報と使い道")));
+      prov, form, msg, otp, el("p", { class: "by", style: "margin:0;font-size:12px" }, "パスワードは預かりません。通信は暗号化しています（", el("a", { href: T.base + "security.html" }, "安全への取り組み"), "）"), el("p", { class: "by", style: "margin:0;font-size:12px" }, "ログインすると、", el("a", { href: T.base + "terms.html" }, "利用規約"), "と", el("a", { href: T.base + "privacy.html" }, "集める情報と使い道"), "に同意したことになります")));
   };
 
   // ---- ポイント（計算はぜんぶデータベースの中。ここは見せるだけ） ----
@@ -742,7 +742,7 @@ T.linkLabel = function (url) {
   var F = T.follow = {};
   var ERR = { too_fast: "操作が速すぎます。少し待ってから、もう一度試してね", follow_limit: "フォローできるのは1000人までです", banned: "このアカウントではフォローできなくなっています",
     need_profile: "フォローするには、先にマイページでプロフィール（名前とID）を作ってね", not_logged_in: "ログインが切れたみたい。もう一度ログインしてね", no_such_user: "この人は見つかりませんでした", self: "自分はフォローできません" };
-  F.errText = function (e) { return ERR[e && e.message] || "フォローできませんでした。時間をおいてもう一度試してね" };
+  F.errText = function (e) { return (T.guardMsg && T.guardMsg(e)) || ERR[e && e.message] || "フォローできませんでした。時間をおいてもう一度試してね" };
   // フォロー中の作者が持つ作品 [{game_slug, handle}]。5分は端末の記録を使う（ページを開くたびに問い合わせない）
   var _mine = null;
   F.mine = function (force) {
@@ -1037,4 +1037,35 @@ T.linkLabel = function (url) {
       var pf = el("link", { rel: "prefetch", href: abs.href, as: "document" }); pf.id = key; document.head.append(pf);
     }
   };
+})();
+
+// ---- 守り：回数制限・緊急停止のときの言葉と、止めている間のお知らせ ----
+(function () {
+  var T = window.TPB; if (!T) return;
+  var MSG = {
+    too_many: "短い時間にたくさん送られたので、いったん止めています。しばらく（長くても1時間）たってから、もう一度試してね",
+    read_only: "いまメンテナンス中で、感想・投稿・いいねなどは送れません。遊ぶことはできます。少しあとでもう一度試してね"
+  };
+  // エラーが守りによるものなら、その言葉を返す（ちがえば null）
+  T.guardMsg = function (e) { var m = e && (e.message || e); return (typeof m === "string" && MSG[m]) || null };
+  function banner() {
+    if (document.getElementById("tpbPaused")) return;
+    var b = document.createElement("div"); b.id = "tpbPaused"; b.setAttribute("role", "status");
+    b.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:9999;padding:8px 14px;background:#2A241E;color:#F6F1E7;font:700 13px/1.5 'Noto Sans JP',sans-serif;text-align:center";
+    b.textContent = "メンテナンス中：遊ぶことはできますが、感想・投稿・いいねなどはいま送れません";
+    document.body.append(b);
+  }
+  function check() {
+    try {
+      var c = JSON.parse(sessionStorage.getItem("tpb:status") || "null");
+      if (c && Date.now() - c.t < 180000) { if (c.ro) banner(); return }
+    } catch (_) {}
+    var sb = T.sb && T.sb(); if (!sb) return;
+    sb.rpc("site_status").then(function (r) {
+      var ro = !!(r && r.data && r.data.read_only);
+      try { sessionStorage.setItem("tpb:status", JSON.stringify({ t: Date.now(), ro: ro })) } catch (_) {}
+      if (ro) banner();
+    }, function () {});
+  }
+  if (document.readyState === "complete") setTimeout(check, 800); else addEventListener("load", function () { setTimeout(check, 800) });
 })();

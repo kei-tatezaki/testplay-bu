@@ -23,6 +23,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent
 BASE = os.environ.get("BASE_URL", "").rstrip("/")
 DISCORD_INVITE = "https://discord.gg/NXYSmu4rAY"  # 期限なしの招待リンク
+CONTACT_MAIL = "tatekei170+tpb@gmail.com"  # 運営の連絡先（フッターと同じ）
 # 公開してよいキー（publishable）。データベース側のルールで守っている
 SB_URL = os.environ.get("SB_URL", "https://jwrzqaxuvmdbroemenng.supabase.co")
 SB_KEY = os.environ.get("SB_KEY", "sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u")
@@ -837,11 +838,45 @@ button:active{transform:translateY(3px);box-shadow:none}
 """
 
 
+# ---- 守り：読み込んでよい場所を決める（Content-Security-Policy）。書き換えられたスクリプトがあっても、外へ送れない・外のスクリプトを読めない
+SB_HOST = "https://jwrzqaxuvmdbroemenng.supabase.co"
+CSP = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    f"img-src 'self' data: blob: https:",
+    f"media-src 'self' blob: {SB_HOST}",
+    f"connect-src 'self' {SB_HOST} wss://jwrzqaxuvmdbroemenng.supabase.co",
+    "frame-src 'self' https:",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+])
+SECURITY_META = (f'<meta http-equiv="Content-Security-Policy" content="{CSP}">\n'
+                 '<meta name="referrer" content="strict-origin-when-cross-origin">')
+
+
+def inject_security_meta(path):
+    """手で書いたページにも同じ守りを入れる（なければ charset の直後に。あれば最新に置きかえる）"""
+    s = path.read_text(encoding="utf-8")
+    pat = re.compile(r'<meta http-equiv="Content-Security-Policy"[^>]*>\n<meta name="referrer"[^>]*>')
+    if pat.search(s):
+        s2 = pat.sub(lambda m: SECURITY_META, s, count=1)
+    else:
+        s2 = s.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + SECURITY_META, 1)
+    if s2 != s:
+        path.write_text(s2, encoding="utf-8")
+
+
 def page(title, desc, url, image, body, prefix):
     return f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+{SECURITY_META}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
@@ -871,7 +906,7 @@ def page(title, desc, url, image, body, prefix):
 <body>
 {body}
 {TRACK_JS}
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="{prefix}assets/vendor/supabase-2.119.2.js" defer></script>
 <script src="{prefix}assets/data.js" defer></script>
 <script src="{prefix}assets/tpb.js" defer></script>
 <script src="{prefix}assets/pwa.js" defer></script>
@@ -969,6 +1004,10 @@ def build():
     for g in games:
         if g.get("play_kind") not in (None, "browser", "download"):
             raise SystemExit(f"{g['slug']}: play_kind は browser か download にしてください")
+        # 守り：このサイトと同じ場所（play/）に置けるのは運営のゲームだけ。ほかの人のゲームを同じ場所に置くと、
+        # そのゲームの中のスクリプトが、ログイン中の人の情報を読めてしまう。itch.io や自分の github.io に置いてもらう
+        if str(g.get("play", "")).startswith("play/") and g.get("creator") != "unei":
+            raise SystemExit(f"{g['slug']}: ほかの人のゲームは play/ に置けません。itch.io などの公開ページを play に書いてください")
         if g.get("embed") and not EMBED_RE.match(g["embed"]):
             raise SystemExit(f"{g['slug']}: embed は https://itch.io/embed-upload/数字 の形にしてください")
         if is_download(g) and not g.get("platform"):
@@ -1010,7 +1049,7 @@ def build():
 <section class="card" id="fiCard" hidden><div class="body"><h2>第一印象（動画を見た人）</h2><p class="by">遊ぶ前に、ショートの動画を見て「遊んでみたい？」に答えた人の数です。感想とは別のものです。</p><div id="fiBox"></div></div></section>
 <section class="card"><div class="body"><h2>みんなの感想</h2><div id="fbsum" class="by"></div><div id="react" class="by"></div><div id="fb" class="fblist">読み込み中…</div></div></section>
 </main>
-<footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a></footer>
+<footer><a href="../../list.html">← 作品一覧に戻る</a><a href="../../privacy.html">集める情報と使い道</a><a href="../../terms.html">利用規約</a></footer>
 </div>
 <script>
 (function(){{
@@ -1100,7 +1139,7 @@ addEventListener('load',()=>{{ if(!window.TPB||!TPB.fi) return; TPB.fi.public('{
 {cards}
 </main>
 <div class="empty eb" id="empty" hidden><img class="eb-img" src="assets/art/empty_board.webp" alt="" width="640" height="640" loading="lazy"><p class="eb-t">この条件の作品はありません。条件を外して、ほかの作品を見てみよう。</p><button type="button" class="btn" id="fReset" style="min-height:44px">条件をリセット</button></div>
-<footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
+<footer><span>遊ぶのは登録なし。感想を書くときだけログイン</span><span>{len(games)}作品</span><a href="./creators.html">作品を載せたい人へ</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./terms.html">利用規約</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <script>
 let F='',P='',G='',M='',FOL=false,FOLSET=null,FAST=false,PCL=null;
@@ -1285,7 +1324,7 @@ addEventListener('load',()=>{{if(!(window.TPB&&TPB.follow))return;TPB.follow.min
 <small>運営がひとりで遊んでから載せます。1週間ほどかかることがあります。</small>
 </aside>
 </main>
-<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./dev.html">開発者ページ</a></footer>
+<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./submit.html">作品を応募する</a><a href="./me.html">マイページ</a><a href="./privacy.html">集める情報と使い道</a><a href="./terms.html">利用規約</a><a href="./dev.html">開発者ページ</a></footer>
 </div>
 <style>
 .hero-c h1{{font-size:clamp(28px,6vw,40px);line-height:1.25;margin:4px 0 8px}}
@@ -1351,7 +1390,7 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <h1 style="font-size:24px;margin:0 0 8px">集める情報と使い道</h1>
 <p>テストプレイ部では、作品をよくするための数字と、荒らし対策のために、次の情報を集めています。広告のための追跡はしていません。</p>
 <h2>運営者と連絡先</h2>
-<p>運営者：たざろす（ゲーム企画を目指す学生。テストプレイ部の発起人）。連絡先は<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。</p>
+<p>運営者：舘崎 慶（たざろす。ゲーム企画を目指す学生。テストプレイ部の発起人）。連絡先は<a href="mailto:{CONTACT_MAIL}">{CONTACT_MAIL}</a>、または<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>です。サイトの使い方の決まりは<a href="./terms.html">利用規約</a>、守り方は<a href="./security.html">安全への取り組み</a>にあります。</p>
 <h2>集めるもの</h2>
 <ul>
 <li><b>端末ごとのID</b>：ブラウザに保存するランダムな文字列です。名前やメールアドレスとはつながっていません</li>
@@ -1363,7 +1402,8 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <li><b>PCで遊ぶリスト</b>：スマホで「PCで遊ぶリストに入れる」にした作品。ログインしていないときはこの端末のブラウザにだけ残し、ログインしているときは、あなたのアカウントにも保存します（ログインしたとき、この端末の分を引き継ぎます）。本人だけが見られ、200本までです。PCで遊ぶと、リストから外れます</li>
 <li><b>感想</b>：送った内容と、送ったアカウント（ログインした人のみ）</li>
 <li><b>この端末に残すもの（アプリとして使うとき）</b>：ホーム画面に追加して使えるよう、サイトの画面・CSS・JS・画像を、ブラウザの中（service worker のキャッシュ）に一時的に残します。ネットにつながらないときの表示と、読み込みを早くするためです。外のサーバーには送りません。ブラウザの設定で消せます。「先読みする」のオン・オフも、この端末の中だけに記録します</li>
-<li><b>AIコーチ</b>：感想シートの「AIに見てもらう」を押したときだけ、その感想の文と作品の説明が Anthropic の Claude API に送られます（使わなければ送られません）</li>
+<li><b>AIコーチ</b>：ログインして感想シートの一言を書いていると、手を止めたときに自動で、その文・作品の名前と説明・作者が選んだ「ほしい感想の温度」と目標が、Anthropic の Claude API に送られ、言いかえの提案が返ってきます。運営のデータベースに残るのは、使った回数と時刻だけです（文は残しません）。Anthropic の決まりでは、API に送られたデータは、原則として AI の学習には使われません</li>
+<li><b>回数の数え表</b>：荒らしや大量の送信を止めるため、感想・いいねなどを送ったとき、1時間ごとの回数を「端末のID」「アカウント」「ネットワークの指紋」ごとに数えます。ネットワークの指紋は、IPアドレスに秘密の文字列と日付をまぜて作った16文字で、IPアドレスそのものは保存しません。日付が変わると別の指紋になり、数え表は2日で消えます</li>
 <li><b>ログインの情報</b>：メールアドレス、またはDiscord・Googleのアカウントの名前とメールアドレス</li>
 <li><b>プロフィール</b>：自分で書いた名前・ID・ひとこと・リンク・アイコンの画像（作った人だけ。だれでも見られます）</li>
 <li><b>作品の応募</b>：応募フォームに書いた内容と、送ったアカウント</li>
@@ -1388,14 +1428,14 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
 <li>感想を書いた人のプロフィールが、感想の横に出ることはありません。報告は運営だけが見ます</li>
 </ul>
 <h2>保存する場所</h2>
-<p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。</p>
+<p>Supabase（東京のサーバー）に保存しています。サイトはGitHub Pagesで公開しています。データが消えたときに戻せるよう、データベースのバックアップを、パスワードで暗号化して30日間だけ保管します（GitHub の中。暗号を解く鍵は運営だけが持っています）。</p>
 <p>プロフィールの動画はYouTubeから読み込みます（押したときだけ）。</p>
 <p>文字のデザイン（フォント）はGoogle Fontsから読み込みます。このとき、Googleにアクセス元の情報（IPアドレスなど）が送られます。</p>
 <h2>消してほしいとき</h2>
-<p>自分の感想やアカウントの情報を消してほしいときは、<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
+<p>自分の感想やアカウントの情報を消してほしいときは、<a href="mailto:{CONTACT_MAIL}">メール</a>か<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>で運営に連絡してください（バックアップの中の分も、30日で消えます）。ブラウザに保存されたIDや記録は、ブラウザのサイトデータを消すと消えます。</p>
 <p>プロフィールとアイコンの画像は、<a href="./me.html">マイページ</a>でいつでも自分で直せます。</p>
 <p>いいねは<a href="./me.html#likes">マイページの「いいね」</a>から1本ずつ外せます。履歴は<a href="./me.html#history">マイページの「履歴」</a>の「履歴を消す」で、まとめて消せます（このブラウザの記録も一緒に消えます）。フォローは、相手のプロフィールの「フォロー中」を押すと、いつでもやめられます。</p>
-<p class="muted">2026年11月21日 テスト結果カードについて追記（同日 フォローについて追記、いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
+<p class="muted">2026年11月21日 AIコーチの説明を今の動きに直し、回数の数え表・バックアップ・連絡先を追記。同日 テスト結果カードについて追記（同日 フォローについて追記、いいね・履歴について追記）（2026年11月19日 作成・プロフィール／応募／報告について追記）</p>
 </div></section>
 </main>
 <footer><a href="./list.html">← 作品一覧に戻る</a></footer>
@@ -1403,6 +1443,130 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
     (ROOT / "privacy.html").write_text(page("集める情報と使い道｜テストプレイ部",
                                             "テストプレイ部が集める情報と、その使い道。",
                                             f"{BASE}/privacy.html", f"{BASE}/og/site.png", privacy, ""), encoding="utf-8")
+
+    # ---- 利用規約 ----
+    head = '<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn ghost" href="./">▶ ショート</a></header>'
+    terms = f"""<div class="wrap">
+{head}
+<main class="prose">
+<section class="card"><div class="body">
+<h1 style="font-size:24px;margin:0 0 8px">利用規約</h1>
+<p>テストプレイ部（このサイトと、公式のDiscordサーバー）を使うときの決まりです。遊ぶだけなら登録はいりません。ログインした人、作品を応募した人は、この規約に同意したものとします。</p>
+<h2>1. 運営者と連絡先</h2>
+<p>運営者：舘崎 慶（テストプレイ部の発起人。学生の個人運営です）。連絡先：<a href="mailto:{CONTACT_MAIL}">{CONTACT_MAIL}</a>、または<a href="{e(DISCORD_INVITE)}" target="_blank" rel="noopener">Discord</a>。</p>
+<h2>2. 使える人</h2>
+<ul>
+<li>作品を遊ぶ・見るのは、だれでもできます</li>
+<li>ログイン・感想・応募は、13歳以上の人ができます。18歳未満の人は、保護者の人に話してから使ってください</li>
+<li>R18の印がついた作品は、18歳以上の人だけが遊べます</li>
+</ul>
+<h2>3. アカウント</h2>
+<ul>
+<li>ログインは Google・Discord・メールのいずれかで行います。テストプレイ部がパスワードを預かることはありません</li>
+<li>ほかの人になりすましたり、ポイントやランキングのために複数のアカウントを使ったりしないでください</li>
+<li>ログインしたままの端末をほかの人に使わせないなど、自分のアカウントは自分で守ってください</li>
+</ul>
+<h2 id="works">4. 応募した作品</h2>
+<ul>
+<li><b>作品の権利は、作った人のままです。</b>テストプレイ部のものにはなりません</li>
+<li>応募した人は、テストプレイ部が作品を紹介するために、作品名・説明・画像・動画を、このサイト・公式Discord・運営のSNS（X・YouTube）で、無料で使うことを許可します。紹介のために、動画を短く切る・小さくする・サムネイルを作る、などの加工をすることがあります</li>
+<li>載せるのをやめたいときは、いつでも運営に連絡してください。サイトからはずします（すでに送られたSNSの投稿などは、できる範囲で消します）</li>
+<li>応募できるのは、自分（またはチーム）で作った作品で、絵・音・フォント・コードなどの素材を、使ってよい条件で使っているものだけです</li>
+<li>人のパソコンやアカウントに害をあたえるもの（ウイルス、情報をぬすむ仕組み、勝手に送金させる仕組みなど）を入れた作品は、応募できません</li>
+<li>性的な表現が中心の作品は載せません。暴力・ホラーなどの表現が強い作品は、R18の印をつけて応募してください</li>
+<li>ダウンロードして遊ぶ作品は、作った人の公開ページ（itch.io など）から配られます。中身の安全は、作った人が責任を持ちます</li>
+</ul>
+<h2>5. 感想</h2>
+<ul>
+<li>感想の文の権利は、書いた人のままです</li>
+<li>書いた人は、作品の作者と運営が、作品をよくするために感想を読み、使うことを許可します。作者が選んだ感想は、テスト結果カードに名前なしで（先頭120字まで）載ることがあります</li>
+<li>感想は作品へのもので、作った人を傷つけるためのものではありません。言いかたに迷ったら、AIコーチの提案も使ってください</li>
+</ul>
+<h2 id="ban">6. してはいけないこと</h2>
+<ul>
+<li>法律に反すること、人をけなす・差別する・おどす・しつこくからむこと</li>
+<li>ほかの人の名前・住所・連絡先・写真などを、本人の許可なく書くこと</li>
+<li>宣伝・同じ内容のくり返し・意味のない文の大量の送信</li>
+<li>サイトやサーバーに勝手に入ろうとする、弱いところを悪用する、大量のアクセスで重くする、自動で大量に送る、など運営をじゃますること</li>
+<li>ほかの人の作品や素材を、許可なく自分のものとして応募すること</li>
+<li>そのほか、運営がテストプレイ部にふさわしくないと判断すること</li>
+</ul>
+<h2>7. 運営ができること</h2>
+<ul>
+<li>この規約に反する感想・プロフィール・作品は、知らせる前に非表示にしたり消したりすることがあります。くり返す場合は、その端末やアカウントから送れなくします</li>
+<li>荒らしや、サイトへの攻撃に気づいたときは、サイト全体の送信を一時的に止めることがあります（遊ぶ・見るのはできます）</li>
+<li>理由は、できる範囲でお知らせします</li>
+</ul>
+<h2>8. AIコーチ</h2>
+<p>感想を書くときの提案は、AI（Anthropic の Claude）が作ります。まちがえることがあるので、送る前に自分で読んで確かめてください。送られる情報は<a href="./privacy.html">集める情報と使い道</a>にあります。1人が1日に使える回数には上限があります。</p>
+<h2>9. ポイント</h2>
+<p>ポイントは、テストプレイ部の中だけで使えるものです。お金や物には換えられません。もらえる数・使い道は、運営が変えることがあります。テストプレイ部が終わるときは、ポイントもなくなります。</p>
+<h2>10. 保証と責任</h2>
+<ul>
+<li>テストプレイ部は無料で、学生が個人で動かしています。いつでも止まらずに動くこと、データが消えないことは約束できません（毎日バックアップを取るよう努めます）</li>
+<li>載っているゲームの動き、ほかのサイト（itch.io などのゲームの公開ページ）やダウンロードしたファイルの中身は、テストプレイ部では保証できません</li>
+<li>テストプレイ部を使ったことで起きた損害について、運営は、運営にわざと（故意）または大きな不注意（重大な過失）がある場合を除き、責任を負いません</li>
+</ul>
+<h2>11. 変更と終了</h2>
+<p>この規約は変えることがあります。大きく変えるときは、サイトとDiscordで先にお知らせします。テストプレイ部を終えるときも、先にお知らせし、データの扱いを案内します。</p>
+<h2>12. 弱いところを見つけたら</h2>
+<p>サイトの安全上の問題に気づいたら、公開する前に運営に知らせてください。くわしくは<a href="./security.html#report">安全への取り組み</a>にあります。</p>
+<h2>13. 法律</h2>
+<p>この規約は日本の法律に従います。</p>
+<p class="muted">2026年11月21日 制定</p>
+</div></section>
+</main>
+<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./privacy.html">集める情報と使い道</a><a href="./security.html">安全への取り組み</a></footer>
+</div>"""
+    (ROOT / "terms.html").write_text(page("利用規約｜テストプレイ部", "テストプレイ部を使うときの決まり。作品の権利、感想、してはいけないこと。",
+                                          f"{BASE}/terms.html", f"{BASE}/og/site.png", terms, ""), encoding="utf-8")
+
+    # ---- 安全への取り組み ----
+    security = f"""<div class="wrap">
+{head}
+<main class="prose">
+<section class="card"><div class="body">
+<h1 style="font-size:24px;margin:0 0 8px">安全への取り組み</h1>
+<p>絶対に安全なサイトはありません。だからテストプレイ部では、<b>入られにくくする</b>、<b>入られても被害を小さくする</b>、<b>すぐ止めて元に戻せる</b>、の3つで守っています。</p>
+<h2>入られにくくする</h2>
+<ul>
+<li><b>パスワードを預かりません。</b>ログインは Google・Discord のアカウントか、メールに届くログイン用のリンクで行います。テストプレイ部から、あなたのパスワードがもれることはありません</li>
+<li><b>通信はすべて暗号化しています</b>（HTTPS）</li>
+<li><b>人のデータは、仕組みとして読めません。</b>データベースの1行1行に「だれが読めるか」の決まりをつけています（行レベルセキュリティ）。ほかの人の履歴やPCで遊ぶリストは、本人しか読めません。運営用の操作は、毎回サーバー側で運営かどうかを確かめます</li>
+<li><b>読み込んでよい場所を決めています。</b>このサイトのページは、決められた場所（このサイトと、データを置いている Supabase など）以外からはスクリプトを読み込まず、データも送りません（Content-Security-Policy）</li>
+<li><b>使っている部品は、このサイトの中に置いて版を固定しています。</b>外の配布元が書きかえられても、その影響を受けません</li>
+<li><b>ほかの人のゲームは、このサイトと分けて動かします。</b>ほかの人のゲームは itch.io などの別の場所に置いてもらい、サイトの中で遊ぶときも、できることを絞った枠（sandbox）で開きます</li>
+<li><b>書かれた文は、ただの文字として表示します。</b>感想やプロフィールにプログラムを書かれても動きません。リンクは https:// のものだけ出します</li>
+<li><b>秘密の鍵は、サイトのコードに入れていません。</b>AIやDiscordにつなぐ鍵は、サーバー側の金庫（Supabase・GitHub のシークレット）にだけ置いています</li>
+</ul>
+<h2>入られても被害を小さくする</h2>
+<ul>
+<li><b>大事な情報を、そもそも持っていません。</b>パスワード・住所・電話番号・お金の情報は集めていません。集めているものは<a href="./privacy.html">集める情報と使い道</a>にすべて書いてあります</li>
+<li><b>送れる回数に上限があります。</b>感想・いいね・応募などは、1時間あたりの回数を、端末・アカウント・ネットワークごとに数えて、多すぎると止めます。AIコーチは1人1日30回までです</li>
+<li><b>応募された動画は、非公開の置き場に入ります。</b>運営だけが、10分で切れるリンクで確かめます</li>
+</ul>
+<h2>すぐ止めて、元に戻せる</h2>
+<ul>
+<li><b>緊急停止スイッチがあります。</b>荒らしや乗っ取りに気づいたら、運営がボタン1つで、サイト全体の送信を止められます。止めている間も、遊ぶ・見るのはできます</li>
+<li><b>毎日バックアップを取ります。</b>データベースを暗号化して、30日分を保管します（準備中）</li>
+<li><b>サイトの変更は、すべて記録が残ります。</b>サイトのコードは GitHub で公開していて、だれが・いつ・何を変えたかが残り、いつでも前の状態に戻せます</li>
+</ul>
+<h2>もし何かあったら</h2>
+<p>情報がもれたなど、使っている人に関わる問題が分かったときは、分かったことと、あなたがすべきことを、サイトとDiscordですぐにお知らせします。</p>
+<h2 id="report">弱いところを見つけたら</h2>
+<p>サイトの安全上の問題に気づいたら、<a href="mailto:{CONTACT_MAIL}?subject=%E5%AE%89%E5%85%A8%E4%B8%8A%E3%81%AE%E5%95%8F%E9%A1%8C">{CONTACT_MAIL}</a> に知らせてください。直すまでは、ほかの人に公開しないでください。</p>
+<ul>
+<li>善意で知らせてくれた人を、責めたり訴えたりはしません</li>
+<li>確かめるときは、自分のアカウントだけを使い、ほかの人のデータを見たり変えたりしないでください。サイトを重くする試し方もやめてください</li>
+<li>直したら、知らせてくれた人に連絡します（希望すれば、お礼として名前をこのページに載せます）</li>
+</ul>
+<p class="muted">2026年11月21日 作成</p>
+</div></section>
+</main>
+<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./privacy.html">集める情報と使い道</a><a href="./terms.html">利用規約</a></footer>
+</div>"""
+    (ROOT / "security.html").write_text(page("安全への取り組み｜テストプレイ部", "テストプレイ部がサイトとデータをどう守っているか。入られにくくする・被害を小さくする・すぐ止めて戻せる。",
+                                             f"{BASE}/security.html", f"{BASE}/og/site.png", security, ""), encoding="utf-8")
 
     # トップはショート風のフィード
     feed_games = [{k: v for k, v in g.items() if not (is_r18(g) and k in ("clip", "youtube", "cover", "thumb"))} for g in games]
@@ -1426,13 +1590,17 @@ details.mini>summary{{cursor:pointer;min-height:44px;display:flex;align-items:ce
                   {"src": "assets/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
                   {"src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}, ensure_ascii=False, indent=2), encoding="utf-8")
     (ROOT / "offline.html").write_text(OFFLINE_HTML, encoding="utf-8")
+    # 守り：すべてのページに「読み込んでよい場所」を入れる（自前のゲーム play/ は対象外）
+    for f in list(ROOT.glob("*.html")) + list(ROOT.glob("games/*/index.html")) + [ROOT / "feed_template.html", ROOT / "src/result.html"]:
+        if f.exists() and '<meta charset="utf-8">' in f.read_text(encoding="utf-8"):
+            inject_security_meta(f)
     # service worker：中身（HTML・JS・CSS・マニフェスト）のハッシュをバージョンにする。変わったら古いキャッシュは全部消える
     h = hashlib.sha1()
     for f in sorted(list(ROOT.glob("*.html")) + list(ROOT.glob("games/*/index.html")) + list(ROOT.glob("assets/*.js")) + list(ROOT.glob("assets/*.css")) + [ROOT / "manifest.webmanifest", ROOT / "src/sw.js"]):
         h.update(f.name.encode() + f.read_bytes())
     (ROOT / "sw.js").write_text((ROOT / "src/sw.js").read_text(encoding="utf-8").replace("__VERSION__", h.hexdigest()[:10]), encoding="utf-8")
     # 検索エンジン向けの一覧（R18の作品ページは入れない）
-    urls = ["", "list.html", "creators.html", "privacy.html"] + [f"profile.html?u={h}" for h in CREATORS] + [f"games/{g['slug']}/" for g in games if not is_r18(g)]
+    urls = ["", "list.html", "creators.html", "privacy.html", "terms.html", "security.html"] + [f"profile.html?u={h}" for h in CREATORS] + [f"games/{g['slug']}/" for g in games if not is_r18(g)]
     (ROOT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                                       + "".join(f"<url><loc>{e(BASE)}/{e(u)}</loc></url>\n" for u in urls) + "</urlset>\n", encoding="utf-8")
     (ROOT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n", encoding="utf-8")

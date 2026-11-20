@@ -5,13 +5,13 @@
  *  - Supabase・functions・外のゲームの URL・POST には触らない（respondWith しない）
  *  - バージョンが変わると、古いキャッシュを全部消す
  */
-const VERSION = "ce05827319";
+const VERSION = "426ce5ee60";
 const STATIC = "tpb-static-" + VERSION, PAGES = "tpb-pages-" + VERSION;
 const ROOT = new URL("./", self.location).href;
 const OFFLINE = ROOT + "offline.html";
 const MAX_PAGES = 30;
 // 外でも、読み込むだけの部品（CSS・JS・フォント）は stale-while-revalidate してよい
-const SHARED_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"];
+const SHARED_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {

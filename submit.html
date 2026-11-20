@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>作品を応募する｜テストプレイ部</title>
 <meta name="description" content="ブラウザで遊べるURLがあれば、ここから作品を応募できます。">
@@ -66,9 +68,9 @@
 <div class="wrap">
 <header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><span class="bar-r"><a class="ghost-link" href="./creators.html">作る人へ</a><span data-me></span></span></header>
 <main id="main" class="stack"><p class="empty">読み込み中…</p></main>
-<footer><a href="./creators.html#url">遊べるURLの作り方</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a></footer>
+<footer><a href="./creators.html#url">遊べるURLの作り方</a> ・ <a href="./me.html">マイページ</a> ・ <a href="./privacy.html">集める情報と使い道</a> ・ <a href="./terms.html">利用規約</a></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/vendor/supabase-2.119.2.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/tpb.js"></script>
 <script src="assets/pwa.js"></script>
@@ -149,7 +151,7 @@ async function send(kind,slug,data,btn,msg){
   btn.disabled=true; msg.className='msg'; msg.textContent='送信中…';
   const {data:res,error}=await sb.rpc('submission_send',{p_kind:kind,p_slug:slug||null,p_data:data});
   btn.disabled=false;
-  if(error){ msg.className='msg err'; msg.textContent=ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; if(error.message==='not_enough_points') loadPts().then(()=>{ drawPts(); drawLf() }); return false }
+  if(error){ msg.className='msg err'; msg.textContent=(window.TPB&&TPB.guardMsg&&TPB.guardMsg(error))||ERR[error.message]||'送れなかった…時間をおいてもう一度試してね'; if(error.message==='not_enough_points') loadPts().then(()=>{ drawPts(); drawLf() }); return false }
   return res||'ok';
 }
 function editForm(){
@@ -267,6 +269,10 @@ function newForm(){
     f.play_url.placeholder=dl?'https://あなたのID.itch.io/ゲーム名':'https://unityroom.com/games/…'; platLabel.hidden=dl; if(dl) f.platform.value='pc' }
   pkRadios.forEach(l=>l.querySelector('input').addEventListener('change',e=>{ setPK(e.target.value) }));
   const msg=el('p',{class:'msg','aria-live':'polite'}), btn=el('button',{class:'btn',type:'submit','aria-describedby':'ptShort'},'応募する'); NEWBTN.length=0; NEWBTN.push(btn);
+  // 応募の前に確かめること（利用規約の「作品の権利」）。チェックしないと送れない
+  const agree=el('input',{type:'checkbox',name:'agree',required:true,style:'width:20px;height:20px;margin:2px 0 0;flex:none'});
+  const agreeLab=el('label',{style:'display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.6;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card)'},agree,
+    el('span',null,'自分（またはチーム）で作った作品で、絵・音・フォントなどの素材も、使ってよいものだけを使っています。',el('a',{href:'./terms.html#works',target:'_blank',rel:'noopener'},'利用規約'),'に同意して応募します。'));
   const form=el('form',{class:'form card',style:'padding:16px',novalidate:true},
     el('h1',{style:'font-size:22px;margin:0'},'作品を応募する'),
     el('p',{class:'muted',style:'margin:0;font-size:14px'},'必須は3つだけ。完成していなくても大丈夫です。運営がひとりで遊んでから載せます。1週間たっても載らなければ、Discordで声をかけてね。',el('br'),'まだURLがない人は、',el('a',{href:'./creators.html#url'},'遊べるURLの作り方'),'を見てね。'),
@@ -285,7 +291,7 @@ function newForm(){
     mSet,
     L('画像のURL',false,'任意。なければ運営が作ります',f.image_url),
     L('メモ',false,'運営に伝えたいこと。プレイ動画のURLがあれば、ここに書いてもOK（任意）',f.note),
-    el('p',{class:'note muted',style:'margin:0;font-size:13px'},'自分で作った作品だけ応募してね。ほかの人の絵や音を使うときは、使ってよいものか確かめてください。'),
+    agreeLab,
     msg, btn, el('p',{class:'msg err',id:'ptShort','aria-live':'polite'}));
   // 書いた内容が、作品ページでどう見えるかをその場で見せる
   // 見本：押せるものではないと分かるよう、うすくして「見本」の印をつける。スマホでは畳んでおく
@@ -308,6 +314,7 @@ function newForm(){
     const d={}; for(const k in f){ const v=f[k].value.trim(); if(v) d[k]=v }
     T.clearFieldErr(form); msg.textContent='';
     if(!d.title){ T.fieldErr(form,f.title,'作品名を入れてね'); return }
+    if(!agree.checked){ T.fieldErr(form,agree,'作品の権利と利用規約を確かめて、チェックを入れてね'); return }
     if(!d.play_url){ T.fieldErr(form,f.play_url,'遊べるURLを入れてね'); return }
     if(!d.oneliner){ T.fieldErr(form,f.oneliner,'一言（何をするゲーム？）を入れてね'); return }
     if(!/^https:\/\/\S+$/.test(d.play_url||'')){ T.fieldErr(form,f.play_url,'遊べるURLは https:// から始まるものを入れてね'); return }

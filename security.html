@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://jwrzqaxuvmdbroemenng.supabase.co; connect-src 'self' https://jwrzqaxuvmdbroemenng.supabase.co wss://jwrzqaxuvmdbroemenng.supabase.co; frame-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>安全への取り組み｜テストプレイ部</title>
+<meta name="description" content="テストプレイ部がサイトとデータをどう守っているか。入られにくくする・被害を小さくする・すぐ止めて戻せる。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="テストプレイ部">
+<meta property="og:title" content="安全への取り組み｜テストプレイ部">
+<meta property="og:description" content="テストプレイ部がサイトとデータをどう守っているか。入られにくくする・被害を小さくする・すぐ止めて戻せる。">
+<meta property="og:url" content="/security.html">
+<meta property="og:image" content="/og/site.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F6F1E7">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="application-name" content="テストプレイ部">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="テストプレイ部">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/side.css">
+</head>
+<body>
+<div class="wrap">
+<header class="bar"><a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="32" height="32">テストプレイ部</a><span class="brand-tag" aria-hidden="true">学生のゲームを、学生が遊ぶ部室</span><a class="btn ghost" href="./">▶ ショート</a></header>
+<main class="prose">
+<section class="card"><div class="body">
+<h1 style="font-size:24px;margin:0 0 8px">安全への取り組み</h1>
+<p>絶対に安全なサイトはありません。だからテストプレイ部では、<b>入られにくくする</b>、<b>入られても被害を小さくする</b>、<b>すぐ止めて元に戻せる</b>、の3つで守っています。</p>
+<h2>入られにくくする</h2>
+<ul>
+<li><b>パスワードを預かりません。</b>ログインは Google・Discord のアカウントか、メールに届くログイン用のリンクで行います。テストプレイ部から、あなたのパスワードがもれることはありません</li>
+<li><b>通信はすべて暗号化しています</b>（HTTPS）</li>
+<li><b>人のデータは、仕組みとして読めません。</b>データベースの1行1行に「だれが読めるか」の決まりをつけています（行レベルセキュリティ）。ほかの人の履歴やPCで遊ぶリストは、本人しか読めません。運営用の操作は、毎回サーバー側で運営かどうかを確かめます</li>
+<li><b>読み込んでよい場所を決めています。</b>このサイトのページは、決められた場所（このサイトと、データを置いている Supabase など）以外からはスクリプトを読み込まず、データも送りません（Content-Security-Policy）</li>
+<li><b>使っている部品は、このサイトの中に置いて版を固定しています。</b>外の配布元が書きかえられても、その影響を受けません</li>
+<li><b>ほかの人のゲームは、このサイトと分けて動かします。</b>ほかの人のゲームは itch.io などの別の場所に置いてもらい、サイトの中で遊ぶときも、できることを絞った枠（sandbox）で開きます</li>
+<li><b>書かれた文は、ただの文字として表示します。</b>感想やプロフィールにプログラムを書かれても動きません。リンクは https:// のものだけ出します</li>
+<li><b>秘密の鍵は、サイトのコードに入れていません。</b>AIやDiscordにつなぐ鍵は、サーバー側の金庫（Supabase・GitHub のシークレット）にだけ置いています</li>
+</ul>
+<h2>入られても被害を小さくする</h2>
+<ul>
+<li><b>大事な情報を、そもそも持っていません。</b>パスワード・住所・電話番号・お金の情報は集めていません。集めているものは<a href="./privacy.html">集める情報と使い道</a>にすべて書いてあります</li>
+<li><b>送れる回数に上限があります。</b>感想・いいね・応募などは、1時間あたりの回数を、端末・アカウント・ネットワークごとに数えて、多すぎると止めます。AIコーチは1人1日30回までです</li>
+<li><b>応募された動画は、非公開の置き場に入ります。</b>運営だけが、10分で切れるリンクで確かめます</li>
+</ul>
+<h2>すぐ止めて、元に戻せる</h2>
+<ul>
+<li><b>緊急停止スイッチがあります。</b>荒らしや乗っ取りに気づいたら、運営がボタン1つで、サイト全体の送信を止められます。止めている間も、遊ぶ・見るのはできます</li>
+<li><b>毎日バックアップを取ります。</b>データベースを暗号化して、30日分を保管します（準備中）</li>
+<li><b>サイトの変更は、すべて記録が残ります。</b>サイトのコードは GitHub で公開していて、だれが・いつ・何を変えたかが残り、いつでも前の状態に戻せます</li>
+</ul>
+<h2>もし何かあったら</h2>
+<p>情報がもれたなど、使っている人に関わる問題が分かったときは、分かったことと、あなたがすべきことを、サイトとDiscordですぐにお知らせします。</p>
+<h2 id="report">弱いところを見つけたら</h2>
+<p>サイトの安全上の問題に気づいたら、<a href="mailto:tatekei170+tpb@gmail.com?subject=%E5%AE%89%E5%85%A8%E4%B8%8A%E3%81%AE%E5%95%8F%E9%A1%8C">tatekei170+tpb@gmail.com</a> に知らせてください。直すまでは、ほかの人に公開しないでください。</p>
+<ul>
+<li>善意で知らせてくれた人を、責めたり訴えたりはしません</li>
+<li>確かめるときは、自分のアカウントだけを使い、ほかの人のデータを見たり変えたりしないでください。サイトを重くする試し方もやめてください</li>
+<li>直したら、知らせてくれた人に連絡します（希望すれば、お礼として名前をこのページに載せます）</li>
+</ul>
+<p class="muted">2026年11月21日 作成</p>
+</div></section>
+</main>
+<footer><a href="./list.html">← 作品一覧に戻る</a><a href="./privacy.html">集める情報と使い道</a><a href="./terms.html">利用規約</a></footer>
+</div>
+<script>
+// 対応していない端末で開いたら「遊ぶ」を灰色にして、押したら案内だけ出す（PC用はスマホで、スマホ用はPCで）
+(function(){
+ var dev=(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<820)?'sp':'pc', nm=function(p){return p==='pc'?'PC':'スマホ'}, sel='a[data-only]:not([data-only="'+dev+'"])';
+ function mark(){ document.querySelectorAll(sel).forEach(function(a){ a.classList.add('off'); a.setAttribute('aria-disabled','true'); a.style.cssText+=';background:#8a8580;color:#f1ede6;box-shadow:0 3px 0 #5f5a55' }) }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mark); else mark();
+ document.addEventListener('click',function(ev){
+  var a=ev.target.closest&&ev.target.closest(sel); if(!a) return;
+  ev.preventDefault(); ev.stopImmediatePropagation();
+  var m=document.getElementById('pcOnlyMsg');
+  if(!m){ m=document.createElement('p'); m.id='pcOnlyMsg'; m.setAttribute('role','status'); m.style.cssText='margin:8px 0 0;padding:8px 12px;background:var(--karashi-soft,#F8E6B0);color:var(--ink,#2A241E);border-radius:4px;font-weight:700'; a.insertAdjacentElement('afterend',m) }
+  var n=nm(a.dataset.only); m.textContent='これは'+n+'用のゲームだよ！'+n+'でこのページを開いて遊んでね';
+ },true);
+})();
+document.addEventListener('click',function(ev){
+ var a=ev.target.closest&&ev.target.closest('a[data-play]'); if(!a) return;
+ try{
+  var cid=JSON.parse(localStorage.getItem('tpb:cid')||'""');
+  if(!cid){cid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());localStorage.setItem('tpb:cid',JSON.stringify(cid))}
+  var played=JSON.parse(localStorage.getItem('tpb:played')||'[]'), fresh=played.indexOf(a.dataset.play)<0; if(fresh){played.push(a.dataset.play);localStorage.setItem('tpb:played',JSON.stringify(played))}
+  // 今日のミッション：ダウンロード型は公開ページを開いたら達成。ほかの外のタブは、戻ってきて20秒以上たっていたら
+  if(window.TPB&&TPB.pcl) TPB.pcl.played(a.dataset.play);
+  var M=window.TPB&&TPB.mission; if(M){ if(a.dataset.dl) M.dlOpened(a.dataset.play,fresh); else M.externalStart(a.dataset.play,fresh) }
+  fetch('https://jwrzqaxuvmdbroemenng.supabase.co/rest/v1/game_events',{method:'POST',keepalive:true,headers:{apikey:'sb_publishable_eEHa90AqCPKyQuo7jjMasA_sGbpPh2u','Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:a.dataset.play,kind:'play',client_id:cid})}).catch(function(){});
+ }catch(e){}
+});
+</script>
+<script src="assets/vendor/supabase-2.119.2.js" defer></script>
+<script src="assets/data.js" defer></script>
+<script src="assets/tpb.js" defer></script>
+<script src="assets/pwa.js" defer></script>
+<script src="assets/mission.js" defer></script>
+</body>
+</html>

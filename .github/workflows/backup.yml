@@ -1,0 +1,67 @@
+# 毎日のバックアップ：Supabase のデータを丸ごと書き出し、パスワードで暗号化して GitHub に30日間だけ置く。
+# このリポジトリは公開なので、暗号化していないファイルは絶対に置かない（パスワードを知らないと開けない形にする）。
+# 動かすには、リポジトリの Settings → Secrets and variables → Actions に、本人が次の2つを入れる（Claude は見ない）：
+#   SUPABASE_DB_URL   … Supabase の Connect → 「Session pooler」の接続文字列（パスワード入り）
+#   BACKUP_PASSPHRASE … 長いパスワード（どこか安全な場所にも控えておく。なくすとバックアップを開けない）
+# 2つがまだなければ、何もせずに終わる。
+name: backup
+
+on:
+  schedule:
+    - cron: "37 18 * * *"   # 毎日 3:37（日本時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 設定があるか確かめる
+        id: cfg
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$PASS" ]; then
+            echo "::notice::SUPABASE_DB_URL と BACKUP_PASSPHRASE がまだないので、バックアップは飛ばしました"
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: pg_dump を入れる（Supabase と同じ 17）
+        if: steps.cfg.outputs.ok == '1'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common gnupg
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: 書き出して暗号化する
+        if: steps.cfg.outputs.ok == '1'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          day=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-privileges \
+            --schema=public --schema=auth --format=custom --file=db.dump
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" \
+            --symmetric --cipher-algo AES256 --output "testplay-bu-$day.dump.gpg" db.dump
+          shred -u db.dump
+          ls -la "testplay-bu-$day.dump.gpg"
+          echo "DAY=$day" >> "$GITHUB_ENV"
+
+      - name: 暗号化したファイルだけを置く（30日で消える）
+        if: steps.cfg.outputs.ok == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ env.DAY }}
+          path: testplay-bu-*.dump.gpg
+          retention-days: 30
+          if-no-files-found: error
