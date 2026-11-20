@@ -755,7 +755,14 @@ function endPlay(){
   if(sec<3||sec>21600) return;  // 3秒より短いものは、まちがってひらいたものとして送らない
   try{ fetch(SB_URL+'/rest/v1/play_sessions',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({game_slug:slug,client_id:CLIENT,seconds:sec,device:DEVICE})}).catch(()=>{}) }catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && playing && playing.external) endPlay() });
+// 別のタブで開いたゲームは「このページに戻ってきた」ときを遊び終わりとみなす。20秒以上遊んでいたら「どうだった？」を出す
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible' || !playing || !playing.external) return;
+  const g=GAMES.find(x=>x.slug===playing.slug), sec=(Date.now()-playing.t)/1000;
+  endPlay(); clearTimeout(timer);
+  if(!g || sec<20) return;
+  setTimeout(()=>{ if(!reacts[g.slug] && !sent.has(g.slug)) askAfter(g); else maybeInvite() }, 600);
+});
 addEventListener('pagehide',()=>{ if(playing && !playing.external) endPlay() });
 let warned={};
 function wrongDevice(g){
