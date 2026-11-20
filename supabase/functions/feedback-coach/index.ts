@@ -96,8 +96,12 @@ async function callClaude(userPrompt: string, signal: AbortSignal): Promise<Raw>
     }),
   });
   if (!res.ok) {
-    console.error("claude error", res.status, (await res.text()).slice(0, 500));
-    throw new Error("upstream");
+    const body = (await res.text()).slice(0, 300);
+    console.error("claude error", res.status, body);
+    // 原因が分かるように、状態コードと Anthropic のエラーの種類だけ返す（キーなどは含まれない）
+    const kind = (body.match(/"type":"([a-z_]+_error)"/) || [])[1] ?? "";
+    const msg = (body.match(/"message":"([^"]{0,160})/) || [])[1] ?? "";
+    throw new Error(`upstream|${res.status}|${kind}|${msg}`);
   }
   const data = await res.json();
   const content = (data?.content ?? []) as Array<{ type?: string; input?: Raw; text?: string }>;
@@ -196,7 +200,8 @@ ${text}
     } catch (e) {
       await refund();
       const m = e instanceof Error ? e.message : "";
-      if (m === "upstream" || m === "bad_output") return json({ error: m }, 502, cors);
+      if (m.startsWith("upstream")) { const [, st, kind, msg] = m.split("|"); return json({ error: "upstream", status: st, kind, detail: msg }, 502, cors); }
+      if (m === "bad_output") return json({ error: m }, 502, cors);
       return json({ error: "timeout_or_network" }, 504, cors);
     }
     const comments = (Array.isArray(parsed.comments) ? parsed.comments : [])
