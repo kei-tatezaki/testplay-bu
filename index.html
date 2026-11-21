@@ -397,6 +397,7 @@ fieldset.err{outline:2px solid #B0301B}
  .toast,.toast.stack{left:calc(50% + var(--sw) / 2)}
  body:has(#intro:not([hidden])) .vtag{visibility:visible}
  .end{color:var(--ink)}
+ .slide.endslide::before{content:none}
  .end a{color:var(--shu-ink)}
  /* 最初の案内：付箋。上の帯（1280px未満）か、情報カードの上（1280px以上） */
  .intro{left:calc(var(--sw) + 24px);right:auto;top:8px;width:min(660px,calc(100vw - var(--sw) - 140px))}
@@ -800,7 +801,7 @@ order.forEach((g,idx)=>{
     g.rating==='r18'&&!age18()?ageCover():null);
   feed.append(slide);
 });
-feed.append(el('section',{class:'slide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。',el('br'),el('b',{style:'color:var(--shu-ink)'},'最初の1本は投稿無料')):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
+feed.append(el('section',{class:'slide endslide'},el('div',{class:'end'},el('h2',null,'ぜんぶ見たよ！'),el('p',null,'新しい作品はDiscordでお知らせします。'),ALL_SAMPLE?el('p',null,'いまは運営のお試し作品だけです。最初の作品を募集中です。',el('br'),el('b',{style:'color:var(--shu-ink)'},'最初の1本は投稿無料')):null,el('a',{href:'submit.html'},'自分の作品を応募する'),el('a',{href:DISCORD_DEFAULT,target:'_blank',rel:'noopener'},'Discordに参加する'),el('a',{href:'list.html'},'作品一覧で見る'))));
 
 // ---- おすすめ／フォロー中 ----
 {

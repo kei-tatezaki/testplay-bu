@@ -5,7 +5,7 @@
  *  - Supabase・functions・外のゲームの URL・POST には触らない（respondWith しない）
  *  - バージョンが変わると、古いキャッシュを全部消す
  */
-const VERSION = "4661179063";
+const VERSION = "413dfa001c";
 const STATIC = "tpb-static-" + VERSION, PAGES = "tpb-pages-" + VERSION;
 const ROOT = new URL("./", self.location).href;
 const OFFLINE = ROOT + "offline.html";
